@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TART is a collaborative platform for documenting and preserving the history of urban art. The first deployment is Rome, but the software is meant to be reused by independent local communities ("Rome Urban Art Archive — Powered by TART").
 
-The repository is at the design stage: there is no source code, build system, test suite, or chosen tech stack yet. `README.md` contains the full design brief and is the source of truth for product requirements. Read the relevant sections before making product, architecture, or licensing decisions. When a stack is introduced, add its build/lint/test commands to this file.
+The repository is at the design stage: there is no source code, build system, or test suite yet. The MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`. `README.md` contains the full design brief and is the source of truth for product requirements. Read the relevant sections before making product, architecture, or licensing decisions. When a stack is introduced, add its build/lint/test commands to this file.
 
 ## Language rules (mandatory)
 
