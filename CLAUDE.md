@@ -31,6 +31,17 @@ These come from the brief and apply to any implementation:
 - **No engagement mechanics**: no likes, followers, popularity ranking, or engagement feeds.
 - **Accessibility target**: WCAG 2.2 AA. Nothing essential may depend on hover, and status must never be conveyed by color alone.
 
+## Implementation principles
+
+Follow these in order of priority; when they pull against each other, the earlier one wins:
+
+- **KISS**: choose the simplest design that meets the current requirement.
+- **YAGNI**: build what the brief, an ADR, or the issue at hand requires. Introduce an abstraction when a second concrete case exists. The per-deployment configurability listed above is a stated requirement, so it counts as concrete.
+- **Separation of concerns**: keep domain rules, persistence, UI, i18n resources, and provider integrations in distinct modules.
+- **Low coupling, high cohesion**: group code that changes together; depend on narrow interfaces across module boundaries.
+- **SOLID where it earns its place**: apply a principle when it solves a concrete problem in front of you, typically dependency inversion at provider boundaries (auth, storage, map, email). Simple code stays simple.
+- **Hexagonal architecture where the domain justifies it**: use ports and adapters around domain-rich areas (moderation lifecycle, physical history, attribution and uncertainty) and swappable providers. Thin CRUD and glue code talk to the framework directly.
+
 ## Licensing and rights
 
 - Software, the TART brand (name and logo), local archive data, user-generated content, and the rights to artworks themselves are **separate concerns**. Don't assume the software license covers any of the others.
