@@ -11,7 +11,7 @@ The MVP is a monorepo (`backend/`, `frontend/`, `deploy/`) built on FastAPI and 
 - **Background jobs**: Procrastinate on PostgreSQL, in a separate `worker` container that shares the `api` image, with its own memory and time limits. It handles media derivatives, PDF previews, email delivery, and cleanup of abandoned uploads.
 - **Storage**: a storage adapter with a local-filesystem implementation (the minimal default) and an S3-compatible implementation. The Rome reference uses Hetzner Object Storage. There is no self-hosted S3 server in the reference stack. All objects are private and served through the app, so hiding pending or withdrawn media is a database flag.
 - **Uploads**: the browser streams multipart uploads to FastAPI, which writes to a quarantine area and enqueues processing. Uploads never pass through SvelteKit. Size limits are enforced by both Caddy and the app.
-- **Media processing**: Pillow (WebP renditions, EXIF orientation applied, metadata stripped), pillow-heif for HEIC, pypdfium2 for PDF first-page previews. PyMuPDF (AGPL) and libvips are excluded.
+- **Media processing**: Pillow (WebP renditions, EXIF orientation applied, metadata stripped), pi-heif (decode-only) for HEIC, pypdfium2 for PDF first-page previews. PyMuPDF (AGPL) and libvips are excluded.
 - **Email**: a generic SMTP adapter configured per Instance. Mailpit in development.
 - **Reverse proxy**: Caddy (automatic HTTPS, byte-range requests for same-origin PMTiles, routing, upload limits).
 - **Tooling**: uv, ruff, pytest; pnpm, vitest, Playwright with axe; a dependency licence allow-list check in CI.
@@ -42,4 +42,4 @@ Reference sizing: minimum profile 4 GB RAM, recommended 8 GB. Rome targets a Het
 - SvelteKit 3.0 was released on 2026-10-01; expect lagging ecosystem docs. Pin versions.
 - MapLibre v6 requires WebGL2, so the list-based browse path must be fully functional without the map.
 - Per-container memory use is unmeasured. Measuring it on the first prototype is an explicit risk to the €20/month target.
-- Licence notes for the Licensing Decision Record: PostGIS (GPL-2.0+) and the HEVC codecs bundled with pillow-heif.
+- Licensing (ADR 0011): PostGIS (GPL-2.0+) runs from the upstream image, unmodified. HEIC uses `pi-heif`, whose wheels leave out the GPL x265 encoder that `pillow-heif` bundles (amended from `pillow-heif`); its LGPL decoders and HEVC patents are flagged for legal review.

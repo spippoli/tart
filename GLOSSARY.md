@@ -18,6 +18,10 @@ _Avoid_: Admin, owner, host
 The settings that define what an Instance's archive is (identity, geography, languages, open vocabularies, policies, licences, and the Operator's own texts), set by the Operator and never edited through Submissions.
 _Avoid_: Settings, preferences, Instance data
 
+**Licensor**:
+The holder who offers the TART software under its license and holds the TART name and logo; distinct from every Operator.
+_Avoid_: Owner, maintainer (as the legal role)
+
 **UI language**:
 A language the TART interface is offered in; the platform ships each one complete, and an Instance enables a subset and picks a default.
 _Avoid_: Locale (as a domain term), interface translation

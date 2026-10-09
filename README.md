@@ -238,6 +238,10 @@ Do not write a custom license merely for convenience. Prefer an established stan
 
 If no standard license precisely matches the intended model, explicitly document the gap and recommend legal review before creating a custom license.
 
+### Current decision
+
+TART is source-available under the PolyForm Noncommercial License 1.0.0 (`LICENSE`), provisionally and pending professional legal review. The Licensing Decision Record is [`docs/adr/0011-provisional-software-license.md`](docs/adr/0011-provisional-software-license.md).
+
 ---
 
 ## 7. Separation of software, brand, data, and content
