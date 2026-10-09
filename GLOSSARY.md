@@ -91,8 +91,12 @@ _Avoid_: Visible, no longer visible, existing, gone, status
 ### Physical history
 
 **History event**:
-A dated occurrence in an Artwork's physical life, such as creation, damage, overpainting (optionally linked to the covering Artwork), relocation between Locations, removal, destruction, or a real-world attribution change (e.g. an artist publicly claiming a piece); a correction to an Attribution is a Revision, not a History event.
+A dated occurrence in an Artwork's physical life, such as creation, damage, overpainting (optionally linked to the covering Artwork), a Condition record, relocation between Locations, removal, destruction, or a real-world attribution change (e.g. an artist publicly claiming a piece); a correction to an Attribution is a Revision, not a History event.
 _Avoid_: Change, edit, update, log entry
+
+**Condition record**:
+A `condition recorded` History event stating the Condition an Artwork was observed in on its Observed date (e.g. intact after a restoration, or the Condition given when a new Artwork is documented), without asserting a change.
+_Avoid_: Status update, check-in, condition field
 
 **Creation event**:
 The `created` History event that states when an Artwork was made; an Artwork without one has an unknown creation date, which is distinct from its first documentation (the earliest Observed date of its Documentation items).
