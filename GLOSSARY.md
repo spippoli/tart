@@ -124,12 +124,44 @@ _Avoid_: Author, uploader
 A proposed changeset with one primary target (a new or existing Archive record) that may also create or link related records, Sources, and Documentation items; it becomes part of the archive only once approved, as a whole.
 _Avoid_: Proposal, change request, contribution, edit
 
+**Submission status**:
+Where a Submission stands: draft, submitted, changes requested, approved, rejected, or retracted; approved, rejected, and retracted are final.
+_Avoid_: State, Condition (reserved for Artworks)
+
+**Changes requested**:
+The Submission status in which a Moderator has sent a Submission back to its Submitter for revision before deciding; resubmitting it returns it to submitted.
+_Avoid_: Pending, on hold
+
+**Retraction**:
+The Submitter cancelling their own Submission before a decision is made.
+_Avoid_: Withdrawal (reserved for legal hiding), cancellation, deletion
+
+**Base revision**:
+The Revision of an existing Archive record that an edit Submission was written against.
+_Avoid_: Parent, original
+
+**Outdated**:
+Said of an edit Submission whose changes overlap with fields or items changed since its Base revision, or whose target has been merged or withdrawn; it cannot be approved until revised.
+_Avoid_: Stale, conflicted
+
+**Submission log**:
+The dated record of a Submission's status changes, each with its actor and any Decision message; it is the moderation history, distinct from both Revisions and the Timeline.
+_Avoid_: Audit trail (reserved for Revisions), history
+
+**Decision message**:
+The explanation a Moderator gives the Submitter when rejecting a Submission or requesting changes, made of a reason from the Instance's configured list plus free text.
+_Avoid_: Feedback, comment
+
+**Moderation note**:
+A remark on a Submission visible only to Moderators.
+_Avoid_: Comment, internal message
+
 **Archive record**:
-An approved, authoritative Artwork, Artist, Location, Site, Series, or Area as published to the public.
+An approved, authoritative Artwork, Artist, Location, Site, Series, Area, Source, or Documentation item as published to the public.
 _Avoid_: Entry, listing
 
 **Revision**:
-A version of an Archive record produced by one approved Submission; the sequence of Revisions is the record's audit trail.
+A version of one Archive record produced by an approved Submission; a Submission yields one Revision for each Archive record it creates or changes, and the sequence of Revisions is the record's audit trail.
 _Avoid_: History, edit, change log
 
 **Merge**:
