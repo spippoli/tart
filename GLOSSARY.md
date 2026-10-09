@@ -10,6 +10,14 @@ TART is a collaborative platform for documenting and preserving the history of u
 One deployment of TART serving one local archive (e.g. Rome), with its own configuration, users, and data.
 _Avoid_: Tenant, site, city
 
+**Operator**:
+The person or organisation that runs an Instance: it owns the Instance configuration and the server, assigns roles, and answers for the Instance's legal duties; it is not a User role.
+_Avoid_: Admin, owner, host
+
+**Instance configuration**:
+The settings that define what an Instance's archive is (identity, geography, languages, open vocabularies, policies, licences, and the Operator's own texts), set by the Operator and never edited through Submissions.
+_Avoid_: Settings, preferences, Instance data
+
 **UI language**:
 A language the TART interface is offered in; the platform ships each one complete, and an Instance enables a subset and picks a default.
 _Avoid_: Locale (as a domain term), interface translation
