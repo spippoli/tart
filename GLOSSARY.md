@@ -123,7 +123,7 @@ _Avoid_: Verified, trusted, confidence
 ### People
 
 **Artist**:
-A public creative identity (an individual or a collective) to which Artworks may be attributed, optionally with an Uncertain date period of activity; never a legal identity.
+A public creative identity (an individual or a collective) to which Artworks may be attributed, named only by the names it publicly uses as an artist, optionally with an Uncertain date period of activity; never a legal identity.
 _Avoid_: Author, creator, user
 
 **Alias**:
