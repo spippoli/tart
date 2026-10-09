@@ -70,59 +70,9 @@
   .A-tl .what strong { font: 600 15px var(--serif); }
   .A-tl li.proposed-box { padding: 10px 8px; }
   .A-cites { font-size: 12px; color: var(--ink-2); }
-
-  /* ---------- Variant B: photography first ---------- */
-  .B-top { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
-  @media (max-width: 860px) { .B-top { grid-template-columns: 1fr; } }
-  .B-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
-  .B-card { border: 0; padding: 0; background: none; text-align: left; cursor: pointer; display: flex; flex-direction: column; }
-  .B-card[aria-current="true"] .B-photo { outline: 3px solid var(--ink); outline-offset: 3px; }
-  .B-photo { position: relative; }
-  .B-photo.is-gone img { filter: grayscale(1) contrast(.9); opacity: .85; }
-  .B-ribbon { position: absolute; left: 0; right: 0; top: 0; background: var(--gone); color: #fff; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 8px; display: flex; gap: 6px; align-items: center; }
-  .B-ribbon.unk { background: var(--ink-2); }
-  .B-cap { background: var(--ink); color: var(--paper); padding: 6px 8px; font-size: 12px; display: flex; justify-content: space-between; gap: 6px; }
-  .B-title { font: 600 15px/1.2 var(--serif); margin: 6px 0 2px; }
-  .B-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-  .chip { display: inline-flex; gap: 4px; align-items: center; font-size: 11.5px; border: 1px solid var(--rule); padding: 1px 6px; border-radius: 2px; background: var(--paper); }
-  .chip.dash { border-style: dashed; border-color: var(--ink-2); }
-  .B-hero { position: relative; }
-  .B-hero img { max-height: 420px; object-fit: cover; }
-  .B-detail h2 { font: 600 30px/1.1 var(--serif); margin: 12px 0 6px; }
-  .B-strip { display: flex; gap: 0; overflow-x: auto; padding: 8px 0 4px; border-top: 1px solid var(--ink); position: relative; }
-  .B-frame { flex: none; width: 170px; padding: 0 8px; border-right: 1px dotted var(--rule); font-size: 12.5px; }
-  .B-frame .d { font: 600 13px var(--mono); margin: 6px 0 2px; display: block; }
-  .B-frame.ev { width: 150px; background: var(--paper-2); padding-top: 8px; }
-  .B-frame.ev .bar { height: 6px; background: var(--ink); margin: 4px 0; }
-  .B-frame.ev .bar.range { background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 10px); }
-  .B-tray { margin-top: 16px; padding: 10px 12px; }
-
-  /* ---------- Variant C: ledger / fact sheet ---------- */
-  .C-top { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
-  @media (max-width: 860px) { .C-top { grid-template-columns: 1fr; } }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th { text-align: left; font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); border-bottom: 2px solid var(--ink); padding: 6px; vertical-align: bottom; }
-  td { border-bottom: 1px solid var(--rule); padding: 7px 6px; vertical-align: top; }
-  tr.sel td { background: var(--paper-2); }
-  .C-row button { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; font: 600 14px var(--serif); text-decoration: underline; text-underline-offset: 3px; }
-  .C-code { font: 600 11px var(--mono); border: 1.5px solid currentColor; padding: 0 4px; display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
-  .C-code.gone { color: var(--gone); }
-  .C-code.unk { border-style: dotted; }
-  .C-cert { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
-  .C-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  @media (max-width: 860px) { .C-sheet { grid-template-columns: 1fr; } }
-  .C-sheet h2 { font: 600 26px/1.1 var(--serif); margin: 0 0 8px; }
-  .C-axis { position: relative; height: 22px; border-bottom: 1px solid var(--ink); font: 10px var(--mono); color: var(--ink-2); }
-  .C-axis span { position: absolute; bottom: 2px; transform: translateX(-50%); }
-  .C-lane { position: relative; height: 20px; }
-  .C-lane .mk { position: absolute; top: 5px; height: 10px; }
-  .C-lane .mk.pt { width: 10px; margin-left: -5px; background: var(--ink); border-radius: 50%; }
-  .C-lane .mk.rg { background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 7px); border: 1px solid var(--ink); }
-  .C-lane .mk.open-l::before, .C-lane .mk.open-r::after { content: ""; position: absolute; top: -3px; border: 8px solid transparent; }
-  .C-lane .mk.open-l::before { left: -14px; border-right-color: var(--ink); }
-  .C-lane .mk.open-r::after { right: -14px; border-left-color: var(--ink); }
-  .C-lane .mk.prop { background: none; border: 2px dashed var(--proposed); }
-  .C-tl td:first-child { width: 42%; }
+  .sym-box { margin-top: 18px; padding: 12px 14px; border: 1px solid var(--ink); background: #fff8; font-size: 13.5px; }
+  .sym-key { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--rule); }
+  .A-tl .what .A-cond { font-size: 10.5px; }
 
   /* ---------- notes panel + switcher (not part of the design) ---------- */
   .notes { position: fixed; right: 12px; top: 40px; bottom: 80px; width: min(440px, calc(100vw - 24px)); overflow: auto; background: #fff; color: #111; border: 2px solid #111; box-shadow: 0 8px 30px rgba(0,0,0,.25); padding: 16px 18px; font: 14px/1.5 var(--sans); z-index: 20; filter: none; }
@@ -260,9 +210,9 @@ const PROPOSED_NEW = { id: 'p1', title: 'Senza titolo', expr: ['mural'], area: '
 
 // ---------------------------------------------------------------- state
 const qs = new URLSearchParams(location.search);
-const VARIANTS = [['A', 'Etichetta editoriale'], ['B', 'Prima la fotografia'], ['C', 'Scheda / registro']];
+const VARIANTS = [['1', 'Geometrica astratta'], ['2', 'Pittogrammi'], ['3', 'Cartografia storica']];
 const S = {
-  variant: VARIANTS.some(v => v[0] === qs.get('variant')) ? qs.get('variant') : 'A',
+  sym: VARIANTS.some(v => v[0] === qs.get('sym')) ? qs.get('sym') : '1',
   lang: qs.get('lang') === 'en' ? 'en' : 'it',
   viewer: qs.get('viewer') === 'submitter' ? 'submitter' : 'public',
   gray: qs.get('gray') === '1',
@@ -385,35 +335,123 @@ function evidenceText(e) {
   return e.ev === 'documented' ? `${ICO.src} ${L.ev.documented} · ${L.sources(e.cites)}` : `${L.ev.reported} · ${L.noSources}`;
 }
 
-// ================================================================ Variant A
-// Editorial catalogue: text-first labels, typographic uncertainty (c., [ ], italics),
-// geometric map glyphs, proposals inline in the timeline but hatched and labelled.
-function markerA(a) {
-  const c = condKey(a), g = group(c);
-  const sz = 22;
-  let shape;
-  if (g === 'present') shape = `<circle cx="11" cy="11" r="7" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>`;
-  else if (g === 'gone') shape = `<rect x="4" y="4" width="14" height="14" fill="var(--paper)" stroke="var(--gone)" stroke-width="2.5"/><path d="M4 18L18 4" stroke="var(--gone)" stroke-width="2.5"/>`;
-  else shape = `<circle cx="11" cy="11" r="7.5" fill="var(--paper)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">?</text>`;
-  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}"><svg width="${sz}" height="${sz}" viewBox="0 0 22 22" aria-hidden="true">${shape}</svg></button>`;
-}
-function markerAProposed(p) {
-  return `${halo(p)}<button class="pin" style="${pct(p.x, p.y)}" aria-label="${p.title} — ${t().proposed}"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" fill="var(--paper)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="3 2"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="var(--proposed)">P</text></svg></button>`;
-}
+// ================================================================ Symbologies
+// Layout is fixed (variant A, chosen in round 1). What varies is the symbol set:
+// map markers, condition glyphs, approximate location, proposals.
+const svg = (inner, size = 16, vb = 16, cls = 'ico') => `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 ${vb} ${vb}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">${inner}</svg>`;
+
+// Set 2: descriptive pictograms of what happened to the surface.
+const PICTO = {
+  intact: '<rect x="2" y="3" width="12" height="10" fill="currentColor"/>',
+  deteriorated: '<rect x="2" y="3" width="12" height="10"/><path d="M2 13V9h3V7h3v6zM10 3h4v3h-2V5h-2z" fill="currentColor"/>',
+  damaged: '<rect x="2" y="3" width="12" height="10" fill="currentColor"/><path d="M7 3l2 3-2 2.5L9.5 13" stroke="var(--paper)" stroke-width="1.8"/>',
+  modified: '<rect x="2" y="3" width="12" height="10"/><path d="M4 11.5l8-6.5" stroke-width="2.6" stroke-linecap="round"/>',
+  covered: '<rect x="2" y="5.5" width="9" height="8.5"/><rect x="5" y="2" width="9" height="8.5" fill="currentColor"/>',
+  removed: '<rect x="2" y="5" width="9" height="9" stroke-dasharray="2 1.6"/><path d="M7.5 8.5L14 2M10 2h4v4"/>',
+  destroyed: '<path d="M1.5 14h13M2.5 14l1.5-4 2 2 2-5 2 4 2-2 1.5 5"/><path d="M4 10l1-1M9 7l1 1" />',
+  missing: '<rect x="2" y="2" width="9" height="9" stroke-dasharray="1.4 1.6"/><circle cx="11" cy="11" r="2.6"/><path d="M13 13l2 2"/>',
+  unknown: '<circle cx="8" cy="8" r="6" stroke-dasharray="2 1.5"/><path d="M6.3 6.3a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.4M8 11.6v.4"/>',
+};
+// Set 3: historical-map convention; only the group has a glyph, the word names the Condition.
+const GROUPSIGN = {
+  present: '<rect x="3" y="3" width="10" height="10" fill="currentColor"/>',
+  gone: '<rect x="3" y="3" width="10" height="10" stroke-dasharray="2.4 1.8"/>',
+  unknown: '<rect x="3" y="3" width="10" height="10" stroke-width="2" stroke-dasharray="0.01 2.5" stroke-linecap="round"/>',
+};
+const hatchHalo = a => a.loc.kind === 'approximate' ? `<span aria-hidden="true" style="position:absolute;${pct(a.x, a.y)};width:${a.loc.radius / 4}%;aspect-ratio:1;transform:translate(-50%,-50%);border:1px solid var(--ink-2);border-radius:50%;background:repeating-linear-gradient(45deg, rgba(29,27,24,.22) 0 2px, transparent 2px 6px)"></span>` : '';
+const pinBtn = (a, inner) => `<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}">${inner}</button>`;
+const groupColor = g => g === 'gone' ? 'var(--gone)' : 'var(--ink)';
+
+const SYMBOLOGIES = {
+  1: {
+    name: 'Geometrica astratta',
+    idea: { it: 'Sulla mappa solo 3 forme per gruppo (punto pieno = visibile, quadrato barrato = non più visibile, “?” = sconosciuta). Nel testo, 9 glifi astratti: cerchi per le opere visibili, quadrati per quelle scomparse.', en: 'On the map only 3 group shapes (filled dot = visible, barred square = no longer visible, “?” = unknown). In text, 9 abstract glyphs: circles for visible works, squares for disappeared ones.' },
+    icon: c => condIcon(c),
+    approxIcon: ICO.approx,
+    halo,
+    marker(a) {
+      const g = group(condKey(a));
+      const shape = g === 'present' ? `<circle cx="11" cy="11" r="7" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>`
+        : g === 'gone' ? `<rect x="4" y="4" width="14" height="14" fill="var(--paper)" stroke="var(--gone)" stroke-width="2.5"/><path d="M4 18L18 4" stroke="var(--gone)" stroke-width="2.5"/>`
+        : `<circle cx="11" cy="11" r="7.5" fill="var(--paper)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)" stroke="none">?</text>`;
+      return halo(a) + pinBtn(a, svg(shape, 22, 22, ''));
+    },
+    proposedMarker: p => `${halo(p)}<span class="pin" style="${pct(p.x, p.y)}">${svg('<rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" fill="var(--paper)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="3 2"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="var(--proposed)" stroke="none">P</text>', 24, 24, '')}</span>`,
+    mapLegend(L) {
+      return [
+        [svg('<circle cx="11" cy="11" r="7" fill="var(--ink)"/>', 16, 22, ''), L.group.present],
+        [`<span style="color:var(--gone)">${svg('<rect x="4" y="4" width="14" height="14" stroke-width="2.5"/><path d="M4 18L18 4" stroke-width="2.5"/>', 16, 22, '')}</span>`, L.group.gone],
+        [svg('<circle cx="11" cy="11" r="7.5" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">?</text>', 16, 22, ''), L.group.unknown],
+        [ICO.approx, `${L.loc.approximate} (${S.lang === 'it' ? 'area tratteggiata' : 'dashed area'})`],
+      ];
+    },
+    proposedLegend: () => svg('<rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="3 2"/>', 16, 24, ''),
+  },
+  2: {
+    name: 'Pittogrammi',
+    idea: { it: 'Ogni Condizione ha un pittogramma che descrive cosa è successo alla superficie (crepa, strato sopra, macerie, lente). Lo stesso pittogramma sta nel pin: sulla mappa si distinguono tutte e 9. Pin pieno = visibile, pin vuoto = non più visibile; senza punta = posizione approssimata.', en: 'Each Condition has a pictogram describing what happened to the surface (crack, layer on top, rubble, magnifier). The same pictogram sits in the pin: all 9 are distinguishable on the map. Filled pin = visible, hollow pin = no longer visible; no tip = approximate location.' },
+    icon: c => svg(PICTO[c]),
+    approxIcon: svg('<circle cx="8" cy="7" r="5"/><circle cx="8" cy="8" r="7" stroke-dasharray="1.5 1.5" stroke-width="1"/>'),
+    halo,
+    marker(a) {
+      const c = condKey(a), g = group(c), col = groupColor(g);
+      const tip = a.loc.kind === 'exact';
+      const body = `<path d="${tip ? 'M15 37C15 37 3 22 3 14a12 12 0 0 1 24 0c0 8-12 23-12 23z' : 'M15 26a12 12 0 1 0 0-24a12 12 0 0 0 0 24z'}" fill="${g === 'present' ? 'var(--ink)' : 'var(--paper)'}" stroke="${col}" stroke-width="2" ${g === 'unknown' ? 'stroke-dasharray="3 2"' : ''}/>`;
+      const icon = `<g transform="translate(7 6)" style="color:${g === 'present' ? 'var(--paper)' : col}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">${PICTO[c].replace(/var\(--paper\)/g, 'var(--ink)')}</svg></g>`;
+      return halo(a) + `<button class="pin" style="${pct(a.x, a.y)};transform:translate(-50%,${tip ? '-100%' : '-50%'})" data-sel="${a.id}" aria-label="${pinLabel(a)}"><svg width="30" height="${tip ? 38 : 28}" viewBox="0 0 30 ${tip ? 38 : 28}" aria-hidden="true">${body}${icon}</svg></button>`;
+    },
+    proposedMarker: p => `${halo(p)}<span class="pin" style="${pct(p.x, p.y)}"><svg width="30" height="28" viewBox="0 0 30 28" aria-hidden="true"><circle cx="15" cy="14" r="12" fill="var(--paper)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="3 2"/><g transform="translate(7 6)" style="color:var(--proposed)">${svg('<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/>', 16, 16, '')}</g></svg></span>`,
+    mapLegend(L) {
+      return [
+        [svg('<path d="M15 37C15 37 3 22 3 14a12 12 0 0 1 24 0c0 8-12 23-12 23z" fill="var(--ink)"/>', 14, 38, ''), `${L.group.present} (${S.lang === 'it' ? 'pin pieno' : 'filled pin'})`],
+        [`<span style="color:var(--gone)">${svg('<path d="M15 37C15 37 3 22 3 14a12 12 0 0 1 24 0c0 8-12 23-12 23z" stroke-width="2.5"/>', 14, 38, '')}</span>`, `${L.group.gone} (${S.lang === 'it' ? 'pin vuoto' : 'hollow pin'})`],
+        [svg('<circle cx="15" cy="15" r="12" stroke-width="2.5"/><circle cx="15" cy="15" r="14" stroke-dasharray="2 2" stroke-width="1"/>', 14, 30, ''), `${L.loc.approximate} (${S.lang === 'it' ? 'senza punta' : 'no tip'})`],
+      ];
+    },
+    proposedLegend: () => `<span style="color:var(--proposed)">${svg('<circle cx="8" cy="8" r="6" stroke-dasharray="2 1.5"/><path d="M8 4.5V8l2.5 1.5"/>')}</span>`,
+  },
+  3: {
+    name: 'Cartografia storica',
+    idea: { it: 'Convenzione delle carte storiche: ciò che esiste è pieno, ciò che non c’è più è tratteggiato (come gli edifici demoliti). Solo 3 segni, uno per gruppo; la parola dice quale Condizione. Approssimata = area a tratteggio obliquo, senza punto preciso.', en: 'Historical-map convention: what exists is solid, what is gone is dashed (like demolished buildings). Only 3 signs, one per group; the word names the Condition. Approximate = diagonally hatched area, no precise point.' },
+    icon: c => svg(GROUPSIGN[group(c)]),
+    approxIcon: svg('<circle cx="8" cy="8" r="6.5" stroke-width="1"/><path d="M4 12l8-8M3 8.5L8.5 3M7.5 13L13 7.5" stroke-width="1"/>'),
+    halo: hatchHalo,
+    marker(a) {
+      const g = group(condKey(a)), col = groupColor(g);
+      const s = a.loc.kind === 'approximate' ? 11 : 15;
+      const shape = g === 'present' ? `<rect x="2" y="2" width="14" height="14" fill="var(--ink)" stroke="var(--paper)" stroke-width="1.5"/>`
+        : `<rect x="2" y="2" width="14" height="14" fill="var(--paper)" stroke="${col}" stroke-width="2.2" stroke-dasharray="${g === 'gone' ? '3.5 2.2' : '0.01 3.2'}" stroke-width="${g === 'gone' ? 2.2 : 2.8}" stroke-linecap="round"/>`;
+      return hatchHalo(a) + pinBtn(a, `<svg width="${s}" height="${s}" viewBox="0 0 18 18" aria-hidden="true">${shape}</svg>`);
+    },
+    proposedMarker: p => `${hatchHalo(p)}<span class="pin" style="${pct(p.x, p.y)}"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" fill="var(--paper)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="2 2"/><path d="M9 5v8M5 9h8" stroke="var(--proposed)" stroke-width="2"/></svg></span>`,
+    mapLegend(L) {
+      return [
+        [svg(GROUPSIGN.present), L.group.present],
+        [`<span style="color:var(--gone)">${svg(GROUPSIGN.gone)}</span>`, L.group.gone],
+        [svg(GROUPSIGN.unknown), L.group.unknown],
+        [svg('<circle cx="8" cy="8" r="6.5" stroke-width="1"/><path d="M4 12l8-8M3 8.5L8.5 3M7.5 13L13 7.5" stroke-width="1"/>'), `${L.loc.approximate} (${S.lang === 'it' ? 'area tratteggiata, segno più piccolo' : 'hatched area, smaller sign'})`],
+      ];
+    },
+    proposedLegend: () => `<span style="color:var(--proposed)">${svg('<rect x="2" y="2" width="12" height="12" stroke-dasharray="2 2"/><path d="M8 5v6M5 8h6"/>')}</span>`,
+  },
+};
+const sym = () => SYMBOLOGIES[S.sym];
+
 function legendA() {
+  const L = t(), Y = sym();
+  const items = Y.mapLegend(L).map(([g, txt]) => `<span>${g}${txt}</span>`).join('');
+  return `<div class="legend">${items}${S.viewer === 'submitter' ? `<span style="color:var(--proposed)">${Y.proposedLegend()}${L.proposed}</span>` : ''}</div>`;
+}
+// Full key: all nine Conditions as they appear in cards, detail and timeline.
+function conditionKey() {
   const L = t();
-  return `<div class="legend">
-    <span><svg width="16" height="16" viewBox="0 0 22 22"><circle cx="11" cy="11" r="7" fill="var(--ink)"/></svg>${L.group.present}</span>
-    <span><svg width="16" height="16" viewBox="0 0 22 22"><rect x="4" y="4" width="14" height="14" fill="none" stroke="var(--gone)" stroke-width="2.5"/><path d="M4 18L18 4" stroke="var(--gone)" stroke-width="2.5"/></svg>${L.group.gone}</span>
-    <span><svg width="16" height="16" viewBox="0 0 22 22"><circle cx="11" cy="11" r="7.5" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700">?</text></svg>${L.group.unknown}</span>
-    <span>${ICO.approx}${L.loc.approximate}</span>
-    ${S.viewer === 'submitter' ? `<span style="color:var(--proposed)"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/></svg>${L.proposed}</span>` : ''}
-  </div>`;
+  return `<div class="sym-key" aria-label="Condition key">${Object.keys(L.cond).map(c =>
+    `<span class="A-cond ${group(c) === 'gone' ? 'gone-ink' : ''}">${sym().icon(c)} ${L.cond[c]}</span>`).join('')}</div>`;
 }
-function condA(a) {
-  const c = condKey(a);
-  return `<span class="A-cond ${group(c) === 'gone' ? 'gone-ink' : ''}">${condIcon(c)} ${t().cond[c]}</span>`;
+function condA(a, c = condKey(a)) {
+  return `<span class="A-cond ${group(c) === 'gone' ? 'gone-ink' : ''}">${sym().icon(c)} ${t().cond[c]}</span>`;
 }
+
 function VariantA() {
   const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
   const cr = createdEvent(a), cev = condition(a), ld = lastDoc(a);
@@ -432,16 +470,17 @@ function VariantA() {
     const fuzzy = isFuzzy(e.date);
     const what = e.type === 'doc'
       ? `${ICO.doc} <strong>${L.evt.doc}</strong> — ${L.photoBy}: ${e.creator}`
-      : `<strong>${L.evt[e.type]}</strong>${e.cond ? ` → ${L.cond[e.cond]}` : ''}${e.note ? `<br>${e.note}` : ''}<br><span class="A-cites">${evidenceText(e)}${e.approved ? ` · ${L.submitted} ${fmtIso(e.submitted)} · ${L.approved} ${fmtIso(e.approved)}` : ''}</span>`;
+      : `<strong>${L.evt[e.type]}</strong>${e.cond ? ` → ${condA(a, e.cond)}` : ''}${e.note ? `<br>${e.note}` : ''}<br><span class="A-cites">${evidenceText(e)}${e.approved ? ` · ${L.submitted} ${fmtIso(e.submitted)} · ${L.approved} ${fmtIso(e.approved)}` : ''}</span>`;
     return `<li class="${e.proposal ? 'proposed-box' : ''}"><div class="when">${fuzzy ? `<em>${fmtDate(e.date)}</em>` : fmtDate(e.date)}<small>${L.observed}</small></div>
       <div class="what">${e.proposal ? `${proposalTag()} <span class="A-cites">${L.submitted} ${fmtIso(e.proposal.submitted)} · ${L.onlyYou}</span><br>` : ''}${what}${e.proposal ? `<br><span class="A-cites">${L.proposalNote}</span>` : ''}</div></li>`;
   });
   if (!cr) tl.unshift(`<li><div class="when"><em>?</em></div><div class="what"><em>${L.createdUnknown}</em></div></li>`);
 
   return `
+  <section class="sym-box"><strong>${S.sym}. ${sym().name}</strong> — ${sym().idea[S.lang]}${conditionKey()}</section>
   <div class="surface-label">${L.map} + ${L.cards}</div>
   <div class="A-top">
-    <div><div class="map">${baseMap()}${ARTWORKS.map(markerA).join('')}${S.viewer === 'submitter' ? markerAProposed(PROPOSED_NEW) : ''}</div>${legendA()}</div>
+    <div><div class="map">${baseMap()}${ARTWORKS.map(sym().marker).join('')}${S.viewer === 'submitter' ? sym().proposedMarker(PROPOSED_NEW) : ''}</div>${legendA()}</div>
     <div class="A-labels">${labels}</div>
   </div>
   <div class="surface-label">${L.detail} + ${L.timeline}</div>
@@ -456,156 +495,13 @@ function VariantA() {
         <p>${attributionText(a, 'A')}</p>
         <p>${cr ? (isFuzzy(cr.date) ? `<em>${fmtDate(cr.date)}</em>` : fmtDate(cr.date)) : `<em>${L.createdUnknown}</em>`}</p>
         <p>${a.expr.map(e => EXPR[e]).join(', ')}</p>
-        <p>${a.area} · ${a.loc.kind === 'approximate' ? `${ICO.approx} <em>${L.loc.approximate.toLowerCase()}, ${L.radius(a.loc.radius)}</em>` : `${ICO.exact} ${L.loc.exact.toLowerCase()}`}</p>
+        <p>${a.area} · ${a.loc.kind === 'approximate' ? `${sym().approxIcon} <em>${L.loc.approximate.toLowerCase()}, ${L.radius(a.loc.radius)}</em>` : `${ICO.exact} ${L.loc.exact.toLowerCase()}`}</p>
       </div>
       <div class="A-condline ${group(condKey(a)) === 'gone' ? 'gone-ink' : ''}">
         ${condA(a)}<br>
         <span style="color:var(--ink)">${cev ? `${L.since} ${fmtDate(cev.date)} · ${evidenceText(cev)}` : L.noSources}${ld ? `<br>${L.lastDoc}: ${fmtDate(ld.date)}` : ''}</span>
       </div>
       <ol class="A-tl">${tl.join('')}</ol>
-    </div>
-  </article>`;
-}
-
-// ================================================================ Variant B
-// Photography first: contact-sheet grid, photo treatment + ribbon for disappeared works,
-// thumbnail pins, filmstrip timeline, proposals in a separate tray (never inline).
-function markerB(a) {
-  const c = condKey(a), g = group(c);
-  const ring = g === 'gone' ? 'var(--gone)' : g === 'unknown' ? 'var(--ink-2)' : 'var(--ink)';
-  const dash = g === 'unknown' ? 'dashed' : 'solid';
-  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}">
-    <span style="display:block;width:34px;height:34px;border-radius:50%;overflow:hidden;border:3px ${dash} ${ring};${g === 'gone' ? 'filter:grayscale(1)' : ''};background:var(--paper)">${photo(a, 80, 80, false)}</span>
-    <span style="position:absolute;right:-6px;bottom:-6px;background:var(--paper);border:1.5px solid ${ring};border-radius:50%;width:20px;height:20px;display:grid;place-items:center;color:${ring}">${condIcon(c)}</span>
-    ${a.loc.kind === 'exact' ? `<span aria-hidden="true" style="position:absolute;left:50%;bottom:-9px;margin-left:-5px;border:5px solid transparent;border-top-color:${ring}"></span>` : ''}
-  </button>`;
-}
-function VariantB() {
-  const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
-  const cr = createdEvent(a), ld = lastDoc(a), c = condKey(a), g = group(c);
-  const ribbon = (x) => {
-    const cx = condKey(x), gx = group(cx), lx = lastDoc(x);
-    if (gx === 'present') return '';
-    return `<span class="B-ribbon ${gx === 'unknown' ? 'unk' : ''}">${condIcon(cx)} ${L.cond[cx]}${gx === 'gone' && lx ? ` · ${L.archivalDoc} ${fmtDate(lx.date)}` : ''}</span>`;
-  };
-  const chipsFor = (x) => {
-    const cr2 = createdEvent(x), cert = certOf(x);
-    const chips = [];
-    if (cert !== 'confirmed') chips.push(`<span class="chip dash">${cert === 'disputed' ? ICO.split : ICO.person} ${cert === 'unknown' ? L.unknownAuthor : `${L.col.author} ${L.cert[cert]}`}</span>`);
-    if (!cr2 || isFuzzy(cr2.date)) chips.push(`<span class="chip dash">${L.estimated}: ${cr2 ? fmtDate(cr2.date) : L.dateUnknown}</span>`);
-    if (x.loc.kind === 'approximate') chips.push(`<span class="chip dash">${ICO.approx} ${L.loc.approximate}</span>`);
-    return chips.join('');
-  };
-  const cards = ARTWORKS.map(x => {
-    const cx = condKey(x), lx = lastDoc(x);
-    return `<button class="B-card" data-sel="${x.id}" aria-current="${x.id === a.id}">
-      <span class="B-photo ${group(cx) === 'gone' ? 'is-gone' : ''}">${photo(x, 300, 220, false)}${ribbon(x)}</span>
-      <span class="B-cap"><span>${ICO.doc} ${lx ? fmtDate(lx.date) : L.dateUnknown}</span><span>${lx ? lx.creator : ''}</span></span>
-      <span class="B-title">${x.title}</span>
-      <span style="font-size:12.5px;color:var(--ink-2)">${attributionText(x, 'B')} · ${x.area}</span>
-      <span class="B-chips">${chipsFor(x)}</span>
-    </button>`;
-  }).join('');
-
-  // filmstrip: docs as frames, history events as narrow event cells with a date bar (dashed = range)
-  const strip = approvedEvents(a).map(e => e.type === 'doc'
-    ? `<div class="B-frame">${photo(a, 300, 200, false)}<span class="d">${fmtDate(e.date)}</span>${L.photoBy}: ${e.creator}</div>`
-    : `<div class="B-frame ev"><span class="d">${fmtDate(e.date)}</span><div class="bar ${isFuzzy(e.date) ? 'range' : ''}" aria-hidden="true"></div><strong>${L.evt[e.type]}</strong>${e.cond ? `<br>${condIcon(e.cond)} ${L.cond[e.cond]}` : ''}<br><span style="color:var(--ink-2)">${evidenceText(e)}</span></div>`).join('');
-  const props = proposedEvents(a);
-
-  return `
-  <div class="surface-label">${L.cards} + ${L.map}</div>
-  <div class="B-top">
-    <div class="B-grid">${cards}</div>
-    <div><div class="map" style="position:sticky;top:8px">${baseMap()}${ARTWORKS.map(markerB).join('')}${S.viewer === 'submitter' ? `${halo(PROPOSED_NEW)}<span class="pin" style="${pct(PROPOSED_NEW.x, PROPOSED_NEW.y)}">${proposalTag()}</span>` : ''}</div>
-    <div class="legend"><span>${ICO.approx} ${L.loc.approximate} = ${S.lang === 'it' ? 'senza punta, area tratteggiata' : 'no pin tip, dashed area'}</span><span>${condIcon('destroyed')} ${L.group.gone} = ${S.lang === 'it' ? 'foto in bianco e nero + icona' : 'black & white photo + icon'}</span></div></div>
-  </div>
-  <div class="surface-label">${L.detail} + ${L.timeline}</div>
-  <article class="B-detail">
-    <div class="B-hero ${g === 'gone' ? 'B-photo is-gone' : ''}">${photo(a, 1200, 420)}${ribbon(a)}</div>
-    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12.5px;color:var(--ink-2);margin-top:4px"><span>${ld ? `${L.photoBy}: ${ld.creator} · ${L.observed} ${fmtDate(ld.date)}` : ''}</span><span class="fict">${L.fictional}</span></div>
-    <h2>${a.title}</h2>
-    <div class="B-chips" style="gap:6px;font-size:13px">
-      <span class="chip">${condIcon(c)} ${L.cond[c]} · ${ld ? `${L.lastDoc} ${fmtDate(ld.date)}` : L.dateUnknown}</span>
-      <span class="chip ${certOf(a) === 'confirmed' ? '' : 'dash'}">${certOf(a) === 'disputed' ? ICO.split : ICO.person} ${attributionText(a, 'B')}${certOf(a) !== 'confirmed' && a.attr.length ? ` (${L.cert[certOf(a)]})` : ''}</span>
-      <span class="chip ${!cr || isFuzzy(cr.date) ? 'dash' : ''}">${cr ? fmtDate(cr.date) : L.createdUnknown}</span>
-      <span class="chip ${a.loc.kind === 'approximate' ? 'dash' : ''}">${a.loc.kind === 'approximate' ? ICO.approx : ICO.exact} ${a.area} · ${L.loc[a.loc.kind]}${a.loc.radius ? `, ${L.radius(a.loc.radius)}` : ''}</span>
-      <span class="chip">${a.expr.map(e => EXPR[e]).join(', ')}</span>
-    </div>
-    <p style="font-size:12.5px;color:var(--ink-2);margin:10px 0 2px">${S.lang === 'it' ? 'Riquadro pieno = dato accertato · riquadro tratteggiato = stimato, probabile, conteso o approssimato' : 'Solid box = established · dashed box = estimated, probable, disputed or approximate'}</p>
-    <div class="B-strip">${!cr ? `<div class="B-frame ev"><span class="d">?</span><strong>${L.createdUnknown}</strong></div>` : ''}${strip}</div>
-    ${S.viewer === 'submitter' && props.length ? `<section class="B-tray proposed-box"><strong>${L.reviewTray}</strong> · <span style="font-size:12.5px">${L.onlyYou}. ${L.proposalNote}</span>
-      ${props.map(e => `<p style="margin:6px 0 0">${proposalTag()} <strong>${L.evt[e.type]}</strong> → ${L.cond[e.cond]} · ${L.observed} ${fmtDate(e.date)} · ${L.submitted} ${fmtIso(e.proposal.submitted)}<br><span style="font-size:12.5px">${e.note} · ${evidenceText(e)}</span></p>`).join('')}</section>` : ''}
-  </article>`;
-}
-
-// ================================================================ Variant C
-// Ledger / fact sheet: the catalogue is a table, every fact has an explicit certainty and
-// evidence column, map markers are numbered text codes, the timeline is drawn to scale.
-function markerC(a) {
-  const c = condKey(a), g = group(c);
-  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}">
-    <span class="C-code ${g === 'gone' ? 'gone' : g === 'unknown' ? 'unk' : ''}" style="background:var(--paper)">${a.n} ${t().condShort[c]}${a.loc.kind === 'approximate' ? ' ≈' : ''}</span></button>`;
-}
-function VariantC() {
-  const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
-  const cr = createdEvent(a), cev = condition(a), ld = lastDoc(a), c = condKey(a);
-  const code = x => { const cx = condKey(x), gx = group(cx); return `<span class="C-code ${gx === 'gone' ? 'gone' : gx === 'unknown' ? 'unk' : ''}">${condIcon(cx)} ${L.cond[cx]}</span>`; };
-  const rows = ARTWORKS.map(x => {
-    const lx = lastDoc(x), cert = certOf(x);
-    return `<tr class="C-row ${x.id === a.id ? 'sel' : ''}"><td>${x.n}</td><td><button data-sel="${x.id}">${x.title}</button></td><td>${EXPR[x.expr[0]]}</td><td>${code(x)}</td>
-      <td>${lx ? fmtDate(lx.date) : '—'}</td><td>${x.attr.length ? attributionText(x, 'C') : '—'}</td><td class="C-cert">${L.cert[cert]}</td>
-      <td>${x.loc.kind === 'approximate' ? `${ICO.approx} ≈ ${x.loc.radius} m` : `${ICO.exact} ${L.known}`}</td></tr>`;
-  }).join('') + (S.viewer === 'submitter' ? `<tr class="proposed-box"><td>—</td><td>${PROPOSED_NEW.title}<br>${proposalTag()}</td><td>${EXPR.mural}</td><td colspan="4">${L.submitted} ${fmtIso(PROPOSED_NEW.proposal.submitted)} · ${L.onlyYou}</td><td>${ICO.approx} ≈ ${PROPOSED_NEW.loc.radius} m</td></tr>` : '');
-
-  const certCell = (kind) => ({ known: L.known, est: L.estimated, unk: L.unknownV, disp: L.disputedV })[kind];
-  const facts = [
-    [L.kExpr, a.expr.map(e => EXPR[e]).join(', '), 'known', '—'],
-    [L.kLoc, `${a.area}${a.loc.radius ? `, ${L.radius(a.loc.radius)}` : ''}`, a.loc.kind === 'approximate' ? 'est' : 'known', '—'],
-    [L.kAuthor, a.attr.length ? a.attr.map(x => `${x.name} <span class="C-cert">(${L.cert[x.cert]})</span>`).join('<br>') : L.unknownAuthor,
-      !a.attr.length ? 'unk' : certOf(a) === 'disputed' ? 'disp' : certOf(a) === 'probable' ? 'est' : 'known',
-      a.attr.length ? a.attr.map(x => x.cites ? `${L.ev.documented} · ${L.sources(x.cites)}` : L.ev.reported).join('<br>') : '—'],
-    [L.kCreated, cr ? fmtDate(cr.date) : L.dateUnknown, !cr ? 'unk' : isFuzzy(cr.date) ? 'est' : 'known', cr ? L.ev[cr.ev] + (cr.cites ? ` · ${L.sources(cr.cites)}` : '') : '—'],
-    [L.kCond, `${code(a)}<br><span style="font-size:12px">${cev ? `${L.since} ${fmtDate(cev.date)}` : ''}${ld ? ` · ${L.lastDoc} ${fmtDate(ld.date)}` : ''}</span>`, cev ? (isFuzzy(cev.date) ? 'est' : 'known') : 'unk', cev ? L.ev[cev.ev] + (cev.cites ? ` · ${L.sources(cev.cites)}` : '') : '—'],
-  ];
-
-  // to-scale timeline 2008–2027
-  const Y0 = 2008, Y1 = 2027, pos = s => ((Number(s.slice(0, 4)) + (s.length > 4 ? (Number(s.slice(5, 7)) - 1) / 12 : 0)) - Y0) / (Y1 - Y0) * 100;
-  const lane = (e) => {
-    const dd = e.date;
-    let l = pos(dd.from), r = dd.precision === 'decade' ? pos(String(Number(dd.from) + 9)) + 100 / (Y1 - Y0) : pos(dd.to) + (dd.precision === 'year' ? 100 / (Y1 - Y0) : 0);
-    let cls = 'mk ' + (isFuzzy(dd) ? 'rg' : 'pt');
-    if (dd.qualifier === 'before') { cls += ' open-l'; l = Math.max(0, l - 8); }
-    if (dd.qualifier === 'after') { cls += ' open-r'; r = Math.min(100, r + 8); }
-    if (dd.qualifier === 'circa') { l -= 2; r += 2; }
-    if (e.proposal) cls += ' prop';
-    return isFuzzy(dd) || e.proposal ? `<div class="C-lane"><span class="${cls}" style="left:${l}%;width:${Math.max(r - l, 1.5)}%"></span></div>` : `<div class="C-lane"><span class="${cls}" style="left:${l}%"></span></div>`;
-  };
-  const axis = `<div class="C-axis">${[2010, 2014, 2018, 2022, 2026].map(y => `<span style="left:${pos(String(y))}%">${y}</span>`).join('')}</div>`;
-  const tlRows = a.events.filter(e => S.viewer === 'submitter' || !e.proposal).map(e => `<tr class="${e.proposal ? 'proposed-box' : ''}">
-      <td>${e.proposal ? proposalTag() + '<br>' : ''}<strong>${e.type === 'doc' ? `${ICO.doc} ${L.evt.doc}` : L.evt[e.type]}</strong>${e.cond ? ` → ${L.cond[e.cond]}` : ''}<br>
-      <span style="font-size:12px">${fmtDate(e.date)}${e.type === 'doc' ? ` · ${e.creator}` : ` · ${L.ev[e.ev]}`}${e.proposal ? ` · ${L.submitted} ${fmtIso(e.proposal.submitted)}` : e.approved ? ` · ${L.approved} ${fmtIso(e.approved)}` : ''}</span></td>
-      <td>${lane(e)}</td></tr>`).join('');
-
-  return `
-  <div class="surface-label">${L.map} + ${L.cards}</div>
-  <div class="C-top">
-    <div><div class="map">${baseMap()}${ARTWORKS.map(markerC).join('')}${S.viewer === 'submitter' ? `${halo(PROPOSED_NEW)}<span class="pin" style="${pct(PROPOSED_NEW.x, PROPOSED_NEW.y)}"><span class="C-code" style="color:var(--proposed);border-style:dashed;background:var(--paper)">P ≈</span></span>` : ''}</div>
-      <div class="legend"><span>${S.lang === 'it' ? 'Codice = N° + condizione' : 'Code = No. + condition'}</span><span>≈ ${L.loc.approximate}</span><span><span class="C-code unk">???</span> ${L.group.unknown}</span></div></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>${L.col.n}</th><th>${L.col.title}</th><th>${L.col.type}</th><th>${L.col.cond}</th><th>${L.col.last}</th><th>${L.col.author}</th><th>${L.col.cert}</th><th>${L.col.loc}</th></tr></thead><tbody>${rows}</tbody></table></div>
-  </div>
-  <div class="surface-label">${L.detail} + ${L.timeline}</div>
-  <article class="C-sheet">
-    <div>
-      <h2>${a.n}. ${a.title}</h2>
-      <p class="fict">${L.fictional}</p>
-      <table><thead><tr><th>${L.col.fact}</th><th>${L.col.value}</th><th>${L.col.certainty}</th><th>${L.col.evidence}</th></tr></thead>
-      <tbody>${facts.map(f => `<tr><th scope="row" style="border-bottom:1px solid var(--rule);font-size:11px;vertical-align:top">${f[0]}</th><td>${f[1]}</td><td class="C-cert">${certCell(f[2])}</td><td style="font-size:12px">${f[3]}</td></tr>`).join('')}</tbody></table>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">${docs(a).slice(-2).map(e => `<figure style="margin:0">${photo(a, 300, 200)}<figcaption style="font-size:12px">${fmtDate(e.date)} · ${e.creator}</figcaption></figure>`).join('')}</div>
-    </div>
-    <div>
-      <table class="C-tl"><thead><tr><th>${L.timeline}</th><th>${axis}</th></tr></thead><tbody>${!cr ? `<tr><td><em>${L.createdUnknown}</em></td><td></td></tr>` : ''}${tlRows}</tbody></table>
-      <p style="font-size:12px;color:var(--ink-2)">${S.lang === 'it' ? '● punto = data esatta · barra tratteggiata = intervallo/stima · freccia = prima/dopo · contorno blu tratteggiato = proposta' : '● dot = exact date · hatched bar = range/estimate · arrow = before/after · dashed blue outline = proposal'}</p>
     </div>
   </article>`;
 }
@@ -632,30 +528,35 @@ const NOTES = `
   <li>Il pubblico deve sapere che esistono proposte in revisione su un’opera (senza vederne il contenuto)?</li>
   <li>Glossario: il brief dice “present”; il vocabolario Condition dice “intact”. Confermare.</li>
 </ul>
-<h3>Varianti</h3>
-<p><b>A</b> etichetta museale, incertezza tipografica, proposte inline tratteggiate. <b>B</b> foto prima di tutto, scomparse in B/N con nastro, proposte in un vassoio separato. <b>C</b> registro: ogni dato ha colonna Certezza ed Evidenza, timeline in scala.</p>`;
+<h3>Round 2 — layout A, tre simbologie</h3>
+<p>Le varianti B e C sono nel commit precedente del branch. Qui cambia solo il sistema di segni.</p>
+<ul>
+  <li><b>1 Geometrica astratta</b>: mappa a 3 gruppi + 9 glifi astratti nel testo. Compatta, ma i glifi vanno imparati.</li>
+  <li><b>2 Pittogrammi</b>: 9 pittogrammi descrittivi, anche sulla mappa. Più leggibile senza legenda, ma pin più grandi e mappa più densa; i pittogrammi vanno disegnati bene.</li>
+  <li><b>3 Cartografia storica</b>: 3 segni soltanto (pieno / tratteggiato / puntinato), la parola fa il resto. La più sobria e “archivistica”; nessuna distinzione per Condizione sulla mappa.</li>
+</ul>`;
 
 // ---------------------------------------------------------------- render + switcher
 function sync() {
   const p = new URLSearchParams();
-  p.set('variant', S.variant); if (S.lang !== 'it') p.set('lang', S.lang); if (S.viewer !== 'public') p.set('viewer', S.viewer);
+  p.set('variant', 'A'); p.set('sym', S.sym); if (S.lang !== 'it') p.set('lang', S.lang); if (S.viewer !== 'public') p.set('viewer', S.viewer);
   if (S.gray) p.set('gray', '1'); if (S.notes) p.set('notes', '1'); p.set('art', S.sel);
   history.replaceState(null, '', '?' + p);
 }
 function render() {
   document.documentElement.lang = S.lang;
   document.getElementById("app").classList.toggle("gray", S.gray);
-  const L = t(), V = { A: VariantA, B: VariantB, C: VariantC }[S.variant];
+  const L = t(), V = VariantA;
   document.getElementById('app').innerHTML = `<div class="wrap">
     <header class="archive-head"><h1>${L.archive}</h1><small>${L.powered}</small></header>
     <main>${V()}</main></div>`;
   const notes = document.getElementById('notes');
   notes.hidden = !S.notes; notes.innerHTML = NOTES;
-  const idx = VARIANTS.findIndex(v => v[0] === S.variant);
+  const idx = VARIANTS.findIndex(v => v[0] === S.sym);
   document.getElementById('switcher').innerHTML = `
-    <button data-act="prev" aria-label="Variante precedente">←</button>
-    <span class="cur">${S.variant} (${VARIANTS[idx][1]})</span>
-    <button data-act="next" aria-label="Variante successiva">→</button>
+    <button data-act="prev" aria-label="Simbologia precedente">←</button>
+    <span class="cur">${S.sym}/3 ${VARIANTS[idx][1]}</span>
+    <button data-act="next" aria-label="Simbologia successiva">→</button>
     <span class="sep"></span>
     <button data-act="gray" aria-pressed="${S.gray}">Grigi</button>
     <button data-act="lang" aria-pressed="false">${S.lang.toUpperCase()}</button>
@@ -664,8 +565,8 @@ function render() {
   sync();
 }
 function cycle(dir) {
-  const i = VARIANTS.findIndex(v => v[0] === S.variant);
-  S.variant = VARIANTS[(i + dir + VARIANTS.length) % VARIANTS.length][0]; render();
+  const i = VARIANTS.findIndex(v => v[0] === S.sym);
+  S.sym = VARIANTS[(i + dir + VARIANTS.length) % VARIANTS.length][0]; render();
 }
 document.addEventListener('click', e => {
   const sel = e.target.closest('[data-sel]');
