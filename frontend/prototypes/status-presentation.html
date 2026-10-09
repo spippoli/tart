@@ -1,0 +1,689 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Issue #17: status, uncertainty and condition presentation.
+  Three structurally different variants of the same surfaces (map markers, cards,
+  detail page, timeline), switchable via ?variant=A|B|C and the floating bottom bar.
+  Open by double-clicking. No dependencies, no persistence. All records are FICTIONAL.
+  Not production code: strings live in one small dictionary only so IT/EN length can be compared.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Status presentation (#17)</title>
+<style>
+  :root {
+    --paper: #f4f1ea; --paper-2: #ebe6db; --ink: #1d1b18; --ink-2: #5b564d; --rule: #c9c2b4;
+    --gone: #8a3b22; --proposed: #3b4a8a; --halo: rgba(29,27,24,.10);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.45; padding-bottom: 90px; }
+  #app.gray { filter: grayscale(1); }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--proposed); outline-offset: 2px; }
+  .proto-banner { background: var(--ink); color: var(--paper); font: 12px/1.4 var(--mono); padding: 6px 16px; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+  .archive-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--ink); padding: 14px 0 8px; flex-wrap: wrap; }
+  .archive-head h1 { font: 600 22px/1.1 var(--serif); margin: 0; letter-spacing: .01em; }
+  .archive-head small { font: 11px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .08em; }
+  .surface-label { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-2); margin: 28px 0 8px; display: flex; gap: 8px; align-items: center; }
+  .surface-label::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
+  .ico { width: 1em; height: 1em; vertical-align: -0.15em; flex: none; }
+  .fict { font: 10px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+  .ph { display: block; width: 100%; height: auto; background: var(--paper-2); }
+  .gone-ink { color: var(--gone); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .map { position: relative; background: #e6e1d5; border: 1px solid var(--rule); overflow: hidden; }
+  .map svg.base { display: block; width: 100%; height: auto; }
+  .map .pin { position: absolute; transform: translate(-50%, -50%); border: 0; background: none; padding: 0; cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); padding: 8px 0; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .proposed-box { border: 2px dashed var(--proposed); background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(59,74,138,.07) 8px 16px); }
+  .proposed-tag { display: inline-flex; gap: 4px; align-items: center; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--proposed); border: 1.5px dashed var(--proposed); padding: 1px 6px; background: var(--paper); }
+
+  /* ---------- Variant A: editorial catalogue labels ---------- */
+  .A-top { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+  @media (max-width: 860px) { .A-top { grid-template-columns: 1fr; } }
+  .A-labels { display: flex; flex-direction: column; gap: 0; max-height: 560px; overflow: auto; border-top: 1px solid var(--ink); }
+  .A-label { display: grid; grid-template-columns: 72px 1fr; gap: 12px; padding: 12px 4px; border: 0; border-bottom: 1px solid var(--rule); background: none; text-align: left; cursor: pointer; }
+  .A-label[aria-current="true"] { background: var(--paper-2); }
+  .A-label h3 { font: 600 17px/1.2 var(--serif); margin: 0 0 2px; }
+  .A-label .meta { font-size: 13px; color: var(--ink-2); }
+  .A-cond { font: 600 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .12em; display: inline-flex; gap: 5px; align-items: center; }
+  .A-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; border-top: 2px solid var(--ink); padding-top: 20px; }
+  @media (max-width: 860px) { .A-detail { grid-template-columns: 1fr; } }
+  .A-detail h2 { font: 600 34px/1.05 var(--serif); margin: 0 0 6px; }
+  .A-tombstone { font: 17px/1.5 var(--serif); }
+  .A-tombstone p { margin: 0 0 4px; }
+  .A-tombstone em { color: var(--ink-2); }
+  .A-condline { margin: 14px 0; padding: 10px 12px; border-left: 4px solid currentColor; background: var(--paper-2); }
+  .A-condline .A-cond { font-size: 13px; }
+  .A-tl { list-style: none; margin: 0; padding: 0; }
+  .A-tl li { display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .A-tl .when { font: 14px var(--serif); text-align: right; }
+  .A-tl .when small { display: block; font: 11px var(--mono); color: var(--ink-2); }
+  .A-tl .what { font-size: 14px; }
+  .A-tl .what strong { font: 600 15px var(--serif); }
+  .A-tl li.proposed-box { padding: 10px 8px; }
+  .A-cites { font-size: 12px; color: var(--ink-2); }
+
+  /* ---------- Variant B: photography first ---------- */
+  .B-top { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+  @media (max-width: 860px) { .B-top { grid-template-columns: 1fr; } }
+  .B-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+  .B-card { border: 0; padding: 0; background: none; text-align: left; cursor: pointer; display: flex; flex-direction: column; }
+  .B-card[aria-current="true"] .B-photo { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .B-photo { position: relative; }
+  .B-photo.is-gone img { filter: grayscale(1) contrast(.9); opacity: .85; }
+  .B-ribbon { position: absolute; left: 0; right: 0; top: 0; background: var(--gone); color: #fff; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 8px; display: flex; gap: 6px; align-items: center; }
+  .B-ribbon.unk { background: var(--ink-2); }
+  .B-cap { background: var(--ink); color: var(--paper); padding: 6px 8px; font-size: 12px; display: flex; justify-content: space-between; gap: 6px; }
+  .B-title { font: 600 15px/1.2 var(--serif); margin: 6px 0 2px; }
+  .B-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { display: inline-flex; gap: 4px; align-items: center; font-size: 11.5px; border: 1px solid var(--rule); padding: 1px 6px; border-radius: 2px; background: var(--paper); }
+  .chip.dash { border-style: dashed; border-color: var(--ink-2); }
+  .B-hero { position: relative; }
+  .B-hero img { max-height: 420px; object-fit: cover; }
+  .B-detail h2 { font: 600 30px/1.1 var(--serif); margin: 12px 0 6px; }
+  .B-strip { display: flex; gap: 0; overflow-x: auto; padding: 8px 0 4px; border-top: 1px solid var(--ink); position: relative; }
+  .B-frame { flex: none; width: 170px; padding: 0 8px; border-right: 1px dotted var(--rule); font-size: 12.5px; }
+  .B-frame .d { font: 600 13px var(--mono); margin: 6px 0 2px; display: block; }
+  .B-frame.ev { width: 150px; background: var(--paper-2); padding-top: 8px; }
+  .B-frame.ev .bar { height: 6px; background: var(--ink); margin: 4px 0; }
+  .B-frame.ev .bar.range { background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 10px); }
+  .B-tray { margin-top: 16px; padding: 10px 12px; }
+
+  /* ---------- Variant C: ledger / fact sheet ---------- */
+  .C-top { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .C-top { grid-template-columns: 1fr; } }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th { text-align: left; font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); border-bottom: 2px solid var(--ink); padding: 6px; vertical-align: bottom; }
+  td { border-bottom: 1px solid var(--rule); padding: 7px 6px; vertical-align: top; }
+  tr.sel td { background: var(--paper-2); }
+  .C-row button { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; font: 600 14px var(--serif); text-decoration: underline; text-underline-offset: 3px; }
+  .C-code { font: 600 11px var(--mono); border: 1.5px solid currentColor; padding: 0 4px; display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
+  .C-code.gone { color: var(--gone); }
+  .C-code.unk { border-style: dotted; }
+  .C-cert { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  .C-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 860px) { .C-sheet { grid-template-columns: 1fr; } }
+  .C-sheet h2 { font: 600 26px/1.1 var(--serif); margin: 0 0 8px; }
+  .C-axis { position: relative; height: 22px; border-bottom: 1px solid var(--ink); font: 10px var(--mono); color: var(--ink-2); }
+  .C-axis span { position: absolute; bottom: 2px; transform: translateX(-50%); }
+  .C-lane { position: relative; height: 20px; }
+  .C-lane .mk { position: absolute; top: 5px; height: 10px; }
+  .C-lane .mk.pt { width: 10px; margin-left: -5px; background: var(--ink); border-radius: 50%; }
+  .C-lane .mk.rg { background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 7px); border: 1px solid var(--ink); }
+  .C-lane .mk.open-l::before, .C-lane .mk.open-r::after { content: ""; position: absolute; top: -3px; border: 8px solid transparent; }
+  .C-lane .mk.open-l::before { left: -14px; border-right-color: var(--ink); }
+  .C-lane .mk.open-r::after { right: -14px; border-left-color: var(--ink); }
+  .C-lane .mk.prop { background: none; border: 2px dashed var(--proposed); }
+  .C-tl td:first-child { width: 42%; }
+
+  /* ---------- notes panel + switcher (not part of the design) ---------- */
+  .notes { position: fixed; right: 12px; top: 40px; bottom: 80px; width: min(440px, calc(100vw - 24px)); overflow: auto; background: #fff; color: #111; border: 2px solid #111; box-shadow: 0 8px 30px rgba(0,0,0,.25); padding: 16px 18px; font: 14px/1.5 var(--sans); z-index: 20; filter: none; }
+  .notes h2 { font-size: 16px; margin: 0 0 8px; }
+  .notes h3 { font-size: 13px; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .notes ol, .notes ul { padding-left: 20px; margin: 4px 0; }
+  .switcher { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); background: #111; color: #fff; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.35); display: flex; align-items: center; gap: 4px; padding: 6px 8px; font: 13px var(--sans); z-index: 30; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px); }
+  .switcher button { background: #2a2a2a; border: 0; color: #fff; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+  .switcher button[aria-pressed="true"] { background: #fff; color: #111; }
+  .switcher .cur { padding: 0 10px; font-weight: 600; min-width: 170px; text-align: center; }
+  .switcher .sep { width: 1px; height: 20px; background: #555; margin: 0 4px; }
+</style>
+</head>
+<body>
+<div class="proto-banner">PROTOTIPO usa e getta · #17 · tutti i dati sono FITTIZI · non è codice di produzione</div>
+<div id="app"></div>
+<aside class="notes" id="notes" hidden></aside>
+<nav class="switcher" id="switcher" aria-label="Prototype switcher"></nav>
+
+<script>
+// ---------------------------------------------------------------- strings
+const T = {
+  it: {
+    archive: 'Rome Urban Art Archive', powered: 'Powered by TART',
+    map: 'Mappa', cards: 'Schede', detail: 'Pagina di dettaglio', timeline: 'Timeline',
+    cond: { intact: 'Intatta', deteriorated: 'Deteriorata', damaged: 'Danneggiata', modified: 'Modificata', covered: 'Coperta', removed: 'Rimossa', destroyed: 'Distrutta', missing: 'Dispersa', unknown: 'Condizione sconosciuta' },
+    condShort: { intact: 'INT', deteriorated: 'DET', damaged: 'DAN', modified: 'MOD', covered: 'COP', removed: 'RIM', destroyed: 'DIS', missing: 'DSP', unknown: '???' },
+    group: { present: 'Visibile', gone: 'Non più visibile', unknown: 'Condizione sconosciuta' },
+    cert: { confirmed: 'confermata', probable: 'probabile', disputed: 'contesa', unknown: 'sconosciuta' },
+    unknownAuthor: 'Autore sconosciuto', probableBy: 'Attribuzione probabile', disputedBetween: 'Attribuzione contesa',
+    ev: { documented: 'documentato', reported: 'segnalato' },
+    sources: n => n === 1 ? '1 fonte' : `${n} fonti`,
+    noSources: 'nessuna fonte citata',
+    loc: { exact: 'Posizione esatta', approximate: 'Posizione approssimata' },
+    radius: m => `entro ${m} m`,
+    lastDoc: 'ultima documentazione', since: 'dal', observed: 'osservato', submitted: 'inviato', approved: 'approvato',
+    dateUnknown: 'data sconosciuta', circa: 'c.', before: 'prima del', after: 'dopo il', decade: y => `anni ${y}`,
+    evt: { created: 'Realizzazione', deteriorated: 'Deterioramento', damaged: 'Danneggiamento', overpainted: 'Coperta da sovrapittura', destroyed: 'Distruzione', missing: 'Non più ritrovata', doc: 'Documentazione', attribution: 'Rivendicazione pubblica' },
+    createdUnknown: 'Data di realizzazione sconosciuta',
+    proposed: 'Proposta', inReview: 'in revisione', onlyYou: 'visibile solo a te e ai Moderatori',
+    proposalNote: 'Non cambia la Condizione mostrata finché non è approvata.',
+    newArtwork: 'Nuova opera proposta',
+    reviewTray: 'Le tue proposte in revisione',
+    photoBy: 'Foto', placeholder: 'foto segnaposto',
+    archivalDoc: 'Documentazione d\'archivio',
+    col: { n: 'N°', title: 'Titolo', type: 'Tipo', cond: 'Condizione', last: 'Ultima doc.', author: 'Attribuzione', cert: 'Certezza', loc: 'Posizione', fact: 'Dato', value: 'Valore', certainty: 'Certezza', evidence: 'Evidenza', status: 'Stato' },
+    known: 'noto', estimated: 'stimato', unknownV: 'sconosciuto', disputedV: 'conteso',
+    kExpr: 'Tipo', kLoc: 'Posizione', kAuthor: 'Attribuzione', kCreated: 'Realizzazione', kCond: 'Condizione',
+    fictional: 'record fittizio',
+  },
+  en: {
+    archive: 'Rome Urban Art Archive', powered: 'Powered by TART',
+    map: 'Map', cards: 'Cards', detail: 'Detail page', timeline: 'Timeline',
+    cond: { intact: 'Intact', deteriorated: 'Deteriorated', damaged: 'Damaged', modified: 'Modified', covered: 'Covered', removed: 'Removed', destroyed: 'Destroyed', missing: 'Missing', unknown: 'Condition unknown' },
+    condShort: { intact: 'INT', deteriorated: 'DET', damaged: 'DMG', modified: 'MOD', covered: 'COV', removed: 'REM', destroyed: 'DES', missing: 'MIS', unknown: '???' },
+    group: { present: 'Visible', gone: 'No longer visible', unknown: 'Condition unknown' },
+    cert: { confirmed: 'confirmed', probable: 'probable', disputed: 'disputed', unknown: 'unknown' },
+    unknownAuthor: 'Unknown artist', probableBy: 'Probable attribution', disputedBetween: 'Disputed attribution',
+    ev: { documented: 'documented', reported: 'reported' },
+    sources: n => n === 1 ? '1 source' : `${n} sources`,
+    noSources: 'no sources cited',
+    loc: { exact: 'Exact location', approximate: 'Approximate location' },
+    radius: m => `within ${m} m`,
+    lastDoc: 'last documented', since: 'since', observed: 'observed', submitted: 'submitted', approved: 'approved',
+    dateUnknown: 'date unknown', circa: 'c.', before: 'before', after: 'after', decade: y => `${y}s`,
+    evt: { created: 'Created', deteriorated: 'Deterioration', damaged: 'Damage', overpainted: 'Covered by overpainting', destroyed: 'Destruction', missing: 'No longer found', doc: 'Documentation', attribution: 'Public claim' },
+    createdUnknown: 'Creation date unknown',
+    proposed: 'Proposed', inReview: 'under review', onlyYou: 'visible only to you and Moderators',
+    proposalNote: 'Does not change the displayed Condition until approved.',
+    newArtwork: 'Proposed new artwork',
+    reviewTray: 'Your proposals under review',
+    photoBy: 'Photo', placeholder: 'placeholder photo',
+    archivalDoc: 'Archival documentation',
+    col: { n: 'No.', title: 'Title', type: 'Type', cond: 'Condition', last: 'Last doc.', author: 'Attribution', cert: 'Certainty', loc: 'Location', fact: 'Fact', value: 'Value', certainty: 'Certainty', evidence: 'Evidence', status: 'Status' },
+    known: 'known', estimated: 'estimated', unknownV: 'unknown', disputedV: 'disputed',
+    kExpr: 'Type', kLoc: 'Location', kAuthor: 'Attribution', kCreated: 'Created', kCond: 'Condition',
+    fictional: 'fictional record',
+  },
+};
+// Expression types are Instance vocabulary; content stays in the content language (Italian).
+const EXPR = { mural: 'murale', pasteup: 'paste-up', stencil: 'stencil', graffiti: 'graffiti', installation: 'installazione', sticker: 'sticker' };
+
+// ---------------------------------------------------------------- fictional data
+// d(from, to, precision, qualifier)
+const d = (from, to = from, precision = 'year', qualifier = 'exact') => ({ from, to, precision, qualifier });
+const ARTWORKS = [
+  { id: 'a1', n: 1, title: 'La lupa di tufo', expr: ['mural'], area: 'Quadraro', x: 690, y: 430, loc: { kind: 'exact' }, tone: '#b9a27e',
+    attr: [{ name: 'Collettivo Tufo', cert: 'confirmed', cites: 2 }],
+    events: [
+      { type: 'created', date: d('2019-05', '2019-05', 'month'), ev: 'documented', cites: 2, cond: 'intact', submitted: '2023-02-10', approved: '2023-02-14' },
+      { type: 'doc', date: d('2019-06-02', '2019-06-02', 'day'), creator: 'Giulia R.' },
+      { type: 'doc', date: d('2024-03', '2024-03', 'month'), creator: 'm.ferri' },
+      { type: 'doc', date: d('2026-04-12', '2026-04-12', 'day'), creator: 'Giulia R.' },
+      { type: 'damaged', date: d('2026-09-28', '2026-09-28', 'day'), ev: 'documented', cites: 1, cond: 'damaged', proposal: { status: 'submitted', submitted: '2026-09-30' }, note: 'Tag sovrapposti sulla parte bassa.' },
+    ] },
+  { id: 'a2', n: 2, title: 'Mani sul Pigneto', expr: ['pasteup'], area: 'Pigneto', x: 610, y: 250, loc: { kind: 'approximate', radius: 40 }, tone: '#d9cdb5',
+    attr: [{ name: 'MRLN', cert: 'probable', cites: 0 }],
+    events: [
+      { type: 'created', date: d('2016', '2016', 'year', 'circa'), ev: 'reported', cites: 0, cond: 'intact', submitted: '2024-05-02', approved: '2024-05-06' },
+      { type: 'doc', date: d('2017-08', '2017-08', 'month'), creator: 'anonimo' },
+      { type: 'overpainted', date: d('2022', '2023', 'year'), ev: 'documented', cites: 1, cond: 'covered', submitted: '2024-05-02', approved: '2024-05-06', note: 'Coperta da un\'altra opera (record collegato).' },
+      { type: 'doc', date: d('2023-11-20', '2023-11-20', 'day'), creator: 'Luca P.' },
+    ] },
+  { id: 'a3', n: 3, title: 'Gabbiano sul gasometro', expr: ['stencil'], area: 'Ostiense', x: 380, y: 470, loc: { kind: 'exact' }, tone: '#a6a39b',
+    attr: [],
+    events: [
+      { type: 'created', date: d('2012', '2012', 'year', 'before'), ev: 'reported', cites: 0, cond: 'intact', submitted: '2022-11-01', approved: '2022-11-03' },
+      { type: 'doc', date: d('2011-09', '2011-09', 'month'), creator: 'archivio F. Neri' },
+      { type: 'doc', date: d('2020-02-15', '2020-02-15', 'day'), creator: 'Sara T.' },
+      { type: 'destroyed', date: d('2021-03-08', '2021-03-08', 'day'), ev: 'documented', cites: 2, cond: 'destroyed', submitted: '2021-03-10', approved: '2021-03-12', note: 'Parete demolita durante lavori.' },
+    ] },
+  { id: 'a4', n: 4, title: 'Ruggine', expr: ['graffiti'], area: 'Tor Pignattara', x: 660, y: 330, loc: { kind: 'exact' }, tone: '#9c7a62',
+    attr: [{ name: 'Sera K.', cert: 'disputed', cites: 1 }, { name: 'Nodo Crew', cert: 'disputed', cites: 1 }],
+    events: [
+      { type: 'created', date: d('2014', '2015', 'year'), ev: 'documented', cites: 1, cond: 'intact', submitted: '2023-06-01', approved: '2023-06-04' },
+      { type: 'doc', date: d('2016-04', '2016-04', 'month'), creator: 'm.ferri' },
+      { type: 'attribution', date: d('2019', '2019', 'year'), ev: 'documented', cites: 1, note: 'Nodo Crew rivendica l\'opera in un\'intervista (fonte fittizia).' },
+      { type: 'deteriorated', date: d('2022', '2022', 'year', 'after'), ev: 'reported', cites: 0, cond: 'deteriorated', submitted: '2025-01-20', approved: '2025-01-22' },
+      { type: 'doc', date: d('2025-01-18', '2025-01-18', 'day'), creator: 'Giulia R.' },
+    ] },
+  { id: 'a5', n: 5, title: 'Chiavi sospese', expr: ['installation'], area: 'San Lorenzo', x: 540, y: 170, loc: { kind: 'approximate', radius: 25 }, tone: '#c4bfb3',
+    attr: [{ name: 'Ines Valli', cert: 'confirmed', cites: 1 }],
+    events: [
+      { type: 'created', date: d('2018', '2018', 'year'), ev: 'documented', cites: 1, cond: 'intact', submitted: '2022-09-09', approved: '2022-09-10' },
+      { type: 'doc', date: d('2018-10', '2018-10', 'month'), creator: 'Ines Valli' },
+      { type: 'missing', date: d('2025', '2025', 'year', 'after'), ev: 'reported', cites: 0, cond: 'missing', submitted: '2026-02-11', approved: '2026-02-15' },
+    ] },
+  { id: 'a6', n: 6, title: 'Adesivi del cavalcavia', expr: ['sticker'], area: 'Centocelle', x: 860, y: 300, loc: { kind: 'exact' }, tone: '#d4d0c8',
+    attr: [],
+    events: [
+      { type: 'doc', date: d('2010', '2019', 'decade'), creator: 'anonimo' },
+    ] },
+];
+const PROPOSED_NEW = { id: 'p1', title: 'Senza titolo', expr: ['mural'], area: 'Testaccio', x: 330, y: 380, loc: { kind: 'approximate', radius: 15 }, proposal: { status: 'submitted', submitted: '2026-10-02' } };
+
+// ---------------------------------------------------------------- state
+const qs = new URLSearchParams(location.search);
+const VARIANTS = [['A', 'Etichetta editoriale'], ['B', 'Prima la fotografia'], ['C', 'Scheda / registro']];
+const S = {
+  variant: VARIANTS.some(v => v[0] === qs.get('variant')) ? qs.get('variant') : 'A',
+  lang: qs.get('lang') === 'en' ? 'en' : 'it',
+  viewer: qs.get('viewer') === 'submitter' ? 'submitter' : 'public',
+  gray: qs.get('gray') === '1',
+  notes: qs.get('notes') === '1',
+  sel: qs.get('art') || 'a1',
+};
+const t = () => T[S.lang];
+
+// ---------------------------------------------------------------- derived domain bits
+const approvedEvents = a => a.events.filter(e => !e.proposal);
+const proposedEvents = a => a.events.filter(e => e.proposal);
+function condition(a) {
+  const evs = approvedEvents(a).filter(e => e.cond);
+  return evs.length ? evs[evs.length - 1] : null; // events are kept in chronological order
+}
+const condKey = a => condition(a)?.cond ?? 'unknown';
+const group = c => ['covered', 'removed', 'destroyed', 'missing'].includes(c) ? 'gone' : c === 'unknown' ? 'unknown' : 'present';
+const docs = a => approvedEvents(a).filter(e => e.type === 'doc');
+const lastDoc = a => docs(a).slice(-1)[0];
+const certOf = a => a.attr.length === 0 ? 'unknown' : a.attr[0].cert;
+
+function fmtPoint(s, precision) {
+  const [y, m, dd] = s.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, (m || 1) - 1, dd || 1));
+  const loc = S.lang === 'it' ? 'it-IT' : 'en-GB';
+  if (precision === 'day') return new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(dt);
+  if (precision === 'month') return new Intl.DateTimeFormat(loc, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(dt);
+  if (precision === 'decade') return t().decade(String(y));
+  return String(y);
+}
+function fmtDate(dd) {
+  if (!dd || dd.precision === 'unknown') return t().dateUnknown;
+  let core = fmtPoint(dd.from, dd.precision);
+  if (dd.to !== dd.from && dd.precision !== 'decade') core += '–' + fmtPoint(dd.to, dd.precision);
+  if (dd.qualifier === 'circa') return `${t().circa} ${core}`;
+  if (dd.qualifier === 'before') return `${t().before} ${core}`;
+  if (dd.qualifier === 'after') return `${t().after} ${core}`;
+  return core;
+}
+const isFuzzy = dd => !dd || dd.qualifier !== 'exact' || dd.from !== dd.to || dd.precision === 'decade' || dd.precision === 'unknown';
+const fmtIso = s => fmtPoint(s, 'day');
+const createdEvent = a => approvedEvents(a).find(e => e.type === 'created');
+
+// ---------------------------------------------------------------- shared glyphs
+// Condition glyphs: shape carries the meaning; color is redundant.
+function condIcon(c, cls = 'ico') {
+  const o = `<svg class="${cls}" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">`;
+  const g = {
+    intact: '<circle cx="8" cy="8" r="6" fill="currentColor"/>',
+    deteriorated: '<circle cx="8" cy="8" r="6"/><path d="M2 8a6 6 0 0 0 12 0z" fill="currentColor"/>',
+    damaged: '<circle cx="8" cy="8" r="6" fill="currentColor"/><path d="M5 3l3 4-2 2 3 4" stroke="#f4f1ea" stroke-width="1.8"/>',
+    modified: '<circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 6 6H8z" fill="currentColor"/>',
+    covered: '<rect x="2" y="2" width="12" height="12"/><path d="M2 5h12M2 8h12M2 11h12"/>',
+    removed: '<rect x="2" y="2" width="12" height="12" stroke-dasharray="2.5 2"/><path d="M8 11V5M5.5 7.5L8 5l2.5 2.5"/>',
+    destroyed: '<rect x="2" y="2" width="12" height="12"/><path d="M4 4l8 8M12 4l-8 8"/>',
+    missing: '<rect x="2" y="2" width="12" height="12" stroke-dasharray="1 2"/>',
+    unknown: '<circle cx="8" cy="8" r="6" stroke-dasharray="2 1.5"/><path d="M6.3 6.3a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.4M8 11.6v.4"/>',
+  };
+  return o + g[c] + '</svg>';
+}
+const ICO = {
+  approx: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6" stroke-dasharray="2 2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg>',
+  exact: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v4M8 11v4M1 8h4M11 8h4"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg>',
+  doc: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9"/><circle cx="8" cy="8.5" r="2.3"/><path d="M5.5 4l1-2h3l1 2"/></svg>',
+  src: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h6l3 3v9H4z M10 2v3h3"/></svg>',
+  person: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2.5 15c.5-3.5 2.6-5 5.5-5s5 1.5 5.5 5"/></svg>',
+  split: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 15V8M8 8L3 2M8 8l5-6"/></svg>',
+  pending: '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6" stroke-dasharray="2 2"/><path d="M8 4.5V8l2.5 1.5"/></svg>',
+};
+
+function photo(a, w = 400, h = 260, label = true) {
+  // Neutral placeholders: not every artwork is a colourful mural.
+  const shapes = {
+    mural: `<rect x="${w * .1}" y="${h * .15}" width="${w * .8}" height="${h * .7}" fill="${a.tone}" opacity=".85"/><circle cx="${w * .5}" cy="${h * .5}" r="${h * .22}" fill="#6d5a42" opacity=".6"/>`,
+    pasteup: `<rect x="${w * .3}" y="${h * .12}" width="${w * .4}" height="${h * .76}" fill="#f6f2e8" stroke="#888"/><path d="M${w * .38} ${h * .7} q${w * .12} -${h * .4} ${w * .24} 0" stroke="#333" stroke-width="6" fill="none"/>`,
+    stencil: `<path d="M${w * .3} ${h * .55} q${w * .2} -${h * .35} ${w * .4} 0 q-${w * .2} -${h * .12} -${w * .4} 0" fill="#222"/>`,
+    graffiti: `<text x="${w * .5}" y="${h * .62}" text-anchor="middle" font-size="${h * .32}" font-weight="900" font-family="Impact, sans-serif" fill="#7a3e22" stroke="#222" stroke-width="3">RGN</text>`,
+    installation: `<path d="M${w * .2} ${h * .2}H${w * .8}" stroke="#555" stroke-width="3"/>${[.3, .42, .55, .68].map((p, i) => `<path d="M${w * p} ${h * .2}v${h * (.25 + i * .06)}" stroke="#555"/><circle cx="${w * p}" cy="${h * (.47 + i * .06)}" r="7" fill="#8d8a80"/>`).join('')}`,
+    sticker: [...Array(14)].map((_, i) => `<rect x="${w * (.15 + (i * 37 % 70) / 100)}" y="${h * (.2 + (i * 23 % 55) / 100)}" width="${22 + i % 3 * 8}" height="${16 + i % 4 * 5}" fill="${['#ddd', '#b8b1a0', '#9a9488', '#efeae0'][i % 4]}" stroke="#777"/>`).join(''),
+  };
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#b5ada0"/><path d="M0 ${h * .9}H${w}" stroke="#968e80" stroke-width="${h * .2}"/>${[...Array(8)].map((_, i) => `<path d="M0 ${i * h / 8}H${w}" stroke="#a69e90" stroke-width="1"/>`).join('')}${shapes[a.expr[0]]}${label ? `<text x="8" y="${h - 8}" font-family="monospace" font-size="11" fill="#333">${t().placeholder}</text>` : ''}</svg>`;
+  return `<img class="ph" alt="" src="data:image/svg+xml;utf8,${encodeURIComponent(svg)}">`;
+}
+
+function baseMap() {
+  return `<svg class="base" viewBox="0 0 1000 600" aria-hidden="true">
+    <rect width="1000" height="600" fill="#e6e1d5"/>
+    <path d="M250 0 C 200 120, 330 180, 270 300 S 330 470, 290 600" stroke="#b9c4c8" stroke-width="28" fill="none"/>
+    <g stroke="#fbf9f4" stroke-width="7" fill="none">
+      <path d="M0 230 L1000 160"/><path d="M380 0 L760 600"/><path d="M300 600 L620 0"/><path d="M500 300 L1000 420"/><path d="M0 420 L520 330"/><path d="M700 0 L880 600"/>
+    </g>
+    <g font-family="monospace" font-size="13" fill="#8b8476">
+      <text x="590" y="225">Pigneto</text><text x="700" y="470">Quadraro</text><text x="350" y="510">Ostiense</text><text x="520" y="140">San Lorenzo</text><text x="660" y="360">Tor Pignattara</text><text x="840" y="335">Centocelle</text><text x="300" y="410">Testaccio</text>
+    </g></svg>`;
+}
+const pct = (x, y) => `left:${x / 10}%;top:${y / 6}%`;
+// Approximate locations: a dashed area drawn as % of map width.
+const halo = a => a.loc.kind === 'approximate' ? `<span aria-hidden="true" style="position:absolute;${pct(a.x, a.y)};width:${a.loc.radius / 4}%;aspect-ratio:1;transform:translate(-50%,-50%);border:1.5px dashed var(--ink-2);border-radius:50%;background:var(--halo)"></span>` : '';
+
+function pinLabel(a) {
+  const L = t();
+  return `${a.title} — ${L.cond[condKey(a)]}, ${L.loc[a.loc.kind]}`;
+}
+function proposalTag() { return `<span class="proposed-tag">${ICO.pending} ${t().proposed} · ${t().inReview}</span>`; }
+
+function attributionText(a, style) {
+  const L = t();
+  if (!a.attr.length) return style === 'A' ? `<em>${L.unknownAuthor}</em>` : L.unknownAuthor;
+  const c = a.attr[0].cert;
+  const names = a.attr.map(x => x.name);
+  if (style === 'A') {
+    if (c === 'confirmed') return names.join(', ');
+    if (c === 'probable') return `[${names.join(', ')}] <em>— ${L.probableBy.toLowerCase()}</em>`;
+    return `<em>${L.disputedBetween}:</em> ${names.join(' <em>o</em> ')}`;
+  }
+  return names.join(c === 'disputed' ? ' / ' : ', ');
+}
+function evidenceText(e) {
+  const L = t();
+  return e.ev === 'documented' ? `${ICO.src} ${L.ev.documented} · ${L.sources(e.cites)}` : `${L.ev.reported} · ${L.noSources}`;
+}
+
+// ================================================================ Variant A
+// Editorial catalogue: text-first labels, typographic uncertainty (c., [ ], italics),
+// geometric map glyphs, proposals inline in the timeline but hatched and labelled.
+function markerA(a) {
+  const c = condKey(a), g = group(c);
+  const sz = 22;
+  let shape;
+  if (g === 'present') shape = `<circle cx="11" cy="11" r="7" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>`;
+  else if (g === 'gone') shape = `<rect x="4" y="4" width="14" height="14" fill="var(--paper)" stroke="var(--gone)" stroke-width="2.5"/><path d="M4 18L18 4" stroke="var(--gone)" stroke-width="2.5"/>`;
+  else shape = `<circle cx="11" cy="11" r="7.5" fill="var(--paper)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">?</text>`;
+  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}"><svg width="${sz}" height="${sz}" viewBox="0 0 22 22" aria-hidden="true">${shape}</svg></button>`;
+}
+function markerAProposed(p) {
+  return `${halo(p)}<button class="pin" style="${pct(p.x, p.y)}" aria-label="${p.title} — ${t().proposed}"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" fill="var(--paper)" stroke="var(--proposed)" stroke-width="2" stroke-dasharray="3 2"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="var(--proposed)">P</text></svg></button>`;
+}
+function legendA() {
+  const L = t();
+  return `<div class="legend">
+    <span><svg width="16" height="16" viewBox="0 0 22 22"><circle cx="11" cy="11" r="7" fill="var(--ink)"/></svg>${L.group.present}</span>
+    <span><svg width="16" height="16" viewBox="0 0 22 22"><rect x="4" y="4" width="14" height="14" fill="none" stroke="var(--gone)" stroke-width="2.5"/><path d="M4 18L18 4" stroke="var(--gone)" stroke-width="2.5"/></svg>${L.group.gone}</span>
+    <span><svg width="16" height="16" viewBox="0 0 22 22"><circle cx="11" cy="11" r="7.5" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="15" text-anchor="middle" font-size="11" font-weight="700">?</text></svg>${L.group.unknown}</span>
+    <span>${ICO.approx}${L.loc.approximate}</span>
+    ${S.viewer === 'submitter' ? `<span style="color:var(--proposed)"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" transform="rotate(45 12 12)" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/></svg>${L.proposed}</span>` : ''}
+  </div>`;
+}
+function condA(a) {
+  const c = condKey(a);
+  return `<span class="A-cond ${group(c) === 'gone' ? 'gone-ink' : ''}">${condIcon(c)} ${t().cond[c]}</span>`;
+}
+function VariantA() {
+  const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
+  const cr = createdEvent(a), cev = condition(a), ld = lastDoc(a);
+  const labels = ARTWORKS.map(x => {
+    const c = createdEvent(x), ldx = lastDoc(x);
+    return `<button class="A-label" data-sel="${x.id}" aria-current="${x.id === a.id}">
+      ${photo(x, 144, 108, false)}
+      <span><h3>${x.title}</h3>
+      <span class="meta">${attributionText(x, 'A')}, ${c ? fmtDate(c.date) : `<em>${L.dateUnknown}</em>`}<br>
+      ${EXPR[x.expr[0]]} · ${x.area}${x.loc.kind === 'approximate' ? ` <em>(${L.loc.approximate.toLowerCase()})</em>` : ''}</span><br>
+      ${condA(x)} <span class="meta">· ${ldx ? `${L.lastDoc} ${fmtDate(ldx.date)}` : ''}</span></span>
+    </button>`;
+  }).join('') + (S.viewer === 'submitter' ? `<div class="A-label proposed-box" style="cursor:default"><span></span><span><h3>${PROPOSED_NEW.title}</h3>${proposalTag()}<br><span class="meta">${EXPR.mural} · ${PROPOSED_NEW.area} · ${L.submitted} ${fmtIso(PROPOSED_NEW.proposal.submitted)}</span></span></div>` : '');
+
+  const tl = a.events.filter(e => S.viewer === 'submitter' || !e.proposal).map(e => {
+    const fuzzy = isFuzzy(e.date);
+    const what = e.type === 'doc'
+      ? `${ICO.doc} <strong>${L.evt.doc}</strong> — ${L.photoBy}: ${e.creator}`
+      : `<strong>${L.evt[e.type]}</strong>${e.cond ? ` → ${L.cond[e.cond]}` : ''}${e.note ? `<br>${e.note}` : ''}<br><span class="A-cites">${evidenceText(e)}${e.approved ? ` · ${L.submitted} ${fmtIso(e.submitted)} · ${L.approved} ${fmtIso(e.approved)}` : ''}</span>`;
+    return `<li class="${e.proposal ? 'proposed-box' : ''}"><div class="when">${fuzzy ? `<em>${fmtDate(e.date)}</em>` : fmtDate(e.date)}<small>${L.observed}</small></div>
+      <div class="what">${e.proposal ? `${proposalTag()} <span class="A-cites">${L.submitted} ${fmtIso(e.proposal.submitted)} · ${L.onlyYou}</span><br>` : ''}${what}${e.proposal ? `<br><span class="A-cites">${L.proposalNote}</span>` : ''}</div></li>`;
+  });
+  if (!cr) tl.unshift(`<li><div class="when"><em>?</em></div><div class="what"><em>${L.createdUnknown}</em></div></li>`);
+
+  return `
+  <div class="surface-label">${L.map} + ${L.cards}</div>
+  <div class="A-top">
+    <div><div class="map">${baseMap()}${ARTWORKS.map(markerA).join('')}${S.viewer === 'submitter' ? markerAProposed(PROPOSED_NEW) : ''}</div>${legendA()}</div>
+    <div class="A-labels">${labels}</div>
+  </div>
+  <div class="surface-label">${L.detail} + ${L.timeline}</div>
+  <article class="A-detail">
+    <div>
+      ${photo(a, 600, 400)}
+      <p class="fict">${L.fictional} · ${ld ? `${L.photoBy}: ${ld.creator}, ${fmtDate(ld.date)}` : ''}</p>
+    </div>
+    <div>
+      <h2>${a.title}</h2>
+      <div class="A-tombstone">
+        <p>${attributionText(a, 'A')}</p>
+        <p>${cr ? (isFuzzy(cr.date) ? `<em>${fmtDate(cr.date)}</em>` : fmtDate(cr.date)) : `<em>${L.createdUnknown}</em>`}</p>
+        <p>${a.expr.map(e => EXPR[e]).join(', ')}</p>
+        <p>${a.area} · ${a.loc.kind === 'approximate' ? `${ICO.approx} <em>${L.loc.approximate.toLowerCase()}, ${L.radius(a.loc.radius)}</em>` : `${ICO.exact} ${L.loc.exact.toLowerCase()}`}</p>
+      </div>
+      <div class="A-condline ${group(condKey(a)) === 'gone' ? 'gone-ink' : ''}">
+        ${condA(a)}<br>
+        <span style="color:var(--ink)">${cev ? `${L.since} ${fmtDate(cev.date)} · ${evidenceText(cev)}` : L.noSources}${ld ? `<br>${L.lastDoc}: ${fmtDate(ld.date)}` : ''}</span>
+      </div>
+      <ol class="A-tl">${tl.join('')}</ol>
+    </div>
+  </article>`;
+}
+
+// ================================================================ Variant B
+// Photography first: contact-sheet grid, photo treatment + ribbon for disappeared works,
+// thumbnail pins, filmstrip timeline, proposals in a separate tray (never inline).
+function markerB(a) {
+  const c = condKey(a), g = group(c);
+  const ring = g === 'gone' ? 'var(--gone)' : g === 'unknown' ? 'var(--ink-2)' : 'var(--ink)';
+  const dash = g === 'unknown' ? 'dashed' : 'solid';
+  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}">
+    <span style="display:block;width:34px;height:34px;border-radius:50%;overflow:hidden;border:3px ${dash} ${ring};${g === 'gone' ? 'filter:grayscale(1)' : ''};background:var(--paper)">${photo(a, 80, 80, false)}</span>
+    <span style="position:absolute;right:-6px;bottom:-6px;background:var(--paper);border:1.5px solid ${ring};border-radius:50%;width:20px;height:20px;display:grid;place-items:center;color:${ring}">${condIcon(c)}</span>
+    ${a.loc.kind === 'exact' ? `<span aria-hidden="true" style="position:absolute;left:50%;bottom:-9px;margin-left:-5px;border:5px solid transparent;border-top-color:${ring}"></span>` : ''}
+  </button>`;
+}
+function VariantB() {
+  const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
+  const cr = createdEvent(a), ld = lastDoc(a), c = condKey(a), g = group(c);
+  const ribbon = (x) => {
+    const cx = condKey(x), gx = group(cx), lx = lastDoc(x);
+    if (gx === 'present') return '';
+    return `<span class="B-ribbon ${gx === 'unknown' ? 'unk' : ''}">${condIcon(cx)} ${L.cond[cx]}${gx === 'gone' && lx ? ` · ${L.archivalDoc} ${fmtDate(lx.date)}` : ''}</span>`;
+  };
+  const chipsFor = (x) => {
+    const cr2 = createdEvent(x), cert = certOf(x);
+    const chips = [];
+    if (cert !== 'confirmed') chips.push(`<span class="chip dash">${cert === 'disputed' ? ICO.split : ICO.person} ${cert === 'unknown' ? L.unknownAuthor : `${L.col.author} ${L.cert[cert]}`}</span>`);
+    if (!cr2 || isFuzzy(cr2.date)) chips.push(`<span class="chip dash">${L.estimated}: ${cr2 ? fmtDate(cr2.date) : L.dateUnknown}</span>`);
+    if (x.loc.kind === 'approximate') chips.push(`<span class="chip dash">${ICO.approx} ${L.loc.approximate}</span>`);
+    return chips.join('');
+  };
+  const cards = ARTWORKS.map(x => {
+    const cx = condKey(x), lx = lastDoc(x);
+    return `<button class="B-card" data-sel="${x.id}" aria-current="${x.id === a.id}">
+      <span class="B-photo ${group(cx) === 'gone' ? 'is-gone' : ''}">${photo(x, 300, 220, false)}${ribbon(x)}</span>
+      <span class="B-cap"><span>${ICO.doc} ${lx ? fmtDate(lx.date) : L.dateUnknown}</span><span>${lx ? lx.creator : ''}</span></span>
+      <span class="B-title">${x.title}</span>
+      <span style="font-size:12.5px;color:var(--ink-2)">${attributionText(x, 'B')} · ${x.area}</span>
+      <span class="B-chips">${chipsFor(x)}</span>
+    </button>`;
+  }).join('');
+
+  // filmstrip: docs as frames, history events as narrow event cells with a date bar (dashed = range)
+  const strip = approvedEvents(a).map(e => e.type === 'doc'
+    ? `<div class="B-frame">${photo(a, 300, 200, false)}<span class="d">${fmtDate(e.date)}</span>${L.photoBy}: ${e.creator}</div>`
+    : `<div class="B-frame ev"><span class="d">${fmtDate(e.date)}</span><div class="bar ${isFuzzy(e.date) ? 'range' : ''}" aria-hidden="true"></div><strong>${L.evt[e.type]}</strong>${e.cond ? `<br>${condIcon(e.cond)} ${L.cond[e.cond]}` : ''}<br><span style="color:var(--ink-2)">${evidenceText(e)}</span></div>`).join('');
+  const props = proposedEvents(a);
+
+  return `
+  <div class="surface-label">${L.cards} + ${L.map}</div>
+  <div class="B-top">
+    <div class="B-grid">${cards}</div>
+    <div><div class="map" style="position:sticky;top:8px">${baseMap()}${ARTWORKS.map(markerB).join('')}${S.viewer === 'submitter' ? `${halo(PROPOSED_NEW)}<span class="pin" style="${pct(PROPOSED_NEW.x, PROPOSED_NEW.y)}">${proposalTag()}</span>` : ''}</div>
+    <div class="legend"><span>${ICO.approx} ${L.loc.approximate} = ${S.lang === 'it' ? 'senza punta, area tratteggiata' : 'no pin tip, dashed area'}</span><span>${condIcon('destroyed')} ${L.group.gone} = ${S.lang === 'it' ? 'foto in bianco e nero + icona' : 'black & white photo + icon'}</span></div></div>
+  </div>
+  <div class="surface-label">${L.detail} + ${L.timeline}</div>
+  <article class="B-detail">
+    <div class="B-hero ${g === 'gone' ? 'B-photo is-gone' : ''}">${photo(a, 1200, 420)}${ribbon(a)}</div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12.5px;color:var(--ink-2);margin-top:4px"><span>${ld ? `${L.photoBy}: ${ld.creator} · ${L.observed} ${fmtDate(ld.date)}` : ''}</span><span class="fict">${L.fictional}</span></div>
+    <h2>${a.title}</h2>
+    <div class="B-chips" style="gap:6px;font-size:13px">
+      <span class="chip">${condIcon(c)} ${L.cond[c]} · ${ld ? `${L.lastDoc} ${fmtDate(ld.date)}` : L.dateUnknown}</span>
+      <span class="chip ${certOf(a) === 'confirmed' ? '' : 'dash'}">${certOf(a) === 'disputed' ? ICO.split : ICO.person} ${attributionText(a, 'B')}${certOf(a) !== 'confirmed' && a.attr.length ? ` (${L.cert[certOf(a)]})` : ''}</span>
+      <span class="chip ${!cr || isFuzzy(cr.date) ? 'dash' : ''}">${cr ? fmtDate(cr.date) : L.createdUnknown}</span>
+      <span class="chip ${a.loc.kind === 'approximate' ? 'dash' : ''}">${a.loc.kind === 'approximate' ? ICO.approx : ICO.exact} ${a.area} · ${L.loc[a.loc.kind]}${a.loc.radius ? `, ${L.radius(a.loc.radius)}` : ''}</span>
+      <span class="chip">${a.expr.map(e => EXPR[e]).join(', ')}</span>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2);margin:10px 0 2px">${S.lang === 'it' ? 'Riquadro pieno = dato accertato · riquadro tratteggiato = stimato, probabile, conteso o approssimato' : 'Solid box = established · dashed box = estimated, probable, disputed or approximate'}</p>
+    <div class="B-strip">${!cr ? `<div class="B-frame ev"><span class="d">?</span><strong>${L.createdUnknown}</strong></div>` : ''}${strip}</div>
+    ${S.viewer === 'submitter' && props.length ? `<section class="B-tray proposed-box"><strong>${L.reviewTray}</strong> · <span style="font-size:12.5px">${L.onlyYou}. ${L.proposalNote}</span>
+      ${props.map(e => `<p style="margin:6px 0 0">${proposalTag()} <strong>${L.evt[e.type]}</strong> → ${L.cond[e.cond]} · ${L.observed} ${fmtDate(e.date)} · ${L.submitted} ${fmtIso(e.proposal.submitted)}<br><span style="font-size:12.5px">${e.note} · ${evidenceText(e)}</span></p>`).join('')}</section>` : ''}
+  </article>`;
+}
+
+// ================================================================ Variant C
+// Ledger / fact sheet: the catalogue is a table, every fact has an explicit certainty and
+// evidence column, map markers are numbered text codes, the timeline is drawn to scale.
+function markerC(a) {
+  const c = condKey(a), g = group(c);
+  return `${halo(a)}<button class="pin" style="${pct(a.x, a.y)}" data-sel="${a.id}" aria-label="${pinLabel(a)}">
+    <span class="C-code ${g === 'gone' ? 'gone' : g === 'unknown' ? 'unk' : ''}" style="background:var(--paper)">${a.n} ${t().condShort[c]}${a.loc.kind === 'approximate' ? ' ≈' : ''}</span></button>`;
+}
+function VariantC() {
+  const L = t(), a = ARTWORKS.find(x => x.id === S.sel) || ARTWORKS[0];
+  const cr = createdEvent(a), cev = condition(a), ld = lastDoc(a), c = condKey(a);
+  const code = x => { const cx = condKey(x), gx = group(cx); return `<span class="C-code ${gx === 'gone' ? 'gone' : gx === 'unknown' ? 'unk' : ''}">${condIcon(cx)} ${L.cond[cx]}</span>`; };
+  const rows = ARTWORKS.map(x => {
+    const lx = lastDoc(x), cert = certOf(x);
+    return `<tr class="C-row ${x.id === a.id ? 'sel' : ''}"><td>${x.n}</td><td><button data-sel="${x.id}">${x.title}</button></td><td>${EXPR[x.expr[0]]}</td><td>${code(x)}</td>
+      <td>${lx ? fmtDate(lx.date) : '—'}</td><td>${x.attr.length ? attributionText(x, 'C') : '—'}</td><td class="C-cert">${L.cert[cert]}</td>
+      <td>${x.loc.kind === 'approximate' ? `${ICO.approx} ≈ ${x.loc.radius} m` : `${ICO.exact} ${L.known}`}</td></tr>`;
+  }).join('') + (S.viewer === 'submitter' ? `<tr class="proposed-box"><td>—</td><td>${PROPOSED_NEW.title}<br>${proposalTag()}</td><td>${EXPR.mural}</td><td colspan="4">${L.submitted} ${fmtIso(PROPOSED_NEW.proposal.submitted)} · ${L.onlyYou}</td><td>${ICO.approx} ≈ ${PROPOSED_NEW.loc.radius} m</td></tr>` : '');
+
+  const certCell = (kind) => ({ known: L.known, est: L.estimated, unk: L.unknownV, disp: L.disputedV })[kind];
+  const facts = [
+    [L.kExpr, a.expr.map(e => EXPR[e]).join(', '), 'known', '—'],
+    [L.kLoc, `${a.area}${a.loc.radius ? `, ${L.radius(a.loc.radius)}` : ''}`, a.loc.kind === 'approximate' ? 'est' : 'known', '—'],
+    [L.kAuthor, a.attr.length ? a.attr.map(x => `${x.name} <span class="C-cert">(${L.cert[x.cert]})</span>`).join('<br>') : L.unknownAuthor,
+      !a.attr.length ? 'unk' : certOf(a) === 'disputed' ? 'disp' : certOf(a) === 'probable' ? 'est' : 'known',
+      a.attr.length ? a.attr.map(x => x.cites ? `${L.ev.documented} · ${L.sources(x.cites)}` : L.ev.reported).join('<br>') : '—'],
+    [L.kCreated, cr ? fmtDate(cr.date) : L.dateUnknown, !cr ? 'unk' : isFuzzy(cr.date) ? 'est' : 'known', cr ? L.ev[cr.ev] + (cr.cites ? ` · ${L.sources(cr.cites)}` : '') : '—'],
+    [L.kCond, `${code(a)}<br><span style="font-size:12px">${cev ? `${L.since} ${fmtDate(cev.date)}` : ''}${ld ? ` · ${L.lastDoc} ${fmtDate(ld.date)}` : ''}</span>`, cev ? (isFuzzy(cev.date) ? 'est' : 'known') : 'unk', cev ? L.ev[cev.ev] + (cev.cites ? ` · ${L.sources(cev.cites)}` : '') : '—'],
+  ];
+
+  // to-scale timeline 2008–2027
+  const Y0 = 2008, Y1 = 2027, pos = s => ((Number(s.slice(0, 4)) + (s.length > 4 ? (Number(s.slice(5, 7)) - 1) / 12 : 0)) - Y0) / (Y1 - Y0) * 100;
+  const lane = (e) => {
+    const dd = e.date;
+    let l = pos(dd.from), r = dd.precision === 'decade' ? pos(String(Number(dd.from) + 9)) + 100 / (Y1 - Y0) : pos(dd.to) + (dd.precision === 'year' ? 100 / (Y1 - Y0) : 0);
+    let cls = 'mk ' + (isFuzzy(dd) ? 'rg' : 'pt');
+    if (dd.qualifier === 'before') { cls += ' open-l'; l = Math.max(0, l - 8); }
+    if (dd.qualifier === 'after') { cls += ' open-r'; r = Math.min(100, r + 8); }
+    if (dd.qualifier === 'circa') { l -= 2; r += 2; }
+    if (e.proposal) cls += ' prop';
+    return isFuzzy(dd) || e.proposal ? `<div class="C-lane"><span class="${cls}" style="left:${l}%;width:${Math.max(r - l, 1.5)}%"></span></div>` : `<div class="C-lane"><span class="${cls}" style="left:${l}%"></span></div>`;
+  };
+  const axis = `<div class="C-axis">${[2010, 2014, 2018, 2022, 2026].map(y => `<span style="left:${pos(String(y))}%">${y}</span>`).join('')}</div>`;
+  const tlRows = a.events.filter(e => S.viewer === 'submitter' || !e.proposal).map(e => `<tr class="${e.proposal ? 'proposed-box' : ''}">
+      <td>${e.proposal ? proposalTag() + '<br>' : ''}<strong>${e.type === 'doc' ? `${ICO.doc} ${L.evt.doc}` : L.evt[e.type]}</strong>${e.cond ? ` → ${L.cond[e.cond]}` : ''}<br>
+      <span style="font-size:12px">${fmtDate(e.date)}${e.type === 'doc' ? ` · ${e.creator}` : ` · ${L.ev[e.ev]}`}${e.proposal ? ` · ${L.submitted} ${fmtIso(e.proposal.submitted)}` : e.approved ? ` · ${L.approved} ${fmtIso(e.approved)}` : ''}</span></td>
+      <td>${lane(e)}</td></tr>`).join('');
+
+  return `
+  <div class="surface-label">${L.map} + ${L.cards}</div>
+  <div class="C-top">
+    <div><div class="map">${baseMap()}${ARTWORKS.map(markerC).join('')}${S.viewer === 'submitter' ? `${halo(PROPOSED_NEW)}<span class="pin" style="${pct(PROPOSED_NEW.x, PROPOSED_NEW.y)}"><span class="C-code" style="color:var(--proposed);border-style:dashed;background:var(--paper)">P ≈</span></span>` : ''}</div>
+      <div class="legend"><span>${S.lang === 'it' ? 'Codice = N° + condizione' : 'Code = No. + condition'}</span><span>≈ ${L.loc.approximate}</span><span><span class="C-code unk">???</span> ${L.group.unknown}</span></div></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>${L.col.n}</th><th>${L.col.title}</th><th>${L.col.type}</th><th>${L.col.cond}</th><th>${L.col.last}</th><th>${L.col.author}</th><th>${L.col.cert}</th><th>${L.col.loc}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </div>
+  <div class="surface-label">${L.detail} + ${L.timeline}</div>
+  <article class="C-sheet">
+    <div>
+      <h2>${a.n}. ${a.title}</h2>
+      <p class="fict">${L.fictional}</p>
+      <table><thead><tr><th>${L.col.fact}</th><th>${L.col.value}</th><th>${L.col.certainty}</th><th>${L.col.evidence}</th></tr></thead>
+      <tbody>${facts.map(f => `<tr><th scope="row" style="border-bottom:1px solid var(--rule);font-size:11px;vertical-align:top">${f[0]}</th><td>${f[1]}</td><td class="C-cert">${certCell(f[2])}</td><td style="font-size:12px">${f[3]}</td></tr>`).join('')}</tbody></table>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">${docs(a).slice(-2).map(e => `<figure style="margin:0">${photo(a, 300, 200)}<figcaption style="font-size:12px">${fmtDate(e.date)} · ${e.creator}</figcaption></figure>`).join('')}</div>
+    </div>
+    <div>
+      <table class="C-tl"><thead><tr><th>${L.timeline}</th><th>${axis}</th></tr></thead><tbody>${!cr ? `<tr><td><em>${L.createdUnknown}</em></td><td></td></tr>` : ''}${tlRows}</tbody></table>
+      <p style="font-size:12px;color:var(--ink-2)">${S.lang === 'it' ? '● punto = data esatta · barra tratteggiata = intervallo/stima · freccia = prima/dopo · contorno blu tratteggiato = proposta' : '● dot = exact date · hatched bar = range/estimate · arrow = before/after · dashed blue outline = proposal'}</p>
+    </div>
+  </article>`;
+}
+
+// ---------------------------------------------------------------- notes (principles to react to)
+const NOTES = `
+<h2>Principi visivi — bozza da discutere (#17)</h2>
+<ol>
+  <li><b>Editoriale e archivistico.</b> Carta, inchiostro, serif per titoli e didascalie; una sola tinta per “non più visibile” e una per “proposta”. La fotografia è il materiale primario.</li>
+  <li><b>Mai solo colore.</b> Ogni stato = parola + forma (icona, tratteggio, codice). Prova: tasto <i>Grigi</i> in basso.</li>
+  <li><b>Incertezza come linguaggio, non come allarme.</b> “c. 2016”, “prima del 2012”, “probabile”, “contesa”, “approssimata”. Niente icone di warning, niente rosso per l’incerto. Convenzione proposta: <i>contorno pieno = accertato, tratteggiato = stimato/incerto</i>.</li>
+  <li><b>Scomparsa con dignità.</b> Un’opera distrutta o coperta resta una scheda completa: si mostra l’ultima documentazione con la sua data, non un vuoto.</li>
+  <li><b>La Condizione ha sempre una data.</b> Mai “attuale” nudo: “Intatta · ultima documentazione apr 2026”.</li>
+  <li><b>Proposto ≠ accertato.</b> Le proposte non sono pubbliche. Per Submitter/Moderatori: tratteggio blu + etichetta “Proposta · in revisione”; non cambiano la Condizione mostrata.</li>
+  <li><b>Evidence level è derivato e ispezionabile.</b> “documentato · 2 fonti” rimanda alle citazioni; “segnalato” è neutro, non una colpa.</li>
+  <li><b>Tre date distinte</b> (osservato, inviato, approvato) visibili nella timeline, non nelle schede.</li>
+</ol>
+<h3>Da evitare</h3>
+<ul><li>Semaforo verde/giallo/rosso, badge SaaS colorati, gradienti.</li><li>Contatori, like, “popolari”, gamification.</li><li>Placeholder che presuppongono murales colorati.</li><li>Nascondere le opere scomparse dalla mappa di default.</li></ul>
+<h3>Domande aperte</h3>
+<ul>
+  <li>Sulla mappa, le opere scomparse sono visibili di default o dietro un filtro?</li>
+  <li>“Coperta” e “distrutta” devono distinguersi già sul marker, o basta “non più visibile”?</li>
+  <li>Il pubblico deve sapere che esistono proposte in revisione su un’opera (senza vederne il contenuto)?</li>
+  <li>Glossario: il brief dice “present”; il vocabolario Condition dice “intact”. Confermare.</li>
+</ul>
+<h3>Varianti</h3>
+<p><b>A</b> etichetta museale, incertezza tipografica, proposte inline tratteggiate. <b>B</b> foto prima di tutto, scomparse in B/N con nastro, proposte in un vassoio separato. <b>C</b> registro: ogni dato ha colonna Certezza ed Evidenza, timeline in scala.</p>`;
+
+// ---------------------------------------------------------------- render + switcher
+function sync() {
+  const p = new URLSearchParams();
+  p.set('variant', S.variant); if (S.lang !== 'it') p.set('lang', S.lang); if (S.viewer !== 'public') p.set('viewer', S.viewer);
+  if (S.gray) p.set('gray', '1'); if (S.notes) p.set('notes', '1'); p.set('art', S.sel);
+  history.replaceState(null, '', '?' + p);
+}
+function render() {
+  document.documentElement.lang = S.lang;
+  document.getElementById("app").classList.toggle("gray", S.gray);
+  const L = t(), V = { A: VariantA, B: VariantB, C: VariantC }[S.variant];
+  document.getElementById('app').innerHTML = `<div class="wrap">
+    <header class="archive-head"><h1>${L.archive}</h1><small>${L.powered}</small></header>
+    <main>${V()}</main></div>`;
+  const notes = document.getElementById('notes');
+  notes.hidden = !S.notes; notes.innerHTML = NOTES;
+  const idx = VARIANTS.findIndex(v => v[0] === S.variant);
+  document.getElementById('switcher').innerHTML = `
+    <button data-act="prev" aria-label="Variante precedente">←</button>
+    <span class="cur">${S.variant} (${VARIANTS[idx][1]})</span>
+    <button data-act="next" aria-label="Variante successiva">→</button>
+    <span class="sep"></span>
+    <button data-act="gray" aria-pressed="${S.gray}">Grigi</button>
+    <button data-act="lang" aria-pressed="false">${S.lang.toUpperCase()}</button>
+    <button data-act="viewer" aria-pressed="${S.viewer === 'submitter'}">${S.viewer === 'submitter' ? 'Vista Submitter' : 'Vista pubblica'}</button>
+    <button data-act="notes" aria-pressed="${S.notes}">Principi</button>`;
+  sync();
+}
+function cycle(dir) {
+  const i = VARIANTS.findIndex(v => v[0] === S.variant);
+  S.variant = VARIANTS[(i + dir + VARIANTS.length) % VARIANTS.length][0]; render();
+}
+document.addEventListener('click', e => {
+  const sel = e.target.closest('[data-sel]');
+  if (sel) { S.sel = sel.dataset.sel; render(); return; }
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'prev') cycle(-1);
+  if (act === 'next') cycle(1);
+  if (act === 'gray') { S.gray = !S.gray; render(); }
+  if (act === 'lang') { S.lang = S.lang === 'it' ? 'en' : 'it'; render(); }
+  if (act === 'viewer') { S.viewer = S.viewer === 'public' ? 'submitter' : 'public'; render(); }
+  if (act === 'notes') { S.notes = !S.notes; render(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea, [contenteditable]')) return;
+  if (e.key === 'ArrowLeft') cycle(-1);
+  if (e.key === 'ArrowRight') cycle(1);
+});
+render();
+</script>
+</body>
+</html>
