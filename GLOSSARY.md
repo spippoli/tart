@@ -84,6 +84,10 @@ _Avoid_: Status (reserved for Submissions)
 The Condition of an Artwork that could no longer be found, with the cause unknown.
 _Avoid_: Deleted, gone
 
+**Condition group**:
+One of three groupings of Conditions: *present* (intact, deteriorated, damaged, modified), *disappeared* (covered, removed, destroyed, missing), or *unknown*; it says whether an Artwork can still be seen where it is, never whether its record is public.
+_Avoid_: Visible, no longer visible, existing, gone, status
+
 ### Physical history
 
 **History event**:
