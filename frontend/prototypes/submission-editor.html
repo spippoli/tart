@@ -1,0 +1,634 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Issue #27: Submission form flow.
+  Three structurally different editors for the same Submission, switchable via ?variant=A|B|C:
+    A  Stepper: one section per step, numbered progress list, review step at the end.
+    B  Single page: all sections stacked as disclosures, sticky checklist, Edit/Preview tabs.
+    C  Live label: the editor IS the record's catalogue label; each block opens a side panel form.
+  Five Submission kinds via ?kind=new|edit|doc|event|artist, and ?resume=1 simulates reopening a
+  half-filled server-side draft. Open by double-clicking. No dependencies, no persistence.
+  All records are FICTIONAL. Strings are inline Italian: not production code, no i18n.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Submission editor (#27)</title>
+<style>
+  :root {
+    --paper: #f4f1ea; --paper-2: #ebe6db; --ink: #1d1b18; --ink-2: #5b564d; --rule: #c9c2b4;
+    --gone: #8a3b22; --proposed: #3b4a8a; --err: #8a1f1f;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 var(--sans); padding-bottom: 100px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--proposed); outline-offset: 2px; }
+  .proto-banner { background: var(--ink); color: var(--paper); font: 12px/1.4 var(--mono); padding: 6px 16px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+  .archive-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--ink); padding: 14px 0 8px; flex-wrap: wrap; }
+  .archive-head h1 { font: 600 20px/1.1 var(--serif); margin: 0; }
+  .archive-head small { font: 11px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .08em; }
+  .crumbs { font-size: 13px; color: var(--ink-2); margin: 10px 0 0; }
+  .ed-title { font: 600 28px/1.1 var(--serif); margin: 6px 0 4px; }
+  .draftbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-2); padding: 6px 0 12px; border-bottom: 1px solid var(--rule); }
+  .draftbar .tag { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; border: 1.5px dashed var(--proposed); color: var(--proposed); padding: 1px 6px; }
+  .resume { margin: 12px 0; padding: 10px 12px; border-left: 4px solid var(--proposed); background: #fff8; }
+  .btn { border: 1.5px solid var(--ink); background: var(--paper); padding: 7px 14px; cursor: pointer; }
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.link { border: 0; background: none; padding: 0; text-decoration: underline; cursor: pointer; }
+  .btn.small { padding: 3px 9px; font-size: 13px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .field { margin: 0 0 14px; }
+  .field > label, .field > .lbl, fieldset > legend { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .hint { font-size: 13px; color: var(--ink-2); margin: 2px 0 6px; }
+  input[type=text], input[type=url], select, textarea { border: 1.5px solid var(--ink-2); background: #fffdf8; padding: 6px 8px; min-width: 0; }
+  input[type=text], input[type=url], textarea { width: 100%; }
+  textarea { min-height: 70px; }
+  fieldset { border: 1px solid var(--rule); padding: 10px 12px; margin: 0 0 14px; }
+  .chk { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
+  .err-inline { color: var(--err); font-size: 13px; font-weight: 600; margin: 4px 0; }
+  .err-inline::before { content: "Errore: "; }
+  .has-err input, .has-err select, .has-err textarea { border-color: var(--err); border-width: 2px; }
+  .errsum { border: 3px solid var(--err); padding: 10px 14px; margin: 14px 0; background: #fff; }
+  .errsum h2 { font-size: 16px; margin: 0 0 6px; color: var(--err); }
+  .errsum ul { margin: 0; padding-left: 20px; }
+  .readout { font: 15px var(--serif); padding: 4px 8px; background: var(--paper-2); display: inline-block; margin-top: 6px; }
+  .note { font-size: 13px; padding: 8px 10px; background: var(--paper-2); border-left: 3px solid var(--ink-2); margin: 8px 0; }
+  .warn { padding: 10px 12px; border: 2px solid var(--ink); background: #fff; margin: 10px 0; }
+  .warn h3 { margin: 0 0 6px; font-size: 15px; }
+  .ico { width: 1em; height: 1em; vertical-align: -0.15em; }
+  .proposed-box { border: 2px dashed var(--proposed); background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(59,74,138,.07) 8px 16px); padding: 8px 10px; }
+  .proposed-tag { display: inline-flex; gap: 4px; align-items: center; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--proposed); border: 1.5px dashed var(--proposed); padding: 1px 6px; background: var(--paper); }
+  .map { position: relative; background: #e6e1d5; border: 1px solid var(--rule); overflow: hidden; cursor: crosshair; }
+  .map svg { display: block; width: 100%; height: auto; }
+  .map .pin { position: absolute; transform: translate(-50%, -50%); border: 0; background: none; padding: 2px; cursor: pointer; }
+  .map .pin[aria-pressed="true"] { outline: 3px solid var(--proposed); }
+  .map .newpin { position: absolute; transform: translate(-50%, -100%); pointer-events: none; font-size: 26px; }
+  .map .halo { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; background: repeating-linear-gradient(135deg, transparent 0 4px, rgba(29,27,24,.25) 4px 6px); border: 1px dashed var(--ink); pointer-events: none; }
+  .upload { border: 1px solid var(--rule); background: #fffdf8; padding: 10px; margin-bottom: 10px; display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
+  @media (max-width: 600px) { .upload { grid-template-columns: 1fr; } }
+  .thumb { width: 96px; height: 72px; background: var(--paper-2); display: grid; place-items: center; font: 10px var(--mono); color: var(--ink-2); text-align: center; border: 1px solid var(--rule); }
+  .dropzone { border: 2px dashed var(--ink-2); padding: 16px; text-align: center; background: #fffdf8; }
+  .label-preview { font: 17px/1.5 var(--serif); border-top: 2px solid var(--ink); padding-top: 12px; }
+  .label-preview h2 { font: 600 30px/1.05 var(--serif); margin: 0 0 6px; }
+  .label-preview p { margin: 0 0 4px; }
+  .label-preview em { color: var(--ink-2); }
+  .A-cond { font: 600 12px/1 var(--sans); text-transform: uppercase; letter-spacing: .12em; display: inline-flex; gap: 5px; align-items: center; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .cmp { display: grid; grid-template-columns: 140px 1fr 1fr; gap: 0; border-top: 1px solid var(--ink); font-size: 14px; }
+  .cmp > div { padding: 8px 6px; border-bottom: 1px solid var(--rule); }
+  .cmp .h { font: 11px var(--mono); text-transform: uppercase; color: var(--ink-2); }
+  @media (max-width: 600px) { .cmp { grid-template-columns: 1fr; } .cmp .h { display: none; } }
+
+  /* ---------- A: stepper ---------- */
+  .A { display: grid; grid-template-columns: 250px 1fr; gap: 28px; margin-top: 16px; }
+  @media (max-width: 820px) { .A { grid-template-columns: 1fr; } }
+  .A-steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .A-steps li button { display: grid; grid-template-columns: 28px 1fr; gap: 8px; width: 100%; text-align: left; border: 0; border-left: 3px solid transparent; background: none; padding: 8px 6px; cursor: pointer; }
+  .A-steps li button[aria-current="step"] { border-left-color: var(--ink); background: var(--paper-2); font-weight: 600; }
+  .A-steps .n { font: 600 14px var(--mono); border: 1.5px solid var(--ink); width: 24px; height: 24px; display: grid; place-items: center; }
+  .A-steps .st { display: block; font: 11px var(--mono); text-transform: uppercase; color: var(--ink-2); font-weight: 400; }
+  .A-steps .st.bad { color: var(--err); font-weight: 600; }
+  .A-panel h2 { font: 600 22px var(--serif); margin: 0 0 4px; }
+  .A-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--rule); flex-wrap: wrap; }
+
+  /* ---------- B: single page ---------- */
+  .B { display: grid; grid-template-columns: 1fr 260px; gap: 28px; margin-top: 12px; }
+  @media (max-width: 860px) { .B { grid-template-columns: 1fr; } .B-aside { order: -1; } }
+  .B-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--ink); margin-bottom: 12px; }
+  .B-tabs button { border: 0; background: none; padding: 8px 16px; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -2px; }
+  .B-tabs button[aria-selected="true"] { border-bottom-color: var(--ink); font-weight: 700; }
+  .B-sec { border-top: 1px solid var(--ink); }
+  .B-sec > h2 { margin: 0; }
+  .B-sec > h2 button { width: 100%; display: flex; justify-content: space-between; gap: 10px; text-align: left; border: 0; background: none; padding: 12px 0; cursor: pointer; font: 600 19px var(--serif); }
+  .B-sec .sum { font: 13px var(--sans); color: var(--ink-2); font-weight: 400; }
+  .B-sec .body { padding: 4px 0 16px; }
+  .B-aside .sticky { position: sticky; top: 10px; border: 1px solid var(--ink); padding: 12px; background: #fff8; }
+  .B-aside ol { padding-left: 20px; margin: 6px 0 12px; font-size: 14px; }
+  .B-aside li { margin: 3px 0; }
+
+  /* ---------- C: live label ---------- */
+  .C { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; margin-top: 14px; }
+  @media (max-width: 900px) { .C { grid-template-columns: 1fr; } }
+  .C-block { position: relative; border: 1px dashed transparent; padding: 8px 10px; margin: 0 -10px 6px; }
+  .C-block.empty { border-color: var(--ink-2); color: var(--ink-2); }
+  .C-block.active { border: 2px solid var(--ink); background: #fff8; }
+  .C-block.bad { border: 2px solid var(--err); }
+  .C-block .edit { float: right; margin-left: 8px; }
+  .C-block .k { font: 11px var(--mono); text-transform: uppercase; color: var(--ink-2); display: block; }
+  .C-panel { border: 2px solid var(--ink); background: #fffdf8; padding: 14px 16px; align-self: start; position: sticky; top: 10px; max-height: calc(100vh - 120px); overflow: auto; }
+  .C-panel h2 { font: 600 20px var(--serif); margin: 0 0 8px; }
+  .C-bar { position: sticky; bottom: 64px; margin-top: 20px; background: var(--ink); color: var(--paper); padding: 10px 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .C-bar .btn { border-color: var(--paper); }
+  .C-start { border: 2px solid var(--ink); padding: 16px; background: #fffdf8; margin-top: 14px; }
+  .C-start h2 { font: 600 24px var(--serif); margin: 0 0 6px; }
+
+  /* ---------- notes + switcher (not part of the design) ---------- */
+  .notes { position: fixed; right: 12px; top: 40px; bottom: 80px; width: min(460px, calc(100vw - 24px)); overflow: auto; background: #fff; color: #111; border: 2px solid #111; box-shadow: 0 8px 30px rgba(0,0,0,.25); padding: 16px 18px; font: 14px/1.5 var(--sans); z-index: 20; }
+  .notes h2 { font-size: 16px; margin: 0 0 8px; } .notes h3 { font-size: 13px; margin: 14px 0 4px; text-transform: uppercase; }
+  .notes ol, .notes ul { padding-left: 20px; margin: 4px 0; }
+  .switcher { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); background: #111; color: #fff; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.35); display: flex; align-items: center; gap: 4px; padding: 6px 8px; font: 13px var(--sans); z-index: 30; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px); }
+  .switcher button { background: #2a2a2a; border: 0; color: #fff; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+  .switcher button[aria-pressed="true"] { background: #fff; color: #111; }
+  .switcher .cur { padding: 0 8px; font-weight: 600; min-width: 150px; text-align: center; }
+  .switcher .sep { width: 1px; height: 20px; background: #555; margin: 0 4px; }
+</style>
+</head>
+<body>
+<div class="proto-banner">PROTOTIPO usa e getta · #27 · tutti i dati sono FITTIZI · nessun salvataggio reale · non è codice di produzione</div>
+<div id="app"></div>
+<aside class="notes" id="notes" hidden></aside>
+<nav class="switcher" id="switcher" aria-label="Prototype switcher"></nav>
+
+<script>
+// ================================================================ fixtures (FICTIONAL)
+const LOCS = [
+  { id: 'L-118', x: 34, y: 42, label: 'Serranda, civico 12 (FITTIZIA)', surface: 'Serranda', artworks: [{ t: 'Gatto con ombrello', c: 'present', cond: 'Intatta' }] },
+  { id: 'L-121', x: 47, y: 47, label: 'Muro di cinta, lato nord (FITTIZIA)', surface: 'Muro', artworks: [{ t: 'Senza titolo (lettering argento)', c: 'gone', cond: 'Coperta' }, { t: 'Lupa con occhiali', c: 'present', cond: 'Deteriorata' }] },
+  { id: 'L-130', x: 70, y: 30, label: 'Facciata cieca, angolo (FITTIZIA)', surface: 'Facciata', artworks: [{ t: 'Ritratto in blu', c: 'unknown', cond: 'Condizione sconosciuta' }] },
+  { id: 'L-140', x: 22, y: 75, label: 'Palo semaforico (FITTIZIA)', surface: 'Palo', artworks: [{ t: 'Sticker "occhio"', c: 'present', cond: 'Intatta' }] },
+];
+const ARTISTS = ['MRLN (FITTIZIO)', 'Collettivo Ferro Vecchio (FITTIZIO)', 'Nebbia (FITTIZIA)', 'K.ARTA (FITTIZIA)'];
+const AREAS = ['Pigneto', 'Quadraro', 'Ostiense', 'San Lorenzo', 'Tor Pignattara', 'Municipio V'];
+const TYPES = ['Murale', 'Graffiti (lettering)', 'Stencil', 'Paste-up', 'Sticker', 'Installazione', 'Mosaico', 'Altro'];
+const SURFACES = ['Muro', 'Facciata', 'Serranda', 'Palo', 'Pavimentazione', 'Cabina', 'Altro'];
+const LICENCES = ['CC BY-SA 4.0', 'CC BY 4.0', 'CC0 1.0'];
+const EVENTS = {
+  'Ancora visibile': { deteriorated: 'Deterioramento', damaged: 'Danneggiamento', modified: 'Modifica (es. ritocco, aggiunte)' },
+  'Non più visibile': { covered: 'Coperta', removed: 'Rimossa', destroyed: 'Distrutta', missing: 'Non più ritrovata (causa ignota)' },
+  'Altri eventi': { created: 'Realizzazione', relocated: 'Spostamento su altra superficie', claimed: 'Rivendicazione pubblica dell\'artista' },
+};
+const TARGET = { title: 'Lupa con occhiali', id: 'A-2207', rev: 'rev. 4 · 3 mar 2026', types: ['Murale'], desc: 'Lupa capitolina con occhiali da sole, a spray, circa 3 × 2 m.', attr: 'MRLN (FITTIZIO) — probabile', created: 'c. 2019', cond: 'Deteriorata', loc: 'Muro di cinta, lato nord (FITTIZIA)' };
+
+const freshDate = () => ({ q: 'exact', prec: 'day', v: '' });
+const freshDoc = (name, exif) => ({ name, observed: exif ? { q: 'exact', prec: 'day', v: '2026-04-12', exif: true } : freshDate(), licence: 'CC BY-SA 4.0', credit: '', basis: 'own', origin: '', link: name === null });
+
+function freshDraft(resume) {
+  const d = {
+    new: { loc: { mode: null, existing: null, pt: null, approx: false, radius: '', surface: '', dupAck: false }, docs: [], details: { untitled: false, title: '', types: [], desc: '' }, attr: { mode: null, items: [] }, created: { known: false, date: freshDate() }, sources: [], note: '' },
+    edit: { changes: {}, attrItems: [], sources: [], note: '' },
+    doc: { docs: [], cond: false, event: { type: '', date: freshDate() }, sources: [], note: '' },
+    event: { type: '', date: freshDate(), covering: '', docs: [], sources: [], note: '' },
+    artist: { name: '', kind: 'individual', aliases: [''], from: freshDate(), to: freshDate(), areas: [], crews: [], bio: '', sources: [], note: '' },
+    terms: true,
+  };
+  if (resume) {
+    d.new.loc = { mode: 'new', existing: null, pt: { x: 49, y: 51 }, approx: false, radius: '', surface: 'Muro', dupAck: true };
+    d.new.docs = [freshDoc('IMG_4471.heic', true)];
+    d.edit.changes = { desc: 'Lupa capitolina con occhiali da sole, a spray, circa 3 × 2 m; firmata in basso a destra.' };
+    d.event.type = 'covered';
+    d.artist.name = 'Nebbia (FITTIZIA)';
+  }
+  return d;
+}
+
+// ================================================================ state
+const P = new URLSearchParams(location.search);
+const S = {
+  variant: P.get('variant') || 'A', kind: P.get('kind') || 'new', resume: P.get('resume') === '1',
+  step: 0, open: {}, tab: 'edit', active: null, errors: [], tried: false, sent: false, showNotes: false,
+};
+let D = freshDraft(S.resume);
+const savedAt = () => new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+let lastSave = S.resume ? '3 giorni fa, 21:14' : null;
+
+// ================================================================ helpers
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const get = path => path.split('.').reduce((o, k) => o?.[k], D);
+const set = (path, v) => { const ks = path.split('.'); const last = ks.pop(); ks.reduce((o, k) => o[k], D)[last] = v; lastSave = savedAt(); };
+const sym = g => {
+  const dash = g === 'gone' ? 'stroke-dasharray="3 2"' : g === 'unknown' ? 'stroke-dasharray="1 2"' : '';
+  const fill = g === 'present' ? 'var(--ink)' : 'none';
+  const col = g === 'gone' ? 'var(--gone)' : 'var(--ink)';
+  return `<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="${fill}" stroke="${col}" stroke-width="2" ${dash}/>${g === 'unknown' ? '<text x="8" y="12" font-size="10" text-anchor="middle" fill="var(--ink)">?</text>' : ''}</svg>`;
+};
+const QUAL = { exact: 'esatta', circa: 'circa', before: 'prima del', after: 'dopo il', unknown: 'sconosciuta' };
+const PREC = { day: 'giorno', month: 'mese', year: 'anno', decade: 'decennio' };
+function dateText(d) {
+  if (!d || d.q === 'unknown') return 'data sconosciuta';
+  if (!d.v) return '—';
+  let v = d.v;
+  if (d.prec === 'day') { const [y, m, dd] = v.split('-'); v = new Date(+y, +m - 1, +dd).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  if (d.prec === 'month') { const [y, m] = v.split('-'); v = new Date(+y, +m - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }); }
+  if (d.prec === 'decade') v = `anni ${String(v).slice(0, 3)}0`;
+  return { exact: '', circa: 'c. ', before: 'prima del ', after: 'dopo il ' }[d.q] + v;
+}
+function dateRange(d) {
+  if (!d || d.q === 'unknown' || !d.v) return '';
+  const y = parseInt(d.v, 10); if (!y) return '';
+  if (d.prec === 'decade') { const s = Math.floor(y / 10) * 10; return `intervallo salvato: 1 gen ${s} – 31 dic ${s + 9}`; }
+  if (d.q === 'circa' && d.prec === 'year') return `intervallo salvato: 1 gen ${y - 2} – 31 dic ${y + 2}`;
+  if (d.q === 'before') return `intervallo salvato: aperto – ${d.v}`;
+  if (d.q === 'after') return `intervallo salvato: ${d.v} – aperto`;
+  return '';
+}
+
+// ================================================================ components
+const err = id => S.tried ? S.errors.find(e => e.id === id) : null;
+const errMsg = id => { const e = err(id); return e ? `<p class="err-inline" id="${id}-err">${esc(e.msg)}</p>` : ''; };
+const desc = (id, hint) => [hint ? `${id}-hint` : '', err(id) ? `${id}-err` : ''].filter(Boolean).join(' ');
+
+function text(path, label, hint, opts = {}) {
+  const id = path.replace(/\./g, '-');
+  const tag = opts.area ? `<textarea id="${id}" data-bind="${path}" aria-describedby="${desc(id, hint)}">${esc(get(path))}</textarea>`
+    : `<input type="${opts.type || 'text'}" id="${id}" data-bind="${path}" value="${esc(get(path))}" aria-describedby="${desc(id, hint)}" ${err(id) ? 'aria-invalid="true"' : ''}>`;
+  return `<div class="field ${err(id) ? 'has-err' : ''}"><label for="${id}">${label}</label>${hint ? `<p class="hint" id="${id}-hint">${hint}</p>` : ''}${errMsg(id)}${tag}</div>`;
+}
+function select(path, label, options, hint) {
+  const id = path.replace(/\./g, '-'); const cur = get(path);
+  const opts = Array.isArray(options) ? options.map(o => `<option ${o === cur ? 'selected' : ''}>${esc(o)}</option>`).join('')
+    : Object.entries(options).map(([g, os]) => typeof os === 'string' ? `<option value="${g}" ${g === cur ? 'selected' : ''}>${esc(os)}</option>`
+      : `<optgroup label="${esc(g)}">${Object.entries(os).map(([k, v]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(v)}</option>`).join('')}</optgroup>`).join('');
+  return `<div class="field ${err(id) ? 'has-err' : ''}"><label for="${id}">${label}</label>${hint ? `<p class="hint" id="${id}-hint">${hint}</p>` : ''}${errMsg(id)}<select id="${id}" data-bind="${path}" data-rerender aria-describedby="${desc(id, hint)}">${opts}</select></div>`;
+}
+function uncertainDate(path, legend, hint) {
+  const d = get(path); const id = path.replace(/\./g, '-');
+  const inputType = d.prec === 'day' ? 'date' : d.prec === 'month' ? 'month' : 'number';
+  return `<fieldset class="${err(id) ? 'has-err' : ''}"><legend>${legend}</legend>${hint ? `<p class="hint">${hint}</p>` : ''}${errMsg(id)}
+    ${d.exif ? `<p class="note">Precompilata dai dati dello scatto (EXIF). Controlla che sia il giorno in cui l'opera è stata osservata.</p>` : ''}
+    <div class="row">
+      <div><label class="hint" for="${id}-q">Qualificatore</label><br><select id="${id}-q" data-bind="${path}.q" data-rerender>${Object.entries(QUAL).map(([k, v]) => `<option value="${k}" ${k === d.q ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      ${d.q === 'unknown' ? '' : `
+      <div><label class="hint" for="${id}-p">Precisione</label><br><select id="${id}-p" data-bind="${path}.prec" data-rerender>${Object.entries(PREC).map(([k, v]) => `<option value="${k}" ${k === d.prec ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div><label class="hint" for="${id}">Data</label><br><input id="${id}" type="${inputType}" ${inputType === 'number' ? 'min="1960" max="2026" placeholder="aaaa" style="width:7em"' : ''} data-bind="${path}.v" data-rerender value="${esc(d.v)}" ${err(id) ? 'aria-invalid="true"' : ''}></div>`}
+    </div>
+    <p aria-live="polite"><span class="readout">Si leggerà: <strong>${esc(dateText(d))}</strong></span> <span class="hint">${esc(dateRange(d))}</span></p>
+  </fieldset>`;
+}
+function mapPicker() {
+  const l = D.new.loc;
+  const pins = LOCS.map(L => `<button type="button" class="pin" style="left:${L.x}%;top:${L.y}%" data-act="pickLoc" data-id="${L.id}" aria-pressed="${l.existing === L.id}" aria-label="Superficie esistente: ${esc(L.label)}, ${L.artworks.length} opere">${sym(L.artworks.some(a => a.c === 'present') ? 'present' : L.artworks[0].c)}</button>`).join('');
+  const np = l.mode === 'new' && l.pt ? `${l.approx ? `<span class="halo" style="left:${l.pt.x}%;top:${l.pt.y}%;width:${Math.max(30, (+l.radius || 40) * 1.2)}px;height:${Math.max(30, (+l.radius || 40) * 1.2)}px"></span>` : ''}<span class="newpin" style="left:${l.pt.x}%;top:${l.pt.y}%" aria-hidden="true">📍</span>` : '';
+  return `<div class="map" data-act="mapClick" role="application" aria-label="Mappa: clicca un punto vuoto per una nuova superficie, o un segno per una superficie esistente">
+    <svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><rect width="100" height="60" fill="#e6e1d5"/><path d="M0 26 L100 22 M40 0 L44 60 M0 48 L100 40 M75 0 L66 60" stroke="#fff" stroke-width="3"/><path d="M8 4 h22 v14 h-22z M52 4 h14 v12 h-14z M52 30 h10 v6 h-10z" fill="#d9d2c3"/></svg>
+    ${pins}${np}</div>
+    <p class="hint">Alternativa senza mappa: <button type="button" class="btn link" data-act="noop">cerca un indirizzo</button> o <button type="button" class="btn link" data-act="noop">usa la mia posizione</button>. La posizione dell'opera non è la tua posizione.</p>`;
+}
+function nearby() {
+  const l = D.new.loc; if (l.mode !== 'new' || !l.pt) return [];
+  return LOCS.filter(L => Math.hypot(L.x - l.pt.x, (L.y - l.pt.y) * 0.6) < 12);
+}
+function dupWarning() {
+  const l = D.new.loc;
+  const list = l.mode === 'existing' ? LOCS.filter(L => L.id === l.existing) : nearby();
+  if (!list.length) return '';
+  const head = l.mode === 'existing' ? 'Su questa superficie sono già documentate queste opere' : 'Vicino al punto che hai scelto ci sono già superfici documentate';
+  return `<div class="warn" role="status"><h3>${head}. È una di queste?</h3>
+    <ul>${list.flatMap(L => L.artworks.map(a => `<li>${sym(a.c)} <strong>${esc(a.t)}</strong> · <span class="A-cond">${esc(a.cond)}</span> · ${esc(L.label)} — <button type="button" class="btn link" data-act="go" data-kind="doc">sì, aggiungi documentazione lì</button></li>`)).join('')}</ul>
+    ${l.mode === 'new' ? `<p>Se il tuo punto è su una di queste superfici, <button type="button" class="btn link" data-act="useNearby" data-id="${list[0].id}">usa la superficie esistente</button>.</p>` : ''}
+    <label class="chk ${err('dup') ? 'has-err' : ''}"><input type="checkbox" data-bind="new.loc.dupAck" data-rerender ${l.dupAck ? 'checked' : ''} id="dup"> No, è un'opera diversa da quelle elencate</label>${errMsg('dup')}</div>`;
+}
+function uploads(path, opts = {}) {
+  const docs = get(path);
+  const id = path.replace(/\./g, '-');
+  return `<div class="${err(id) ? 'has-err' : ''}" id="${id}">${errMsg(id)}
+    ${docs.map((d, i) => `<div class="upload"><div class="thumb">${d.link ? 'link' : esc(d.name) + '<br>(segnaposto)'}</div><div>
+      ${d.link ? text(`${path}.${i}.origin`, 'Indirizzo del documento (link)', 'Articoli, post, video: si collegano, non si caricano.', { type: 'url' }) : ''}
+      ${uncertainDate(`${path}.${i}.observed`, 'Data di osservazione', 'Quando l\'opera era in questo stato, non quando carichi il file.')}
+      ${d.link ? '' : `<fieldset><legend>Diritti sul file</legend>
+        <label class="chk"><input type="radio" name="${id}-${i}-b" data-bind="${path}.${i}.basis" value="own" data-rerender ${d.basis === 'own' ? 'checked' : ''}> L'ho realizzato io</label>
+        <label class="chk"><input type="radio" name="${id}-${i}-b" data-bind="${path}.${i}.basis" value="third" data-rerender ${d.basis === 'third' ? 'checked' : ''}> È di altri, già pubblicato con una licenza accettata</label>
+        ${d.basis === 'third' ? text(`${path}.${i}.origin`, 'Dove è pubblicato (URL)', null, { type: 'url' }) : ''}
+        ${text(`${path}.${i}.credit`, 'Credito dell\'autore del file', 'Il nome che apparirà come autore della foto; può essere uno pseudonimo.')}
+        ${select(`${path}.${i}.licence`, 'Licenza del file', LICENCES, 'Copre solo il file, non l\'opera raffigurata.')}
+      </fieldset>`}
+      <button type="button" class="btn small" data-act="rmDoc" data-path="${path}" data-i="${i}">Rimuovi</button>
+    </div></div>`).join('')}
+    <div class="dropzone"><button type="button" class="btn" data-act="addDoc" data-path="${path}">Carica immagini o PDF</button> <button type="button" class="btn" data-act="addLink" data-path="${path}">Aggiungi un link</button>
+    <p class="hint">Più file insieme. Niente persone riconoscibili o targhe: in caso, il Moderatore ti chiederà una versione sfocata.${opts.hint ? ' ' + opts.hint : ''}</p></div></div>`;
+}
+function sources(path) {
+  const ss = get(path);
+  return `${ss.map((s, i) => `<div class="row" style="margin-bottom:8px"><div style="flex:1">${text(`${path}.${i}.ref`, `Fonte ${i + 1}`, i === 0 ? 'Articolo, libro, post dell\'artista: titolo e/o URL.' : null)}</div><button type="button" class="btn small" data-act="rm" data-path="${path}" data-i="${i}">Rimuovi</button></div>`).join('')}
+    <button type="button" class="btn small" data-act="addSource" data-path="${path}">+ Cita una fonte</button> <span class="hint">o cerca tra le fonti già in archivio</span>`;
+}
+function attribution(path) {
+  const a = get(path); const items = a.items ?? a;
+  const isNew = path === 'new.attr';
+  return `${isNew ? `<fieldset class="${err('new-attr') ? 'has-err' : ''}"><legend>Chi l'ha realizzata?</legend>${errMsg('new-attr')}
+    <label class="chk"><input type="radio" name="am" data-bind="new.attr.mode" value="unknown" data-rerender ${a.mode === 'unknown' ? 'checked' : ''}> Non si sa (autore sconosciuto)</label>
+    <label class="chk"><input type="radio" name="am" data-bind="new.attr.mode" value="artist" data-rerender ${a.mode === 'artist' ? 'checked' : ''} id="new-attr"> Indico uno o più artisti</label></fieldset>` : ''}
+    ${(!isNew || a.mode === 'artist') ? `${items.map((it, i) => `<fieldset><legend>Attribuzione ${i + 1}</legend>
+      ${select(`${path}${isNew ? '.items' : ''}.${i}.artist`, 'Artista', ['— scegli —', ...ARTISTS, '+ Nuovo artista…'])}
+      ${it.artist === '+ Nuovo artista…' ? `<div class="note">Nuovo artista creato insieme a questa proposta: solo nomi d'arte pubblici, nessun nome anagrafico. ${text(`${path}${isNew ? '.items' : ''}.${i}.newName`, 'Nome d\'arte', null)}</div>` : ''}
+      ${text(`${path}${isNew ? '.items' : ''}.${i}.alias`, 'Firmata come (alias, facoltativo)', null)}
+      <fieldset class="${err(`${path}${isNew ? '.items' : ''}-${i}-cert`.replace(/\./g, '-')) ? 'has-err' : ''}"><legend>Quanto è certa?</legend>${errMsg(`${path}${isNew ? '.items' : ''}-${i}-cert`.replace(/\./g, '-'))}
+        ${[['confirmed', 'Confermata', 'serve almeno una fonte o un documento'], ['probable', 'Probabile', 'es. stile, firma parziale'], ['disputed', 'Contesa', 'esistono attribuzioni alternative']].map(([k, l, h]) => `<label class="chk"><input type="radio" name="${path}-${i}-c" data-bind="${path}${isNew ? '.items' : ''}.${i}.cert" value="${k}" data-rerender ${it.cert === k ? 'checked' : ''}> <span><strong>${l}</strong> <span class="hint">— ${h}</span></span></label>`).join('')}
+      </fieldset>
+      ${it.cert === 'confirmed' ? `<div class="note">Cita la prova: ${['foto con firma leggibile', 'post dell\'artista'].map(c => `<label class="chk"><input type="checkbox" data-act="toggleCite" data-path="${path}${isNew ? '.items' : ''}.${i}" data-c="${c}" ${it.cites?.includes(c) ? 'checked' : ''}> ${c}</label>`).join('')}</div>` : ''}
+      <button type="button" class="btn small" data-act="rm" data-path="${path}${isNew ? '.items' : ''}" data-i="${i}">Rimuovi attribuzione</button></fieldset>`).join('')}
+      <button type="button" class="btn small" data-act="addAttr" data-path="${path}${isNew ? '.items' : ''}">+ Aggiungi un artista</button>
+      <p class="hint">Più attribuzioni non contese = collaborazione. Alternative in competizione: segnale tutte come "contesa".</p>` : ''}`;
+}
+
+// ================================================================ sections per kind
+const SECTIONS = {
+  new: [
+    { id: 'loc', t: 'Dove si trova', sum: () => D.new.loc.mode === 'existing' ? LOCS.find(L => L.id === D.new.loc.existing).label : D.new.loc.pt ? `Nuova superficie${D.new.loc.surface ? ' · ' + D.new.loc.surface : ''}${D.new.loc.approx ? ' · approssimata' : ''}` : '',
+      body: () => `<p class="hint">Scegli la superficie (muro, serranda, palo…) su cui si trova o si trovava l'opera. Se è già in archivio, selezionala.</p>${mapPicker()}${errMsg('new-loc')}
+        ${D.new.loc.mode ? `${dupWarning()}${D.new.loc.mode === 'new' ? `${select('new.loc.surface', 'Tipo di superficie', ['', ...SURFACES])}
+        <label class="chk"><input type="checkbox" data-bind="new.loc.approx" data-rerender ${D.new.loc.approx ? 'checked' : ''}> La posizione è approssimata</label>
+        ${D.new.loc.approx ? text('new.loc.radius', 'Entro quanti metri? (facoltativo)', null) : ''}
+        <p class="hint">Linee e aree (es. un intero muro lungo) si disegnano con lo strumento "traccia" — non simulato qui.</p>` : `<p class="note">Superficie esistente selezionata: <strong>${esc(LOCS.find(L => L.id === D.new.loc.existing).label)}</strong>.</p>`}` : ''}` },
+    { id: 'docs', t: 'Documentazione', sum: () => D.new.docs.length ? `${D.new.docs.length} documento/i` : '', body: () => uploads('new.docs') },
+    { id: 'details', t: 'L\'opera', sum: () => D.new.details.untitled ? 'Senza titolo' : D.new.details.title,
+      body: () => `${text('new.details.title', 'Titolo', 'Solo se ha un titolo noto. Non inventarne uno.')}
+        <label class="chk"><input type="checkbox" data-bind="new.details.untitled" data-rerender ${D.new.details.untitled ? 'checked' : ''}> Senza titolo</label>${errMsg('new-details-title')}
+        <fieldset class="${err('new-details-types') ? 'has-err' : ''}" id="new-details-types"><legend>Tipo di espressione</legend>${errMsg('new-details-types')}${TYPES.map(t => `<label class="chk"><input type="checkbox" data-act="toggleType" data-t="${t}" ${D.new.details.types.includes(t) ? 'checked' : ''}> ${t}</label>`).join('')}</fieldset>
+        ${text('new.details.desc', 'Descrizione', 'Cosa raffigura, tecnica, dimensioni. Niente ipotesi sulla legalità.', { area: true })}` },
+    { id: 'attr', t: 'Attribuzione', sum: () => D.new.attr.mode === 'unknown' ? 'Autore sconosciuto' : D.new.attr.items.map(i => i.artist).join(', '), body: () => attribution('new.attr') },
+    { id: 'created', t: 'Quando è stata realizzata', sum: () => D.new.created.known ? dateText(D.new.created.date) : 'sconosciuto',
+      body: () => `<p class="hint">Facoltativo. Diverso dalla prima documentazione: se non lo sai, lascia vuoto.</p>
+        <label class="chk"><input type="checkbox" data-bind="new.created.known" data-rerender ${D.new.created.known ? 'checked' : ''}> Ho informazioni sulla data di realizzazione</label>
+        ${D.new.created.known ? uncertainDate('new.created.date', 'Data di realizzazione') : ''}` },
+    { id: 'sources', t: 'Fonti', sum: () => D.new.sources.length ? `${D.new.sources.length} fonte/i` : '', body: () => sources('new.sources') },
+  ],
+  edit: [
+    { id: 'changes', t: 'Cosa cambia', sum: () => `${Object.keys(D.edit.changes).length} campo/i modificato/i`,
+      body: () => `<p class="hint">Stai modificando <strong>${TARGET.title}</strong> (${TARGET.rev}). Cambia solo i campi che vuoi correggere: gli altri restano come sono.</p>${errMsg('edit-changes')}
+        ${[['title', 'Titolo', TARGET.title], ['types', 'Tipo di espressione', TARGET.types.join(', ')], ['desc', 'Descrizione', TARGET.desc], ['attr', 'Attribuzione', TARGET.attr], ['loc', 'Superficie', TARGET.loc]].map(([k, l, cur]) => {
+          const ch = k in D.edit.changes;
+          return `<div class="field ${ch ? 'proposed-box' : ''}" style="border-top:1px solid var(--rule);padding-top:8px"><div class="row" style="justify-content:space-between"><span class="lbl"><strong>${l}</strong> ${ch ? '<span class="proposed-tag">modifica proposta</span>' : ''}</span>
+            <button type="button" class="btn small" data-act="toggleChange" data-k="${k}" data-cur="${esc(cur)}">${ch ? 'Annulla modifica' : 'Modifica'}</button></div>
+            <p class="hint">Attuale: ${esc(cur)}</p>
+            ${ch ? (k === 'attr' ? attribution('edit.attrItems') : k === 'loc' ? `<p class="note">Puoi spostare l'opera su un'altra superficie. Correggere la geometria della superficie stessa è una proposta separata su quella superficie.</p>` : text(`edit.changes.${k}`, `Nuovo valore: ${l}`, null, { area: k === 'desc' })) : ''}</div>`;
+        }).join('')}` },
+    { id: 'sources', t: 'Su cosa si basa', sum: () => D.edit.sources.length ? `${D.edit.sources.length} fonte/i` : '', body: () => `<p class="hint">Facoltativo, ma aiuta i Moderatori.</p>${sources('edit.sources')}` },
+  ],
+  doc: [
+    { id: 'docs', t: 'Documentazione', sum: () => D.doc.docs.length ? `${D.doc.docs.length} documento/i` : '', body: () => `<p class="hint">Aggiungi documentazione a <strong>${TARGET.title}</strong>.</p>${uploads('doc.docs')}` },
+    { id: 'cond', t: 'Mostra un cambiamento?', sum: () => D.doc.cond ? (EVENTS['Non più visibile'][D.doc.event.type] || EVENTS['Ancora visibile'][D.doc.event.type] || 'sì') : 'no',
+      body: () => `<p class="hint">Condizione attuale in archivio: <span class="A-cond">${sym('present')} ${TARGET.cond}</span>.</p>
+        <label class="chk"><input type="checkbox" data-bind="doc.cond" data-rerender ${D.doc.cond ? 'checked' : ''}> Questi documenti mostrano che l'opera è cambiata (danneggiata, coperta, rimossa…)</label>
+        ${D.doc.cond ? `${select('doc.event.type', 'Cosa è successo', { '': '— scegli —', ...EVENTS })}${uncertainDate('doc.event.date', 'Quando è stato osservato')}<p class="note">L'evento citerà automaticamente i documenti caricati sopra (evidenza: documentato).</p>` : ''}` },
+    { id: 'sources', t: 'Fonti', sum: () => D.doc.sources.length ? `${D.doc.sources.length} fonte/i` : '', body: () => sources('doc.sources') },
+  ],
+  event: [
+    { id: 'event', t: 'Cosa è successo', sum: () => { const all = Object.assign({}, ...Object.values(EVENTS)); return all[D.event.type] ? `${all[D.event.type]} · ${dateText(D.event.date)}` : ''; },
+      body: () => `<p class="hint">Un evento nella storia fisica di <strong>${TARGET.title}</strong> (condizione attuale: ${TARGET.cond}). Sparire non è cancellare: l'opera resta in archivio.</p>
+        ${select('event.type', 'Tipo di evento', { '': '— scegli —', ...EVENTS })}
+        ${D.event.type === 'covered' ? `<div class="field"><label for="cov">Coperta da (facoltativo)</label><select id="cov" data-bind="event.covering" data-rerender><option value="">— non so / nessuna opera —</option><option>Gatto con ombrello (FITTIZIA)</option><option value="new">+ Documenta la nuova opera sopra…</option></select></div>${D.event.covering === 'new' ? '<p class="note">La nuova opera verrà creata insieme a questa proposta, sulla stessa superficie.</p>' : ''}` : ''}
+        ${D.event.type === 'claimed' ? '<p class="note">Una rivendicazione pubblica è un fatto avvenuto (es. un post dell\'artista). Per correggere un\'attribuzione sbagliata usa invece "Proponi modifica".</p>' : ''}
+        ${uncertainDate('event.date', 'Data di osservazione', 'Quando è stato visto in questo stato. Se non sai quando è successo esattamente, usa "dopo il" o "prima del".')}` },
+    { id: 'evidence', t: 'Prove', sum: () => { const n = D.event.docs.length + D.event.sources.length; return n ? `documentato · ${n}` : 'segnalato · nessuna prova'; },
+      body: () => `<p class="hint">Facoltative. Senza prove l'evento sarà pubblicato come <strong>segnalato</strong>; con almeno una, come <strong>documentato</strong>.</p>${uploads('event.docs')}<h3 style="font:600 15px var(--serif)">Fonti</h3>${sources('event.sources')}
+        <p aria-live="polite"><span class="readout">Evidenza: <strong>${D.event.docs.length + D.event.sources.length ? `documentato · ${D.event.docs.length + D.event.sources.length} prove` : 'segnalato · nessuna prova citata'}</strong></span></p>` },
+  ],
+  artist: [
+    { id: 'id', t: 'Identità pubblica', sum: () => D.artist.name,
+      body: () => `<p class="note">Solo nomi usati pubblicamente come artista. Mai nomi anagrafici, foto di persone o dati personali.</p>
+        ${text('artist.name', 'Nome d\'arte', null)}
+        <fieldset><legend>È</legend>${[['individual', 'Una persona'], ['collective', 'Un collettivo / crew']].map(([k, l]) => `<label class="chk"><input type="radio" name="ak" data-bind="artist.kind" value="${k}" data-rerender ${D.artist.kind === k ? 'checked' : ''}> ${l}</label>`).join('')}</fieldset>
+        ${D.artist.aliases.map((a, i) => text(`artist.aliases.${i}`, `Alias ${i + 1} (facoltativo)`, null)).join('')}<button type="button" class="btn small" data-act="addAlias">+ Alias</button>
+        <div style="margin-top:12px">${text('artist.bio', 'Biografia', 'Solo attività artistica documentata.', { area: true })}</div>` },
+    { id: 'activity', t: 'Attività', sum: () => [dateText(D.artist.from), D.artist.areas.join(', ')].filter(s => s && s !== '—').join(' · '),
+      body: () => `${uncertainDate('artist.from', 'Attivo dal (facoltativo)')}${uncertainDate('artist.to', 'Attivo fino al (facoltativo)', 'Lascia "sconosciuta" se è ancora attivo o non si sa.')}
+        <fieldset><legend>Aree di attività</legend>${AREAS.map(a => `<label class="chk"><input type="checkbox" data-act="toggleArea" data-a="${a}" ${D.artist.areas.includes(a) ? 'checked' : ''}> ${a}</label>`).join('')}</fieldset>
+        ${D.artist.kind === 'individual' ? `<div class="field"><label for="crew">Membro di (facoltativo)</label><select id="crew"><option>—</option><option>Collettivo Ferro Vecchio (FITTIZIO)</option></select></div>` : ''}` },
+    { id: 'sources', t: 'Fonti', sum: () => D.artist.sources.length ? `${D.artist.sources.length} fonte/i` : '', body: () => sources('artist.sources') },
+  ],
+};
+const KIND_LABEL = { new: 'Nuova opera', edit: 'Proponi modifica', doc: 'Aggiungi documentazione', event: 'Segnala un cambiamento', artist: 'Nuovo artista' };
+const KIND_CRUMB = { new: 'Contribuisci › Nuova opera', edit: `Opere › ${TARGET.title} › Proponi modifica`, doc: `Opere › ${TARGET.title} › Aggiungi documentazione`, event: `Opere › ${TARGET.title} › Segnala un cambiamento`, artist: 'Artisti › Nuovo artista' };
+
+// ================================================================ validation
+function validate() {
+  const e = []; const k = S.kind;
+  const docErrs = path => get(path).forEach((d, i) => {
+    const id = `${path}.${i}`.replace(/\./g, '-');
+    if (d.observed.q !== 'unknown' && !d.observed.v) e.push({ id: `${id}-observed`, sec: path.split('.')[1] === 'docs' && k === 'event' ? 'evidence' : 'docs', msg: `Documento ${i + 1}: indica la data di osservazione, oppure scegli "sconosciuta".` });
+    if (!d.link && !d.credit) e.push({ id: `${id}-credit`, sec: k === 'event' ? 'evidence' : 'docs', msg: `Documento ${i + 1}: indica il credito dell'autore del file.` });
+    if ((d.link || d.basis === 'third') && !d.origin) e.push({ id: `${id}-origin`, sec: k === 'event' ? 'evidence' : 'docs', msg: `Documento ${i + 1}: indica l'URL di origine.` });
+  });
+  const attrErrs = (path, sec) => (get(path) || []).forEach((it, i) => {
+    if (it.cert === 'confirmed' && !(it.cites || []).length) e.push({ id: `${path}-${i}-cert`.replace(/\./g, '-'), sec, msg: `Attribuzione ${i + 1}: "confermata" richiede almeno una prova citata.` });
+  });
+  if (k === 'new') {
+    const n = D.new;
+    if (!n.loc.mode) e.push({ id: 'new-loc', sec: 'loc', msg: 'Scegli una superficie esistente o segna un nuovo punto sulla mappa.' });
+    if ((n.loc.mode === 'existing' || nearby().length) && !n.loc.dupAck) e.push({ id: 'dup', sec: 'loc', msg: 'Conferma che non è una delle opere già documentate qui.' });
+    if (n.loc.mode === 'new' && !n.loc.surface) e.push({ id: 'new-loc-surface', sec: 'loc', msg: 'Indica il tipo di superficie.' });
+    if (!n.docs.length) e.push({ id: 'new-docs', sec: 'docs', msg: 'Aggiungi almeno un documento (foto, PDF o link).' });
+    docErrs('new.docs');
+    if (!n.details.untitled && !n.details.title) e.push({ id: 'new-details-title', sec: 'details', msg: 'Indica il titolo, oppure seleziona "Senza titolo".' });
+    if (!n.details.types.length) e.push({ id: 'new-details-types', sec: 'details', msg: 'Scegli almeno un tipo di espressione.' });
+    if (!n.attr.mode) e.push({ id: 'new-attr', sec: 'attr', msg: 'Indica l\'autore o scegli "Non si sa".' });
+    attrErrs('new.attr.items', 'attr');
+  }
+  if (k === 'edit') { if (!Object.keys(D.edit.changes).length) e.push({ id: 'edit-changes', sec: 'changes', msg: 'Non hai modificato nessun campo.' }); attrErrs('edit.attrItems', 'changes'); }
+  if (k === 'doc') { if (!D.doc.docs.length) e.push({ id: 'doc-docs', sec: 'docs', msg: 'Aggiungi almeno un documento.' }); docErrs('doc.docs'); if (D.doc.cond && !D.doc.event.type) e.push({ id: 'doc-event-type', sec: 'cond', msg: 'Indica cosa è cambiato, o deseleziona la casella.' }); }
+  if (k === 'event') { if (!D.event.type) e.push({ id: 'event-type', sec: 'event', msg: 'Scegli il tipo di evento.' }); if (D.event.date.q !== 'unknown' && !D.event.date.v) e.push({ id: 'event-date', sec: 'event', msg: 'Indica la data di osservazione, oppure scegli "sconosciuta".' }); docErrs('event.docs'); }
+  if (k === 'artist') { if (!D.artist.name) e.push({ id: 'artist-name', sec: 'id', msg: 'Indica il nome d\'arte.' }); }
+  if (!D.terms) e.push({ id: 'terms', sec: 'review', msg: 'Accetta le condizioni di contributo.' });
+  S.errors = e; return e;
+}
+const secState = id => { validate(); const bad = S.errors.some(x => x.sec === id); const s = SECTIONS[S.kind].find(x => x.id === id); return bad ? (S.tried ? 'bad' : 'todo') : (s && s.sum() ? 'done' : 'todo'); };
+const STATE_WORD = { done: 'completo', todo: 'da completare', bad: 'da correggere' };
+
+function errorSummary() {
+  if (!S.tried || !S.errors.length) return '';
+  return `<div class="errsum" role="alert" tabindex="-1" id="errsum"><h2>Prima di inviare, correggi ${S.errors.length === 1 ? 'questo punto' : `questi ${S.errors.length} punti`}</h2>
+    <ul>${S.errors.map(e => `<li><a href="#${e.id}" data-act="jump" data-sec="${e.sec}" data-id="${e.id}">${esc(e.msg)}</a></li>`).join('')}</ul></div>`;
+}
+
+// ================================================================ preview (editorial label, as in #17)
+function preview() {
+  const k = S.kind; const tag = '<span class="proposed-tag">Proposta · non pubblica finché non è approvata</span>';
+  if (k === 'new') {
+    const n = D.new; const loc = n.loc.mode === 'existing' ? LOCS.find(L => L.id === n.loc.existing).label : n.loc.mode === 'new' ? `Nuova superficie (${n.loc.surface || 'tipo non indicato'})` : '—';
+    const attr = n.attr.mode === 'unknown' ? 'Autore sconosciuto' : n.attr.items.map(i => `${i.artist === '+ Nuovo artista…' ? (i.newName || 'nuovo artista') : i.artist}${i.alias ? ` (firmata «${i.alias}»)` : ''} — ${{ confirmed: 'attribuzione confermata', probable: 'attribuzione probabile', disputed: 'attribuzione contesa' }[i.cert] || 'certezza non indicata'}`).join('<br>') || '—';
+    const first = n.docs.filter(d => d.observed.v).map(d => d.observed.v).sort()[0];
+    return `<div class="label-preview proposed-box">${tag}
+      <h2>${n.details.untitled ? '<em>Senza titolo</em>' : esc(n.details.title || '—')}</h2>
+      <p>${esc(n.details.types.join(', ') || '—')}</p><p>${attr}</p>
+      <p>Realizzazione: <em>${n.created.known ? esc(dateText(n.created.date)) : 'data sconosciuta'}</em></p>
+      <p><span class="A-cond">${sym('present')} Intatta</span> · <em>ultima documentazione ${first ? esc(dateText({ q: 'exact', prec: 'day', v: first })) : '—'}</em></p>
+      <p>${esc(loc)}${n.loc.approx ? ` · <em>posizione approssimata${n.loc.radius ? `, entro ${esc(n.loc.radius)} m` : ''}</em>` : ''}</p>
+      <p style="font-size:14px">${n.docs.length} documento/i · ${n.sources.length} fonte/i</p>
+      <p class="hint">La Condizione iniziale "Intatta" deriva dalla documentazione più recente: è una domanda aperta (vedi note).</p></div>`;
+  }
+  if (k === 'edit') return `<div class="label-preview"><p>${tag}</p><p class="hint">Confronto attuale / proposto (come apparirà anche nella pagina della proposta per i Moderatori).</p>
+    <div class="cmp"><div class="h">Campo</div><div class="h">Attuale (${TARGET.rev})</div><div class="h">Proposto</div>
+    ${Object.entries(D.edit.changes).map(([f, v]) => `<div><strong>${f}</strong></div><div><del>${esc(TARGET[f] ?? '')}</del></div><div class="proposed-box">${esc(f === 'attr' ? D.edit.attrItems.map(i => `${i.artist} — ${i.cert || '?'}`).join('; ') : Array.isArray(v) ? v.join(', ') : v)}</div>`).join('') || '<div>—</div><div></div><div></div>'}</div></div>`;
+  if (k === 'doc' || k === 'event') {
+    const all = Object.assign({}, ...Object.values(EVENTS)); const ev = k === 'event' ? D.event : D.doc.cond ? D.doc.event : null;
+    const gone = ev && EVENTS['Non più visibile'][ev.type];
+    const docs = k === 'doc' ? D.doc.docs : D.event.docs; const nEv = docs.length + (k === 'event' ? D.event.sources : D.doc.sources).length;
+    return `<div class="label-preview"><h2>${TARGET.title}</h2><p><span class="A-cond">${sym('present')} ${TARGET.cond}</span> <em>— resta così finché la proposta non è approvata</em></p>
+      <h3 style="font:11px var(--mono);text-transform:uppercase;color:var(--ink-2)">Timeline</h3>
+      <ul style="list-style:none;padding:0">
+      ${ev && ev.type ? `<li class="proposed-box" style="margin-bottom:6px"><span class="proposed-tag">Proposta · in revisione</span><br><strong>${esc(dateText(ev.date))}</strong> — ${sym(gone ? 'gone' : 'present')} ${esc(all[ev.type])} <span class="hint">· ${nEv ? `documentato · ${nEv} prove` : 'segnalato · nessuna prova citata'}</span></li>` : ''}
+      ${docs.map(d => `<li class="proposed-box" style="margin-bottom:6px"><span class="proposed-tag">Proposta</span> <strong>${esc(dateText(d.observed))}</strong> — Documentazione · ${d.link ? 'link' : `foto di ${esc(d.credit || '?')}, ${esc(d.licence)}`}</li>`).join('')}
+      <li style="border-top:1px solid var(--rule);padding-top:6px"><strong>c. 2019</strong> — Realizzazione · <span class="hint">segnalato</span></li></ul></div>`;
+  }
+  const a = D.artist;
+  return `<div class="label-preview proposed-box">${tag}<h2>${esc(a.name || '—')}</h2><p>${a.kind === 'collective' ? 'Collettivo' : 'Artista'}${a.aliases.filter(Boolean).length ? ` · noto anche come ${esc(a.aliases.filter(Boolean).join(', '))}` : ''}</p>
+    <p>Attività: <em>${esc(dateText(a.from))} – ${esc(a.to.v ? dateText(a.to) : 'oggi o sconosciuto')}</em></p><p>${esc(a.areas.join(', ') || 'Aree non indicate')}</p><p style="font-size:15px">${esc(a.bio || '')}</p></div>`;
+}
+function reviewBody() {
+  return `${preview()}
+    <div style="margin-top:16px">${text(`${S.kind}.note`, 'Nota per i Moderatori (facoltativa, non pubblica)', 'Es. come sai quello che hai scritto. Domanda aperta: esiste questo campo?', { area: true })}</div>
+    <label class="chk ${err('terms') ? 'has-err' : ''}"><input type="checkbox" id="terms" data-bind="terms" data-rerender ${D.terms ? 'checked' : ''}> Accetto le condizioni di contributo e la licenza dei dati (CC BY-SA 4.0)</label>${errMsg('terms')}
+    <p class="hint">Dopo l'invio non potrai modificare la proposta, a meno che un Moderatore chieda modifiche. Puoi ritirarla prima della decisione.</p>`;
+}
+function sentView() {
+  return `<div class="warn" role="status" tabindex="-1" id="sent"><h3>Proposta inviata</h3><p>Stato: <strong>inviata</strong>. La vedi in <a href="#">I miei contributi</a> e sulla pagina della proposta (<code>/it/contributi/8841</code>). Il pubblico non vede nulla finché non è approvata.</p>
+    <button type="button" class="btn" data-act="reset">Ricomincia (prototipo)</button></div>`;
+}
+
+// ================================================================ variants
+function header() {
+  return `<header class="wrap"><div class="archive-head"><h1>Rome Urban Art Archive</h1><small>Powered by TART</small></div>
+    <p class="crumbs">${esc(KIND_CRUMB[S.kind])}</p><h1 class="ed-title">${KIND_LABEL[S.kind]}</h1>
+    <div class="draftbar"><span class="tag">Bozza</span><span aria-live="polite">${lastSave ? `Salvata automaticamente · ${lastSave}` : 'Bozza creata · non ancora modificata (scartata dopo 24 h se resta vuota)'}</span><span>visibile solo a te</span>
+      <button type="button" class="btn link" data-act="noop">Esci e continua dopo</button> <button type="button" class="btn link" data-act="noop">Elimina bozza</button> <code>/it/contributi/8841/modifica</code></div></header>`;
+}
+const firstIncomplete = () => { validate(); const secs = SECTIONS[S.kind]; const i = secs.findIndex(s => S.errors.some(e => e.sec === s.id) || !s.sum()); return i < 0 ? secs.length : i; };
+const resumeBanner = where => S.resume && !S.resumeSeen ? `<div class="resume" role="status">Bentornato. Hai lasciato questa bozza 3 giorni fa. ${where} <button type="button" class="btn link" data-act="dismissResume">Ok</button></div>` : '';
+
+function VariantA() {
+  const secs = [...SECTIONS[S.kind], { id: 'review', t: 'Rivedi e invia', sum: () => '', body: reviewBody }];
+  if (S.resume && !S.resumeSeen && S.step === 0) S.step = firstIncomplete();
+  const cur = secs[S.step];
+  return `<main class="wrap">${resumeBanner(`Riprendi da <strong>${esc(secs[S.step].t)}</strong>.`)}${errorSummary()}<div class="A">
+    <nav aria-label="Passaggi della proposta"><ol class="A-steps">${secs.map((s, i) => { const st = s.id === 'review' ? '' : secState(s.id); return `<li><button type="button" data-act="step" data-i="${i}" ${i === S.step ? 'aria-current="step"' : ''}><span class="n">${i + 1}</span><span>${esc(s.t)}${st ? `<span class="st ${st === 'bad' ? 'bad' : ''}">${STATE_WORD[st]}</span>` : ''}</span></button></li>`; }).join('')}</ol>
+    <p class="hint">Puoi muoverti liberamente tra i passaggi: nulla è obbligatorio finché non invii.</p></nav>
+    <section class="A-panel" aria-labelledby="A-h"><p class="hint">Passaggio ${S.step + 1} di ${secs.length}</p><h2 id="A-h" tabindex="-1">${esc(cur.t)}</h2>${cur.body()}
+      <div class="A-nav">${S.step > 0 ? `<button type="button" class="btn" data-act="step" data-i="${S.step - 1}">← ${esc(secs[S.step - 1].t)}</button>` : '<span></span>'}
+      ${S.step < secs.length - 1 ? `<button type="button" class="btn primary" data-act="step" data-i="${S.step + 1}">Avanti: ${esc(secs[S.step + 1].t)} →</button>` : `<button type="button" class="btn primary" data-act="submit">Invia ai Moderatori</button>`}</div></section></div></main>`;
+}
+
+function VariantB() {
+  const secs = SECTIONS[S.kind];
+  if (S.resume && !S.resumeSeen && !Object.keys(S.open).length) { const i = firstIncomplete(); secs.forEach((s, j) => S.open[s.id] = j === i); }
+  if (!Object.keys(S.open).length) secs.forEach((s, j) => S.open[s.id] = j === 0);
+  const fi = firstIncomplete();
+  return `<main class="wrap">${resumeBanner(`Ho aperto la prima sezione da completare: <strong>${esc(secs[Math.min(fi, secs.length - 1)].t)}</strong>.`)}${errorSummary()}<div class="B"><div>
+    <div class="B-tabs" role="tablist"><button role="tab" type="button" aria-selected="${S.tab === 'edit'}" data-act="tab" data-t="edit">Modifica</button><button role="tab" type="button" aria-selected="${S.tab === 'preview'}" data-act="tab" data-t="preview">Anteprima</button></div>
+    ${S.tab === 'preview' ? reviewBody() : secs.map(s => `<section class="B-sec" id="sec-${s.id}"><h2><button type="button" aria-expanded="${!!S.open[s.id]}" aria-controls="body-${s.id}" data-act="toggleSec" data-s="${s.id}"><span>${S.open[s.id] ? '▾' : '▸'} ${esc(s.t)}</span><span class="sum">${esc(STATE_WORD[secState(s.id)])}${s.sum() ? ' · ' + esc(s.sum()) : ''}</span></button></h2>
+      <div class="body" id="body-${s.id}" ${S.open[s.id] ? '' : 'hidden'}>${S.open[s.id] ? s.body() : ''}</div></section>`).join('') + `<section class="B-sec"><h2 style="font:600 19px var(--serif);padding:12px 0;margin:0">Prima di inviare</h2><p class="hint">Controlla l'anteprima nella scheda "Anteprima".</p>${text(`${S.kind}.note`, 'Nota per i Moderatori (facoltativa, non pubblica)', null, { area: true })}<label class="chk"><input type="checkbox" id="terms" data-bind="terms" data-rerender ${D.terms ? 'checked' : ''}> Accetto le condizioni di contributo</label></section>`}
+  </div><aside class="B-aside"><div class="sticky"><strong>Completamento</strong><ol>${secs.map(s => { const st = secState(s.id); return `<li><a href="#sec-${s.id}" data-act="openSec" data-s="${s.id}">${esc(s.t)}</a> — <span style="${st === 'bad' ? 'color:var(--err);font-weight:600' : ''}">${STATE_WORD[st]}</span></li>`; }).join('')}</ol>
+    <button type="button" class="btn" style="width:100%;margin-bottom:6px" data-act="tab" data-t="preview">Anteprima</button><button type="button" class="btn primary" style="width:100%" data-act="submit">Invia ai Moderatori</button></div></aside></div></main>`;
+}
+
+function VariantC() {
+  const secs = SECTIONS[S.kind];
+  if (S.kind === 'new' && !D.new.loc.mode && !S.cStarted) {
+    return `<main class="wrap"><div class="C-start"><h2>Dove si trova l'opera?</h2><p>Parti dalla mappa: tocca la superficie (muro, serranda, palo…). Se è già in archivio, vedrai cosa c'è sopra.</p>${mapPicker()}</div></main>`;
+  }
+  if (S.resume && !S.resumeSeen && !S.active) { const i = firstIncomplete(); S.active = (secs[i] || secs[0]).id; }
+  if (!S.active) S.active = secs[0].id;
+  const cur = secs.find(s => s.id === S.active) || { id: 'review', t: 'Rivedi e invia', body: reviewBody };
+  const block = s => { const st = secState(s.id); const v = s.sum(); return `<div class="C-block ${v ? '' : 'empty'} ${S.active === s.id ? 'active' : ''} ${st === 'bad' ? 'bad' : ''}"><button type="button" class="btn small edit" data-act="active" data-s="${s.id}" aria-label="${v ? 'Modifica' : 'Aggiungi'}: ${esc(s.t)}">${v ? 'Modifica' : '+ Aggiungi'}</button><span class="k">${esc(s.t)} · ${STATE_WORD[st]}</span>${v ? `<span style="font:17px var(--serif)">${esc(v)}</span>` : '<em>vuoto</em>'}</div>`; };
+  const left = S.kind === 'new' ? `<div class="label-preview"><span class="proposed-tag">Proposta · la scheda come apparirà</span>${secs.map(block).join('')}</div>`
+    : `<div class="label-preview"><h2>${S.kind === 'artist' ? esc(D.artist.name || 'Nuovo artista') : TARGET.title}</h2>${S.kind === 'artist' ? '' : `<p><span class="A-cond">${sym('present')} ${TARGET.cond}</span> · <em>${TARGET.loc}</em></p>`}${secs.map(block).join('')}</div>`;
+  const missing = S.errors.length;
+  return `<main class="wrap">${resumeBanner(`Il riquadro evidenziato è il primo da completare.`)}${errorSummary()}<div class="C"><div>${left}
+    <div class="C-bar"><span>${missing ? `${missing} ${missing === 1 ? 'cosa' : 'cose'} da completare` : 'Pronta per l\'invio'}</span><span><button type="button" class="btn" data-act="active" data-s="review">Rivedi</button> <button type="button" class="btn primary" data-act="submit">Invia</button></span></div></div>
+    <section class="C-panel" aria-labelledby="C-h"><h2 id="C-h" tabindex="-1">${esc(cur.t)}</h2>${cur.body()}
+      <p style="margin-top:14px"><button type="button" class="btn primary" data-act="nextBlock">Fatto</button></p></section></div></main>`;
+}
+
+// ================================================================ notes
+const NOTES = {
+  A: ['A · Stepper', 'Un passaggio per sezione, elenco numerato navigabile liberamente (non bloccante), ultimo passaggio "Rivedi e invia" con anteprima. Ripresa bozza: apre il primo passaggio incompleto.'],
+  B: ['B · Pagina unica', 'Tutte le sezioni in una pagina come disclosure (pulsanti con aria-expanded, mai hover), indice di completamento laterale, schede Modifica/Anteprima. Ripresa bozza: apre solo la prima sezione incompleta.'],
+  C: ['C · Scheda viva', 'L\'editor È la scheda dell\'opera (etichetta editoriale di #17): ogni blocco vuoto o pieno apre un pannello. Per una nuova opera si parte dalla mappa a tutto schermo.'],
+};
+function notesHtml() {
+  return `<h2>${NOTES[S.variant][0]}</h2><p>${NOTES[S.variant][1]}</p>
+  <h3>Comuni a tutte</h3><ul>
+  <li>La bozza è lato server dall'inizio (<code>/it/contributi/{id}/modifica</code>) con salvataggio automatico.</li>
+  <li>Avviso duplicati <strong>al momento della scelta della superficie</strong> (non all'invio), con uscita verso "aggiungi documentazione".</li>
+  <li>Validazione solo all'invio: riepilogo errori in alto con link ai campi + errore in linea (testo, non solo colore).</li>
+  <li>Data incerta = qualificatore + precisione + valore, con lettura in chiaro ("c. 2016") e intervallo salvato.</li>
+  <li>Upload multipli: ogni file ha data di osservazione (EXIF precompila), credito, base giuridica, licenza; i link non si caricano.</li>
+  <li>"Confermata" richiede una prova citata. Nuovo artista creabile inline.</li>
+  <li>Aggiungi documentazione può includere un evento di cambiamento (etichette derivate).</li></ul>
+  <h3>Domande da decidere</h3><ol>
+  <li>Quale struttura (A/B/C), o ibrido? Stessa per tutti i tipi?</li>
+  <li>Una nuova opera richiede almeno un documento? (qui: sì)</li>
+  <li>Condizione iniziale di una nuova opera: implicita "intatta" o chiesta esplicitamente (può essere già coperta)?</li>
+  <li>Esiste una "nota per i Moderatori" del Submitter?</li>
+  <li>Duplicati: solo alla scelta della superficie, o anche all'invio?</li>
+  <li>Disegno di linee/poligoni: nell'MVP o solo punti?</li></ol>
+  <p><small>Prova anche <code>?resume=1</code> e i tasti ← → per le varianti.</small></p>`;
+}
+
+// ================================================================ render + switcher
+function render() {
+  const fid = document.activeElement?.id;
+  validate();
+  const body = S.sent ? `<main class="wrap">${sentView()}</main>` : { A: VariantA, B: VariantB, C: VariantC }[S.variant]();
+  document.getElementById('app').innerHTML = header() + body;
+  const n = document.getElementById('notes'); n.hidden = !S.showNotes; n.innerHTML = notesHtml();
+  document.getElementById('switcher').innerHTML = `
+    <button type="button" data-act="cycle" data-d="-1" aria-label="Variante precedente">←</button><span class="cur">${NOTES[S.variant][0]}</span><button type="button" data-act="cycle" data-d="1" aria-label="Variante successiva">→</button>
+    <span class="sep"></span>${Object.entries(KIND_LABEL).map(([k, l]) => `<button type="button" data-act="go" data-kind="${k}" aria-pressed="${S.kind === k}">${l}</button>`).join('')}
+    <span class="sep"></span><button type="button" data-act="resume" aria-pressed="${S.resume}">Riprendi bozza</button><button type="button" data-act="notes" aria-pressed="${S.showNotes}">Note</button>`;
+  if (fid && document.getElementById(fid)) document.getElementById(fid).focus();
+}
+function syncUrl() { const p = new URLSearchParams({ variant: S.variant, kind: S.kind }); if (S.resume) p.set('resume', '1'); history.replaceState(null, '', '?' + p); }
+function resetFor(kind) { S.kind = kind; S.step = 0; S.open = {}; S.active = null; S.tried = false; S.sent = false; S.tab = 'edit'; S.cStarted = false; S.resumeSeen = false; D = freshDraft(S.resume); lastSave = S.resume ? '3 giorni fa, 21:14' : null; syncUrl(); render(); }
+
+document.addEventListener('input', e => { const b = e.target.dataset?.bind; if (!b || e.target.dataset.rerender !== undefined) return; set(b, e.target.value); });
+document.addEventListener('change', e => {
+  const t = e.target; const b = t.dataset?.bind;
+  if (b && t.dataset.rerender !== undefined) { set(b, t.type === 'checkbox' ? t.checked : t.value); render(); }
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act; const secs = SECTIONS[S.kind];
+  if (a === 'mapClick') {
+    if (e.target.closest('.pin') || e.target.closest('a,button')) return;
+    const r = el.getBoundingClientRect(); D.new.loc = { ...D.new.loc, mode: 'new', existing: null, pt: { x: (e.clientX - r.left) / r.width * 100, y: (e.clientY - r.top) / r.height * 100 }, dupAck: false };
+    S.cStarted = true; S.active = 'loc'; lastSave = savedAt(); return render();
+  }
+  if (a === 'pickLoc') { D.new.loc = { ...D.new.loc, mode: 'existing', existing: el.dataset.id, pt: null, dupAck: false }; S.cStarted = true; S.active = 'loc'; lastSave = savedAt(); return render(); }
+  if (a === 'useNearby') { D.new.loc = { ...D.new.loc, mode: 'existing', existing: el.dataset.id, pt: null, dupAck: false }; return render(); }
+  if (a === 'addDoc') { get(el.dataset.path).push(freshDoc(`IMG_${4470 + Math.floor(Math.random() * 99)}.jpg`, Math.random() > .4), freshDoc(`IMG_${4570 + Math.floor(Math.random() * 99)}.jpg`, false)); lastSave = savedAt(); return render(); }
+  if (a === 'addLink') { get(el.dataset.path).push(freshDoc(null)); return render(); }
+  if (a === 'rmDoc' || a === 'rm') { get(el.dataset.path).splice(+el.dataset.i, 1); return render(); }
+  if (a === 'addSource') { get(el.dataset.path).push({ ref: '' }); return render(); }
+  if (a === 'addAttr') { get(el.dataset.path).push({ artist: '— scegli —', alias: '', cert: '', cites: [] }); return render(); }
+  if (a === 'toggleCite') { const it = get(el.dataset.path); it.cites = it.cites || []; const c = el.dataset.c; it.cites = it.cites.includes(c) ? it.cites.filter(x => x !== c) : [...it.cites, c]; return render(); }
+  if (a === 'toggleType') { const ts = D.new.details.types; const t = el.dataset.t; D.new.details.types = ts.includes(t) ? ts.filter(x => x !== t) : [...ts, t]; lastSave = savedAt(); return render(); }
+  if (a === 'toggleArea') { const as = D.artist.areas; const t = el.dataset.a; D.artist.areas = as.includes(t) ? as.filter(x => x !== t) : [...as, t]; return render(); }
+  if (a === 'addAlias') { D.artist.aliases.push(''); return render(); }
+  if (a === 'toggleChange') { const k = el.dataset.k; if (k in D.edit.changes) delete D.edit.changes[k]; else D.edit.changes[k] = k === 'attr' ? '…' : k === 'types' ? TARGET.types.join(', ') : TARGET[k]; if (k === 'attr' && !D.edit.attrItems.length) D.edit.attrItems.push({ artist: 'MRLN (FITTIZIO)', alias: '', cert: 'probable', cites: [] }); lastSave = savedAt(); return render(); }
+  if (a === 'step') { S.step = +el.dataset.i; S.resumeSeen = true; render(); return document.getElementById('A-h')?.focus(); }
+  if (a === 'toggleSec') { S.open[el.dataset.s] = !S.open[el.dataset.s]; S.resumeSeen = true; return render(); }
+  if (a === 'openSec') { e.preventDefault(); S.tab = 'edit'; S.open[el.dataset.s] = true; render(); return document.getElementById('sec-' + el.dataset.s)?.scrollIntoView(); }
+  if (a === 'tab') { S.tab = el.dataset.t; return render(); }
+  if (a === 'active') { S.active = el.dataset.s; S.resumeSeen = true; render(); return document.getElementById('C-h')?.focus(); }
+  if (a === 'nextBlock') { const i = secs.findIndex(s => s.id === S.active); S.active = i >= 0 && i < secs.length - 1 ? secs[i + 1].id : 'review'; render(); return document.getElementById('C-h')?.focus(); }
+  if (a === 'jump') {
+    e.preventDefault(); const sec = el.dataset.sec; const id = el.dataset.id;
+    if (S.variant === 'A') S.step = sec === 'review' ? secs.length : secs.findIndex(s => s.id === sec);
+    if (S.variant === 'B') { S.tab = sec === 'review' ? 'preview' : 'edit'; S.open[sec] = true; }
+    if (S.variant === 'C') S.active = sec;
+    render(); const t = document.getElementById(id) || document.querySelector(`[id^="${id}"]`); t?.focus(); t?.scrollIntoView({ block: 'center' }); return;
+  }
+  if (a === 'submit') {
+    S.tried = true; validate();
+    if (S.errors.length) { render(); return document.getElementById('errsum')?.focus(); }
+    S.sent = true; render(); return document.getElementById('sent')?.focus();
+  }
+  if (a === 'reset') return resetFor(S.kind);
+  if (a === 'dismissResume') { S.resumeSeen = true; return render(); }
+  if (a === 'go') return resetFor(el.dataset.kind);
+  if (a === 'resume') { S.resume = !S.resume; return resetFor(S.kind); }
+  if (a === 'notes') { S.showNotes = !S.showNotes; return render(); }
+  if (a === 'cycle') { const vs = ['A', 'B', 'C']; S.variant = vs[(vs.indexOf(S.variant) + +el.dataset.d + 3) % 3]; S.resumeSeen = false; syncUrl(); return render(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,select,[contenteditable]')) return;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { const vs = ['A', 'B', 'C']; S.variant = vs[(vs.indexOf(S.variant) + (e.key === 'ArrowRight' ? 1 : -1) + 3) % 3]; syncUrl(); render(); }
+});
+syncUrl(); render();
+</script>
+</body>
+</html>
