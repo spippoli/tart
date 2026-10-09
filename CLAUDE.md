@@ -46,7 +46,7 @@ Follow these in order of priority; when they pull against each other, the earlie
 
 - Software, the TART brand (name and logo), local archive data, user-generated content, and the rights to artworks themselves are **separate concerns**. Don't assume the software license covers any of the others.
 - The intended model is non-commercial and source-available. **Never call TART "Open Source"** unless the final license meets the OSI definition. Use "source-available" or "freely available for non-commercial use" instead.
-- Don't pick or write a license silently. Candidates such as PolyForm Noncommercial and the Business Source License must be evaluated in a Licensing Decision Record, with legal review flagged where interpretation is needed.
+- The software is provisionally licensed under PolyForm Noncommercial 1.0.0 (`LICENSE`); the Licensing Decision Record is `docs/adr/0011-provisional-software-license.md`. Don't change the license, add a dependency outside its licence tiers, or write custom license terms without a new decision record, and flag legal review where interpretation is needed.
 
 ## Content
 
