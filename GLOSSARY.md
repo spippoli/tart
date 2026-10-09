@@ -21,7 +21,7 @@ A kind of urban expression (e.g. mural, graffiti, stencil, paste-up, sticker, in
 _Avoid_: Category, genre, medium
 
 **Location**:
-The physical surface an Artwork occupies (a wall, façade, pole, pavement, shutter), drawn as a point, line, or polygon and marked exact or approximate; one Location can host many Artworks, side by side or in succession, has no Condition of its own, and is never deleted.
+The physical surface an Artwork occupies (a wall, façade, pole, pavement, shutter), drawn as a point, line, or polygon and marked exact or approximate (an approximate point may carry an uncertainty radius); one Location can host many Artworks, side by side or in succession, has no Condition of its own, and is never deleted.
 _Avoid_: Spot, place, wall, support, address
 
 **Surface type**:
@@ -55,8 +55,12 @@ _Avoid_: Deleted, gone
 ### Physical history
 
 **History event**:
-A dated, documented occurrence in an Artwork's physical life, such as damage, overpainting (optionally linked to the covering Artwork), relocation between Locations, removal, destruction, or an attribution change.
+A dated occurrence in an Artwork's physical life, such as creation, damage, overpainting (optionally linked to the covering Artwork), relocation between Locations, removal, destruction, or a real-world attribution change (e.g. an artist publicly claiming a piece); a correction to an Attribution is a Revision, not a History event.
 _Avoid_: Change, edit, update, log entry
+
+**Creation event**:
+The `created` History event that states when an Artwork was made; an Artwork without one has an unknown creation date, which is distinct from its first documentation (the earliest Observed date of its Documentation items).
+_Avoid_: Creation date (as a field), first seen
 
 **Timeline**:
 The chronological presentation of an Artwork's History events and Documentation items; never includes Revisions.
@@ -72,18 +76,22 @@ _Avoid_: Photo date, upload date
 
 ### Evidence
 
+**Claim**:
+An Attribution or a History event: a statement about an Artwork that carries an Evidence level; all other fields are record data whose provenance is the Revision that introduced them.
+_Avoid_: Fact, assertion
+
 **Source**:
 A citable external reference (article, book, artist's own publication) that can be cited by Artworks, Artists, Sites, Areas, Attributions, and History events.
 _Avoid_: Link, citation (as an entity name)
 
 **Evidence level**:
-Whether a claim is *documented* (supported by a cited Source or Documentation item) or *reported* (a community statement without supporting evidence).
+Whether a Claim is *documented* (it cites at least one Source or Documentation item) or *reported* (it cites nothing); always derived from the Claim's citations, never set by hand.
 _Avoid_: Verified, trusted, confidence
 
 ### People
 
 **Artist**:
-A public creative identity (an individual or a collective) to which Artworks may be attributed; never a legal identity.
+A public creative identity (an individual or a collective) to which Artworks may be attributed, optionally with an Uncertain date period of activity; never a legal identity.
 _Avoid_: Author, creator, user
 
 **Alias**:
@@ -91,11 +99,11 @@ An alternative public name under which an Artist is known.
 _Avoid_: Tag (ambiguous with the artwork form), AKA
 
 **Crew membership**:
-A relation stating that one Artist is a member of a collective Artist.
+A relation stating that one Artist is a member of a collective Artist, optionally over an Uncertain date period.
 _Avoid_: Group, team
 
 **Attribution**:
-A claim linking an Artwork to an Artist, with a certainty of confirmed, probable, or disputed; an Artwork without Attributions has unknown authorship.
+A Claim linking an Artwork to an Artist, optionally naming the Alias it was signed with, with a certainty of confirmed (which requires a citation), probable, or disputed; several non-disputed Attributions mean a collaboration, competing alternatives are all disputed, and an Artwork without Attributions has unknown authorship.
 _Avoid_: Authorship, credit, signature
 
 **User**:
