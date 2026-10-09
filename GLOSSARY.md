@@ -18,6 +18,10 @@ _Avoid_: Admin, owner, host
 The settings that define what an Instance's archive is (identity, geography, languages, open vocabularies, policies, licences, and the Operator's own texts), set by the Operator and never edited through Submissions.
 _Avoid_: Settings, preferences, Instance data
 
+**Data licence**:
+The licence under which an Instance publishes its structured archive data, chosen by the Operator from a fixed list of open licences; it never covers Documentation item files or the depicted Artworks.
+_Avoid_: Archive licence, content licence
+
 **Licensor**:
 The holder who offers the TART software under its license and holds the TART name and logo; distinct from every Operator.
 _Avoid_: Owner, maintainer (as the legal role)
@@ -63,6 +67,14 @@ _Avoid_: Collection, set, project
 **Documentation item**:
 An independent piece of evidence of physical state (image, PDF, text, or link) about one or more Artworks, dated by its Observed date; an image shows a single Location, and only documentation of a disappearance links to the Location itself.
 _Avoid_: Media, attachment, upload, photo (as the generic term)
+
+**Creator credit**:
+The name, possibly a pseudonym, credited as the creator of a Documentation item's file; independent of the Submitter who uploaded it.
+_Avoid_: Author, photographer, uploader
+
+**Rights basis**:
+The Submitter's declaration of why a Documentation item's file may be published: either it is their own work, or it is a third party's work already under a licence the Instance accepts.
+_Avoid_: Permission, copyright status
 
 **Condition**:
 The physical state of an Artwork (intact, deteriorated, damaged, modified, covered, removed, destroyed, missing, unknown), always derived from its most recent condition-changing History event.
@@ -191,3 +203,19 @@ _Avoid_: Delete, dedupe
 **Withdrawal**:
 Hiding an Archive record or Documentation item from the public for legal, rights, or privacy reasons; not a physical Condition and never shown on the Timeline.
 _Avoid_: Deletion, takedown, removal (reserved for the physical History event)
+
+**Redaction**:
+Hiding the content of past Revisions of an Archive record from the public for legal, rights, or privacy reasons, while the record itself stays public.
+_Avoid_: Censoring, Withdrawal (reserved for whole records and Documentation items)
+
+**Reinstatement**:
+Undoing a Withdrawal or a Redaction so the hidden content is public again.
+_Avoid_: Restore, undelete
+
+**Purge**:
+The permanent erasure of withdrawn or redacted content, done only when the law requires it; the only way content ever leaves the archive.
+_Avoid_: Deletion, Withdrawal
+
+**Notice**:
+A report, from anyone and without an account, that a public Archive record or Documentation item is unlawful or infringes someone's rights; it is closed by a decision of Withdrawal, Redaction, or no action.
+_Avoid_: Flag, complaint, takedown request
