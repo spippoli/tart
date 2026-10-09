@@ -10,6 +10,14 @@ TART is a collaborative platform for documenting and preserving the history of u
 One deployment of TART serving one local archive (e.g. Rome), with its own configuration, users, and data.
 _Avoid_: Tenant, site, city
 
+**UI language**:
+A language the TART interface is offered in; the platform ships each one complete, and an Instance enables a subset and picks a default.
+_Avoid_: Locale (as a domain term), interface translation
+
+**Content language**:
+The single language in which an Instance's archive content and own texts are written (e.g. Italian for Rome); it is never translated and may differ from the UI language a visitor reads.
+_Avoid_: Default language, archive language
+
 ### Archive
 
 **Artwork**:
