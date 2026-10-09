@@ -4,7 +4,7 @@ The MVP is a monorepo (`backend/`, `frontend/`, `deploy/`) built on FastAPI and 
 
 ## Decisions
 
-- **Frontend**: SvelteKit 3 with adapter-node, Paraglide JS for i18n (unprefixed `it`, `/en/…`, translated pathnames, `hreflang` written once in the root layout), with pinned versions. A missing message key is a build error.
+- **Frontend**: SvelteKit 3 with adapter-node, Paraglide JS for i18n (every UI language prefixed, `/it/…` and `/en/…`, translated pathnames, `hreflang` and `x-default` written once in the root layout; see ADR 0008), with pinned versions. A missing message key is a build error.
 - **Map**: plain MapLibre GL JS and the `pmtiles` protocol, used only inside one app-level map module; no other code imports MapLibre. No framework wrapper.
 - **API client**: `openapi-typescript` + `openapi-fetch`, generated from FastAPI's OpenAPI schema. CI fails on drift.
 - **Backend**: FastAPI, SQLAlchemy 2.0 (async) with GeoAlchemy2, and Alembic migrations run at `api` startup.
