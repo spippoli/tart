@@ -240,6 +240,10 @@ _Avoid_: Restore, undelete
 The permanent erasure of withdrawn or redacted content, done only when the law requires it; the only way content ever leaves the archive.
 _Avoid_: Deletion, Withdrawal
 
+**Erasure log**:
+The content-free list of every Purge and account deletion, kept so that erasures are applied again after a restore from backup.
+_Avoid_: Deletion log, Purge log
+
 **Notice**:
 A report, from anyone and without an account, that a public Archive record or Documentation item is unlawful or infringes someone's rights; it is closed by a decision of Withdrawal, Redaction, or no action.
 _Avoid_: Flag, complaint, takedown request

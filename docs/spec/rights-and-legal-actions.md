@@ -414,7 +414,7 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 17. **Command and scope.** The CLI command name, how a target is selected (record, Documentation item, Revision, field), whether a Purge requires a recorded legal ground, and whether it is logged are not decided.
 18. **What remains after a Purge.** Whether the id still answers 410, whether a tombstone remains in the Revision sequence or the legal action log, and how a Purge of redacted Revision content keeps the audit trail consistent are not decided.
 19. **Statement of reasons for a Purge.** The decisions list none; whether one is due (the content was already hidden and notified) is not decided.
-20. **Backups.** How a Purge or an account deletion reaches existing backups is not decided; it belongs with [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45).
+20. **Backups.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)): backups are not rewritten; a Purge and an account deletion write a content-free entry to the Erasure log, which every restore applies again; erased data may stay in encrypted backups for up to six months, and the processing inventory says so. To be folded into the Purge and account deletion sections.
 
 **Accounts and exports**
 21. **Pseudonym format.** The shape of the stable pseudonym (for example based on the user id, as OpenStreetMap does) is not decided.

@@ -7,7 +7,7 @@ The MVP is a monorepo (`backend/`, `frontend/`, `deploy/`) built on FastAPI and 
 - **Frontend**: SvelteKit 3 with adapter-node, Paraglide JS for i18n (every UI language prefixed, `/it/…` and `/en/…`, translated pathnames, `hreflang` and `x-default` written once in the root layout; see ADR 0008), with pinned versions. A missing message key is a build error.
 - **Map**: plain MapLibre GL JS and the `pmtiles` protocol, used only inside one app-level map module; no other code imports MapLibre. No framework wrapper.
 - **API client**: `openapi-typescript` + `openapi-fetch`, generated from FastAPI's OpenAPI schema. CI fails on drift.
-- **Backend**: FastAPI, SQLAlchemy 2.0 (async) with GeoAlchemy2, and Alembic migrations run at `api` startup.
+- **Backend**: FastAPI, SQLAlchemy 2.0 (async) with GeoAlchemy2, and Alembic migrations run by `tart upgrade` in a one-shot container (amended by ADR 0020; previously at `api` startup).
 - **Background jobs**: Procrastinate on PostgreSQL, in a separate `worker` container that shares the `api` image, with its own memory and time limits. It handles media derivatives, PDF previews, email delivery, and cleanup of abandoned uploads.
 - **Storage**: a storage adapter with a local-filesystem implementation (the minimal default) and an S3-compatible implementation. The Rome reference uses Hetzner Object Storage. There is no self-hosted S3 server in the reference stack. All objects are private and served through the app, so hiding pending or withdrawn media is a database flag.
 - **Uploads**: the browser streams multipart uploads to FastAPI, which writes to a quarantine area and enqueues processing. Uploads never pass through SvelteKit. Size limits are enforced by both Caddy and the app.
