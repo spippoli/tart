@@ -39,17 +39,17 @@ Each feature spec is a file in `docs/spec/` with a thin tracking issue whose chi
 
 Build in this order; each spec depends only on the ones above it.
 
-| # | Feature spec | File | Contents | Compile ticket |
-|---|---|---|---|---|
-| 1 | Foundations | `foundations.md` | Instance configuration, auth and sessions, storage and media pipeline, i18n shell, Operator CLI | [Compile Foundations spec](https://github.com/spippoli/tart/issues/50) |
-| 2 | Archive records | [`archive-records.md`](archive-records.md) | Artwork, Artist, Location, Site, Area, Series, Source, Documentation item; physical history; public record pages | [Compile Archive records spec](https://github.com/spippoli/tart/issues/51) |
-| 3 | Discovery | [`discovery.md`](discovery.md) | Map, list, search and filters, map cartography style, basemap pipeline | [Compile Discovery spec](https://github.com/spippoli/tart/issues/52) |
-| 4 | Contribution and moderation | [`contribution-and-moderation.md`](contribution-and-moderation.md) | Submission form, lifecycle, duplicates and Merge, roles | [Compile Contribution and moderation spec](https://github.com/spippoli/tart/issues/53) |
-| 5 | Rights and legal actions | [`rights-and-legal-actions.md`](rights-and-legal-actions.md) | Per-file licences, Notices, Withdrawal, Redaction, Reinstatement, Purge, account deletion | [Compile Rights and legal actions spec](https://github.com/spippoli/tart/issues/54) |
-| 6 | Notifications | [`notifications.md`](notifications.md) | Email notifications | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) |
-| 7 | Operations and portability | [`operations-and-portability.md`](operations-and-portability.md) | Backups, upgrades, monitoring, public data dump, Operator compliance checklist | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) |
+| # | Feature spec | File | Contents | Compile ticket | Tracking issue |
+|---|---|---|---|---|---|
+| 1 | Foundations | [`foundations.md`](foundations.md) | Instance configuration, auth and sessions, storage and media pipeline, i18n shell, Operator CLI | [Compile Foundations spec](https://github.com/spippoli/tart/issues/50) | [Foundations spec](https://github.com/spippoli/tart/issues/62) |
+| 2 | Archive records | [`archive-records.md`](archive-records.md) | Artwork, Artist, Location, Site, Area, Series, Source, Documentation item; physical history; public record pages | [Compile Archive records spec](https://github.com/spippoli/tart/issues/51) | [Archive records spec](https://github.com/spippoli/tart/issues/63) |
+| 3 | Discovery | [`discovery.md`](discovery.md) | Map, list, search and filters, map cartography style, basemap pipeline | [Compile Discovery spec](https://github.com/spippoli/tart/issues/52) | [Discovery spec](https://github.com/spippoli/tart/issues/80) |
+| 4 | Contribution and moderation | [`contribution-and-moderation.md`](contribution-and-moderation.md) | Submission form, lifecycle, duplicates and Merge, roles | [Compile Contribution and moderation spec](https://github.com/spippoli/tart/issues/53) | [Contribution and moderation spec](https://github.com/spippoli/tart/issues/73) |
+| 5 | Rights and legal actions | [`rights-and-legal-actions.md`](rights-and-legal-actions.md) | Per-file licences, Notices, Withdrawal, Redaction, Reinstatement, Purge, account deletion | [Compile Rights and legal actions spec](https://github.com/spippoli/tart/issues/54) | [Rights and legal actions spec](https://github.com/spippoli/tart/issues/74) |
+| 6 | Notifications | [`notifications.md`](notifications.md) | Email notifications | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) | [Notifications spec](https://github.com/spippoli/tart/issues/75) |
+| 7 | Operations and portability | [`operations-and-portability.md`](operations-and-portability.md) | Backups, upgrades, monitoring, public data dump, Operator compliance checklist | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) | [Operations and portability spec](https://github.com/spippoli/tart/issues/81) |
 
-A feature spec is compiled as soon as the decision tickets it needs are closed; the compile ticket's blockers in the tracker show which specs are ready. A file listed here that does not exist yet has not been compiled.
+All seven feature specs are compiled. Each still lists open items in its Further Notes; the decision tickets that settle them amend the spec in their own PR and block its tracking issue, so a tracking issue with no open blocker is ready for `to-tickets`.
 
 ## Rome configuration summary
 
@@ -68,11 +68,14 @@ Rome is the reference Instance. Its configuration is a secret-free directory of 
 | Data licence | `CC-BY-SA-4.0` | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
 | File licence allowlist | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
 | Operational | `draft_expiry_days = 90`, `max_upload_mb = 25` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
-| Map | Tinted-plan style ([ADR 0017](../adr/0017-map-cartography-style.md)); walls and archaeology overlay from OpenStreetMap; attribution `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` | [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md), [ADR 0017](../adr/0017-map-cartography-style.md) |
+| Map | Tinted-plan style ([ADR 0017](../adr/0017-map-cartography-style.md)) as two Instance-owned files, `map/style.light.json` and `map/style.dark.json`; walls and archaeology overlay from OpenStreetMap, committed as GeoJSON with its Overpass query; attribution `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md), [ADR 0017](../adr/0017-map-cartography-style.md) |
+| Basemap tiles | Local Protomaps extract (boundary + 2 km) made by `tart tiles update`, refreshed manually | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) |
+| Moderation | `self_approval = true` at launch; switched to `false` once at least two Moderators are active (Operator checklist) | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) |
 | Hosting | Docker Compose on a Hetzner CX33 with Hetzner Object Storage through the S3 adapter; budget at most €20/month excluding VAT and off-site backups | [ADR 0004](../adr/0004-mvp-tech-stack.md) |
 | Authentication | Built-in passwordless (email code + passkeys); not configurable | [ADR 0005](../adr/0005-passwordless-in-app-auth.md) |
+| Backups | On at launch: nightly `pg_dump` in restic and encrypted `rclone sync` of media to a Hetzner Storage Box | [ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) |
 
-**Not yet decided** (owned by the feature spec that compiles it): the exact boundary polygon and default view, logo and accent colour, contact points, the public image rendition cap, Notice reasons, the map style ownership model ([Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37)), and the tile pipeline ([Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38)).
+**Not yet decided** (settled by [Rome Instance values](https://github.com/spippoli/tart/issues/86)): the archive name in Italian, short description and place name, the exact boundary polygon and default view, logo, favicon, and accent colour (a light and a dark value), contact points, the public image rendition cap, Surface types, Decision message reasons, Notice reasons, Rome's labels for Expression types, the Rome Operator, and the backup location, schedule, and Operator alert address.
 
 ## Traceability
 
@@ -104,26 +107,54 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) | ADR 0016 | Discovery; Rights and legal actions (ODbL boundary); Operations and portability (CI allow-list, Operator documentation) |
 | [Map cartography style](https://github.com/spippoli/tart/issues/36) | ADR 0017 | Discovery |
 | [Spec format and assembly](https://github.com/spippoli/tart/issues/48) | This index | Spec index |
+| [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) | ADR 0009 (amended) | Discovery; Foundations (map configuration, accent) |
+| [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) | ADR 0009 (amended) | Discovery; Foundations (Operator CLI); Operations and portability (tiles out of backups) |
+| [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39) | ADR 0019 | Discovery |
+| [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) | — | Discovery; Contribution and moderation (Location step) |
+| [Search and filters](https://github.com/spippoli/tart/issues/41) | — | Discovery |
+| [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42) | Glossary, ADR 0018 | Contribution and moderation |
+| [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) | Glossary, ADR 0009 (amended) | Contribution and moderation; Rights and legal actions; Foundations (role CLI, `self_approval`, Invitations) |
+| [Notifications](https://github.com/spippoli/tart/issues/44) | Glossary, ADR 0008 (amended) | Notifications; Foundations (email language) |
+| [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) | Glossary, ADR 0020 | Operations and portability; Foundations (migrations); Rights and legal actions (Erasure log) |
+| [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) | — | Operations and portability |
+| [Public data dump](https://github.com/spippoli/tart/issues/47) | Glossary | Operations and portability |
+| [Compile spec index](https://github.com/spippoli/tart/issues/49) | This index | Spec index |
+| [Compile Foundations spec](https://github.com/spippoli/tart/issues/50) | `foundations.md` | Foundations |
+| [Compile Archive records spec](https://github.com/spippoli/tart/issues/51) | `archive-records.md` | Archive records |
+| [Compile Discovery spec](https://github.com/spippoli/tart/issues/52) | `discovery.md` | Discovery |
+| [Compile Contribution and moderation spec](https://github.com/spippoli/tart/issues/53) | `contribution-and-moderation.md` | Contribution and moderation |
+| [Compile Rights and legal actions spec](https://github.com/spippoli/tart/issues/54) | `rights-and-legal-actions.md` | Rights and legal actions |
+| [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) | `notifications.md` | Notifications |
+| [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) | `operations-and-portability.md` | Operations and portability |
+| [Spec index and Foundations housekeeping](https://github.com/spippoli/tart/issues/82) | This index, `foundations.md` | Spec index; Foundations |
 
 ### Open
 
+These tickets settle the open items listed in the feature specs' Further Notes.
+
 | Ticket | Feeds |
 |---|---|
-| [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) | Discovery |
-| [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) | Discovery |
-| [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39) | Discovery |
-| [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) | Discovery |
-| [Search and filters](https://github.com/spippoli/tart/issues/41) | Discovery |
-| [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42) | Contribution and moderation |
-| [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) | Contribution and moderation; Rights and legal actions |
-| [Notifications](https://github.com/spippoli/tart/issues/44) | Notifications |
-| [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) | Operations and portability |
-| [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) | Operations and portability |
-| [Public data dump](https://github.com/spippoli/tart/issues/47) | Operations and portability |
+| [Apply decided answers across feature specs](https://github.com/spippoli/tart/issues/83) | Contribution and moderation; Archive records; Rights and legal actions; Notifications |
+| [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) | Foundations; Contribution and moderation; Notifications |
+| [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
+| [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
+| [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
+| [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | Foundations |
+| [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | Archive records; Discovery; Contribution and moderation |
+| [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
+| [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) | Archive records; Rights and legal actions; Operations and portability |
+| [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) | Archive records; Rights and legal actions; Discovery |
+| [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) | Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
+| [Notice handling details](https://github.com/spippoli/tart/issues/94) | Rights and legal actions; Notifications |
+| [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) | Rights and legal actions |
+| [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96) | Contribution and moderation |
+| [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) | Contribution and moderation |
+| [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) | Discovery; Foundations |
+| [Search and filter details](https://github.com/spippoli/tart/issues/99) | Discovery |
+| [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | Operations and portability |
+| [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101) | Operations and portability |
 
-Still unticketed: performance and limits (upload limits, rate limiting of Submissions and Notices, spam and abuse protection under `open` registration), expected to feed Foundations and/or Contribution and moderation.
-
-When a ticket closes, its resolution comment ends with a `Feeds:` line; move it from Open to Closed here in the same PR that compiles the spec it feeds.
+When a ticket closes, its resolution comment ends with a `Feeds:` line; move it from Open to Closed here in the PR that amends the spec it feeds.
 
 ## Out of scope for the MVP
 
