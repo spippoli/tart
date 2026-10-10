@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Content language, UI language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Base revision, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Notice, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Condition group, History event, Condition record, Creation event, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (terms version and when acceptance is asked, the reserved `duplicate` reason, key names). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, authentication and sessions, media pipeline, i18n shell, Operator CLI), [Archive records](archive-records.md) (record model, the archive write operation, Revisions, pending-content display on record pages), and Discovery (the map module, used by the Location step and the Submission page).
 
@@ -181,11 +181,14 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 
 ### Terms of use
 
-- Submitting requires that the User has accepted the Instance's current versioned terms, which hold the contributor warranty and licence grant; acceptance is asked before the first Submission and again when the terms change (ADR 0012). The Review and submit step carries the acceptance ([#27](https://github.com/spippoli/tart/issues/27)). How a terms version is declared is [Foundations](foundations.md) open item 8; whether acceptance is asked on every Submission is open item 10.
+- Submitting requires that the User has accepted the Instance's current versioned terms, which hold the contributor warranty and licence grant; acceptance is asked before the first Submission and again when the terms change (ADR 0012). The Review and submit step carries the acceptance ([#27](https://github.com/spippoli/tart/issues/27)) only when it is needed ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)):
+  - the terms carry the integer `terms.version` ([Foundations](foundations.md#1-instance-configuration)); for each User the platform stores the version accepted and when;
+  - the acceptance checkbox appears when the User has never accepted or has accepted a lower version than the current one; otherwise the step shows one line, "You accepted the terms (version N)", linking to them;
+  - a new version does not touch Submissions already submitted or under moderation; it applies from the User's next Submission.
 
 ### Submission form
 
-**Structure** ([#27](https://github.com/spippoli/tart/issues/27)): a stepper for every kind. One section per step, with a numbered step list that can be navigated freely (not gated). The last step is always **Review and submit**: a preview in the editorial label (ADR 0015), the optional note to Moderators, and acceptance of the terms. Short kinds have fewer steps.
+**Structure** ([#27](https://github.com/spippoli/tart/issues/27)): a stepper for every kind. One section per step, with a numbered step list that can be navigated freely (not gated). The last step is always **Review and submit**: a preview in the editorial label (ADR 0015), the optional note to Moderators, and acceptance of the terms when needed (see [Terms of use](#terms-of-use)). Short kinds have fewer steps.
 
 | Kind | Steps |
 |---|---|
@@ -432,26 +435,29 @@ From [#15](https://github.com/spippoli/tart/issues/15). Path segments are UI str
 39. The duplicate warning, the autosave status, and validation results are announced to assistive technology.
 40. No user-facing string (step names, statuses, labels, checklist items, errors, empty states, aria labels) is hardcoded; Decision message reasons are shown with the label of the current UI language; submitted free text is marked up with the Content language's `lang`.
 41. Axe checks report no violations on each page of this spec, in both UI languages, in the states: empty draft, resumed draft, validation errors, duplicate warning, submitted, changes requested, Outdated, approved, rejected, retracted, empty queue, non-Moderator 403.
+42. A User who has accepted the current `terms.version` sees no acceptance checkbox in Review and submit, only the line naming the accepted version; after the Operator bumps the version and restarts, the next Submission asks again, and Submissions already submitted are unaffected.
+43. The decision form lists the configured Decision message reasons in file order, followed by "duplicate of an existing record", which stores the key `duplicate`.
 
 ## Instance configuration
 
-Exact key names belong to the [Foundations](foundations.md) spec, which owns `instance.toml`; this spec reads the following values.
+The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; this spec reads the following values.
 
 | Setting | Key | Use here | Rome |
 |---|---|---|---|
-| Registration mode | `registration` | Invitations exist only under `invite` | `open` |
-| Self-review | `self_approval` | Whether a Moderator may approve their own Submission, close a Notice about, or reinstate, their own content | `true` at launch; the Operator checklist says to switch to `false` once at least two Moderators are active |
-| Decision message reasons | vocabulary file | Reasons for rejection and changes requested | Not decided |
-| Expression types, Surface types | vocabulary files | Choices in the form; `retired` entries not offered | As in [Archive records](archive-records.md) |
-| Boundary (GeoJSON) | — | Rejects geometries outside it | Not decided |
-| File licence allowlist and default | `contribution_license` (shape: [Foundations](foundations.md) open item 5) | Licence choice per file | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` |
-| Draft expiry | `draft_expiry_days` | Deletion of abandoned drafts and their media | `90` |
-| Maximum upload size | `max_upload_mb` | Upload limit in the Documentation step | `25` |
-| Content language | — | `lang` of submitted text | `it` |
-| Enabled UI languages, time zone | — | Labels, dates in the Submission log | `it` (default), `en`; `Europe/Rome` |
-| Editorial guidelines, contribution policy, terms of use | Markdown files | Linked from the hub, the checklist, and the Review step | Not written yet |
+| Registration mode | `community.registration` | Invitations exist only under `invite` | `open` |
+| Self-review | `community.self_approval` | Whether a Moderator may approve their own Submission, close a Notice about, or reinstate, their own content | `true` at launch; the Operator checklist says to switch to `false` once at least two Moderators are active |
+| Decision message reasons | `vocabularies/decision_reasons.toml`, plus the platform's `duplicate` | Reasons for rejection and changes requested; `duplicate` listed last | Not decided |
+| Expression types, Surface types | `vocabularies/expression_types.toml`, `vocabularies/surface_types.toml` | Choices in the form; `retired` entries not offered | As in [Archive records](archive-records.md) |
+| Boundary (GeoJSON) | `geography/boundary.geojson` | Rejects geometries outside it | Not decided |
+| File licences, default first | `licenses.files` | Licence choice per file, in this order | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
+| Draft expiry | `community.draft_expiry_days` | Deletion of abandoned drafts and their media | `90` |
+| Maximum upload size | `media.max_upload_mb` | Upload limit in the Documentation step | `25` |
+| Content language | `languages.content` | `lang` of submitted text | `it` |
+| Enabled UI languages, time zone | `languages.ui`, `geography.time_zone` | Labels, dates in the Submission log | `it` (default), `en`; `Europe/Rome` |
+| Editorial guidelines, contribution policy, terms of use | `texts/editorial_guidelines.md`, `texts/contribution_policy.md`, `texts/terms.md` | Linked from the hub, the checklist, and the Review step | Not written yet |
+| Terms version | `terms.version` | Whether the Review step asks for acceptance | `1` at launch |
 
-**Platform constants, not configuration**: the 25 m proximity distance, the never-edited draft discard after 24 hours, the 14-day Invitation lifetime, the review checklist, the "duplicate of an existing record" reason, and the closed Submission status vocabulary.
+**Platform constants, not configuration**: the 25 m proximity distance, the never-edited draft discard after 24 hours, the 14-day Invitation lifetime, the review checklist, the "duplicate of an existing record" reason (reserved key `duplicate`, labels in the platform's message catalogues), and the closed Submission status vocabulary.
 
 ## Testing Decisions
 
@@ -490,8 +496,8 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 7. **Draft expiry clock.** "Never edited" (24-hour discard) and "abandoned" (`draft_expiry_days`) are not defined precisely (for example, measured from creation or from the last autosave).
 8. **Linking a retry to a rejected Submission.** A retry is "optionally linked" ([#5](https://github.com/spippoli/tart/issues/5)); how the link is made and where it is shown is not decided.
 9. **Queue sorting.** FIFO is the default, and [#15](https://github.com/spippoli/tart/issues/15) asks for sorting, but the other sort orders, and whether FIFO uses the first submission or the latest resubmission, are not decided.
-10. **Terms acceptance in the Review step.** ADR 0012 requires acceptance before the first Submission and when the terms change; the prototype places it in every Review step. Whether it is asked on every Submission or only when the current version has not been accepted is not decided; terms versioning itself is [Foundations](foundations.md) open item 8.
-11. **Decision message reasons.** Rome's list is not decided. How the platform-provided "duplicate of an existing record" reason ([#42](https://github.com/spippoli/tart/issues/42)) coexists with the configured open vocabulary (a reserved key, a platform entry outside the file) is not decided.
+10. **Terms acceptance in the Review step.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): asked only when the User has not accepted the current `terms.version`; see [Terms of use](#terms-of-use).
+11. **Decision message reasons.** Rome's list is not decided. Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86). How the platform-provided "duplicate of an existing record" reason coexists with the configured vocabulary is answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): a platform entry outside the file under the reserved key `duplicate`, listed last.
 12. **Converting a duplicate create into documentation.** The mechanics of turning a pending create Submission into a documentation Submission on the approved record ([#42](https://github.com/spippoli/tart/issues/42), point 13) are not decided: the same Submission with a new primary target, or a new Submission pre-filled from it, and what happens to the rounds and log.
 13. **Name-rule threshold.** The 25 m distance is stated to be a platform constant; the similarity threshold of 90 is not stated either way. ADR 0009 lists no such key, so this spec treats it as platform behaviour until decided.
 14. **Abuse protection.** Rate limiting of Submissions and spam protection under `open` registration are still unticketed ("Performance and limits" on the [wayfinder map](https://github.com/spippoli/tart/issues/2)); once ticketed, that ticket blocks this spec and may add to it.

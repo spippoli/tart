@@ -14,7 +14,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 | [0004](../adr/0004-mvp-tech-stack.md) | All objects private and served through the app, so hiding is a database flag; Operator CLI and `worker` |
 | [0007](../adr/0007-edit-submissions-as-field-changesets.md) | A Submission whose target is withdrawn is Outdated |
 | [0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md) | Notifier emails in the UI language of the Notice form, stored with the Notice; Notice reasons are translated labels |
-| [0009](../adr/0009-instance-configuration-as-validated-files.md) | `data_license`, `contribution_license`, terms of use, privacy policy and DSA contact as required configuration; `self_approval`; role CLI |
+| [0009](../adr/0009-instance-configuration-as-validated-files.md) | `licenses.data`, `licenses.files`, terms of use, privacy policy, DSA and privacy contacts as required configuration; Notice reasons as an open vocabulary; `self_approval`; role CLI (amended by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)) |
 | [0010](../adr/0010-public-url-scheme.md) | Withdrawn record or Documentation item and its `/revisions` subpage answer 410 with a neutral page |
 | [0011](../adr/0011-provisional-software-license.md) | The software licence covers none of the archive data, contributor content, or Artworks |
 | [0012](../adr/0012-per-file-licence-with-rights-basis.md) | Per-file licence from an allowlist, **Creator credit**, **Rights basis**; "covers the file only"; capped renditions; Data licence values; versioned terms; EXIF handling |
@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Erasure log, User, Moderator, Submitter, Submission, Submission status, Retraction, Outdated, Decision message, Moderation note, Archive record, Revision, Artwork, Artist, Attribution, Crew membership, Location, Source, Documentation item, Creator credit, Rights basis, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Purge, Notice, UI language, Content language.
 
-**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19).
+**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version).
 
 **Depends on**: [Foundations](foundations.md) (configuration, sessions, storage and media pipeline, Account page, Operator CLI, email adapter), [Archive records](archive-records.md) (record model, visibility table, `/revisions`, "Report" action), and Contribution and moderation (roles and permission checks, Submission rejection and Decision messages, the review checklist, terms acceptance).
 
@@ -139,7 +139,7 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 - Moderators screen every Submission for identifiable people and readable number plates before approval. There is no blurring tool: the Moderator requests changes and the Submitter uploads a blurred file ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md); review checklist item 1 in Contribution and moderation).
 - The Submitter accepts the Instance's versioned terms, which hold the contributor warranty and licence grant, before their first Submission and again when the terms change; the per-file Rights basis is the specific warranty ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)). The acceptance flow is specified in Contribution and moderation.
 
-**Data licence.** Structured archive data is published under the Instance's `data_license`, one of `CC0-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `ODbL-1.0`; non-commercial licences are not offered ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)). It never covers Documentation item files or the depicted Artworks. It is shown in the footer and on the data licence About page ([Foundations](foundations.md#4-i18n-shell)).
+**Data licence.** Structured archive data is published under the Instance's `licenses.data`, one of `CC0-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `ODbL-1.0`; non-commercial licences are not offered ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)). It never covers Documentation item files or the depicted Artworks. It is shown in the footer and on the data licence About page ([Foundations](foundations.md#4-i18n-shell)).
 
 **ODbL boundary** ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)):
 - Archive data is never derived from OpenStreetMap: no import, no snapping to OSM geometries, no stored geocoding results in Locations or any other record. Drawing a Location by clicking on the basemap is allowed.
@@ -159,7 +159,7 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 
 | Field | Rule |
 |---|---|
-| Reason | Required. One entry from the Instance's Notice reasons list. Platform defaults: copyright in the depicted Artwork, copyright in the file, personal data, illegal content, other |
+| Reason | Required. One entry, not retired, from the Instance's Notice reasons vocabulary (`vocabularies/notice_reasons.toml`). Platform defaults: copyright in the depicted Artwork, copyright in the file, personal data, illegal content, other |
 | URL | Required. The exact URL of the content, prefilled from the page the report started from |
 | Explanation | Required. Free text |
 | Name | Optional |
@@ -239,7 +239,7 @@ A recipient whose account was deleted has no address and gets nothing. The perso
 5. whether automation was used (always "no" in the MVP);
 6. redress: replying to the email, out-of-court settlement, and courts.
 
-Contesting is done by replying to the email; legal emails set `Reply-To` to the Operator's legal contact. There is no in-app complaint system ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). Statements never identify the notifier or the Moderator.
+Contesting is done by replying to the email; legal emails set `Reply-To` to the Operator's DSA contact, `contacts.dsa` ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)). There is no in-app complaint system ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). Statements never identify the notifier or the Moderator.
 
 ### 8. Purge
 
@@ -262,7 +262,7 @@ Self-service from the Account page (`/it/account`, `/en/account`, [Foundations](
 6. if the User chose so in the deletion flow, Creator credits that carry their name are anonymised;
 7. a content-free entry (kind, target id, date) is written to the **Erasure log** ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)), so that a restore from backup erases the account again. Backups are never rewritten; erased data may stay in encrypted backups for up to six months, as the processing inventory states ([Operations and portability](operations-and-portability.md#3-restore-and-the-erasure-log)).
 
-No email is sent about the retractions, since the account no longer has an address ([#44](https://github.com/spippoli/tart/issues/44)). Account-level GDPR requests that are not self-service go to the Operator's privacy contact, not through Notices. ⚖️ legal review: the lawful basis for keeping deleted Users' contributions.
+No email is sent about the retractions, since the account no longer has an address ([#44](https://github.com/spippoli/tart/issues/44)). Account-level GDPR requests that are not self-service go to the Operator's privacy contact, `contacts.privacy`, not through Notices. ⚖️ legal review: the lawful basis for keeping deleted Users' contributions.
 
 ### 10. Data exports
 
@@ -319,7 +319,7 @@ A good test exercises a module through its external interface and asserts observ
 16. A Withdrawal or Redaction changes no record content, Revision, or stored object, and creates no Revision.
 17. A redacted Revision stays listed on `/revisions` with its content hidden; the record stays public.
 18. A Reinstatement restores exactly what was hidden, including a withdrawn Artist's Attributions and Crew memberships.
-19. Each Withdrawal, Redaction, Reinstatement, and Submission rejection queues a statement of reasons to every affected Submitter with an address, containing the six Art. 17 elements, `Reply-To` the legal contact, and no Moderator or notifier identity; the actor gets no email; a Reinstatement sends nothing to the notifier.
+19. Each Withdrawal, Redaction, Reinstatement, and Submission rejection queues a statement of reasons to every affected Submitter with an address, containing the six Art. 17 elements, `Reply-To` the DSA contact (`contacts.dsa`), and no Moderator or notifier identity; the actor gets no email; a Reinstatement sends nothing to the notifier.
 20. Withdrawal, Redaction, Reinstatement, and Purge are never shown on the Timeline.
 
 **Purge**
@@ -343,20 +343,20 @@ A good test exercises a module through its external interface and asserts observ
 
 ## Instance configuration
 
-Exact key names belong to the [Foundations](foundations.md#instance-configuration) spec, which owns `instance.toml`; "Not decided" means the decisions give no value or shape.
+The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; "Not decided" means the decisions give no value for Rome.
 
-| Setting | Key | Use here | Rome |
+| Setting | Key or path | Use here | Rome |
 |---|---|---|---|
-| Data licence (SPDX) | `data_license` | Footer, About page, data reuse | `CC-BY-SA-4.0` |
-| File licence allowlist and default | `contribution_license` (shape not decided) | Licence choice per file | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` |
-| Public image rendition cap | Not decided | Maximum public resolution | Not decided |
-| Notice reasons | Not decided | Report form reason list, labels per UI language | Not decided (platform defaults: copyright in the depicted Artwork, copyright in the file, personal data, illegal content, other) |
-| Self-review | `self_approval` | Closing Notices about, and reinstating, own content | `true` at launch; the Operator checklist says to switch to `false` once at least two Moderators are active |
-| DSA contact (required) | Not decided | About contacts page | Not decided |
-| Privacy contact | Not decided (may not exist) | Account-level GDPR requests | Not decided |
-| Legal contact for `Reply-To` | Not decided | Statements of reasons and notifier emails | Not decided |
-| Terms of use, privacy policy (required) | Markdown files | Grounds cited in statements of reasons; About pages | Not written yet (drafting out of scope) |
-| Content language, UI languages, time zone | Foundations | Labels, email language, date formatting | `it`; `it` (default), `en`; `Europe/Rome` |
+| Data licence (SPDX) | `licenses.data` | Footer, About page, data reuse | `CC-BY-SA-4.0` |
+| File licences, default first | `licenses.files` | Licence choice per file | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
+| Public image rendition cap | `media.public_rendition_max_px` | Maximum public resolution (long edge) | Not decided |
+| Notice reasons | `vocabularies/notice_reasons.toml` | Report form reason list, labels per UI language | The platform defaults (`artwork_copyright`, `file_copyright`, `personal_data`, `illegal_content`, `other`); Rome's labels not decided |
+| Self-review | `community.self_approval` | Closing Notices about, and reinstating, own content | `true` at launch; the Operator checklist says to switch to `false` once at least two Moderators are active |
+| DSA contact and its languages (required) | `contacts.dsa`, `contacts.dsa_languages` | About contacts page; `Reply-To` of statements of reasons and notifier emails | Not decided |
+| Privacy contact (required) | `contacts.privacy` | Account-level GDPR requests; About contacts page | Not decided |
+| Terms of use, privacy policy (required) | `texts/terms.md`, `texts/privacy.md` | Grounds cited in statements of reasons; About pages | Not written yet (drafting out of scope) |
+| Terms version | `terms.version` | Acceptance before submitting (Contribution and moderation) | `1` at launch |
+| Content language, UI languages, time zone | `languages.content`, `languages.ui`, `geography.time_zone` | Labels, email language, date formatting | `it`; `it` (default), `en`; `Europe/Rome` |
 
 **Platform constants, not configuration**: notifier name and email retention (six months after the decision); "no automation" in statements of reasons; Purge only from the CLI. The 7-day decision target is Operator guidance only.
 
@@ -394,7 +394,7 @@ These do not change the behaviour specified above, but the Operator must not tre
 The inputs leave these unsettled. Implementers must not fill them by assumption; each needs a decision (a resolution comment or an ADR) before the affected ticket is built.
 
 **Notices**
-1. **Notice reasons configuration.** Whether Notice reasons are a fourth open vocabulary (keys, labels per UI language, `retired`) and Rome's list are not decided (also [Foundations](foundations.md#open-items) item 7).
+1. **Notice reasons configuration.** The shape is answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): a fourth open vocabulary, `vocabularies/notice_reasons.toml`, starting from the platform defaults. Rome's labels: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
 2. **Report form target.** The format of `?oggetto=` / `?object=` (record kind and id, or a URL), and whether a Notice can point at a specific Revision on `/revisions` (the natural target of a Redaction), are not decided.
 3. **Moderator pages for Notices and legal actions.** The routes of the Notice list and Notice page, where they sit in the Moderation area (with or apart from the Submission queue), and where a Moderator starts an own-initiative Withdrawal or Redaction are not in the [#15](https://github.com/spippoli/tart/issues/15) route table.
 4. **Notice reference and confirmation.** The acknowledgement email carries a "Notice reference" ([#44](https://github.com/spippoli/tart/issues/44)); its format, and whether the on-screen confirmation shows it, are not decided.
@@ -411,7 +411,7 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 13. **Moderator view of hidden content.** Moderators must see withdrawn and redacted content to decide a Reinstatement, but no decision says where and how it is shown to them.
 14. **Submitter view.** Whether a Submitter sees their own withdrawn content or redacted Revisions (for example on My contributions) is not decided.
 15. **In-app statements.** Statements of reasons are emailed; whether they are also visible in the app (for a rejection the Decision message is on the Submission page) is not decided for Withdrawal, Redaction, and Reinstatement.
-16. **Legal contact.** Legal emails set `Reply-To` to "the Operator's legal contact"; whether that is the DSA contact, the privacy contact, or a separate key is not decided (see [Foundations](foundations.md#open-items) item 6 on the privacy contact).
+16. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): the DSA contact, `contacts.dsa`; there is no separate legal contact key.
 
 **Purge**
 17. **Command and scope.** The CLI command name, how a target is selected (record, Documentation item, Revision, field), whether a Purge requires a recorded legal ground, and whether it is logged are not decided.
@@ -427,9 +427,9 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 
 **Files and data**
 25. **Public file rights fields** (carried from [Archive records](archive-records.md#open-items) item 14): whether the Rights basis and a third party's creator and origin URL are public.
-26. **File licence keys and rendition cap** (also [Foundations](foundations.md#open-items) items 2 and 5): the shape of `contribution_license` as an allowlist plus a default, and Rome's rendition cap.
+26. **File licence keys and rendition cap** The shape is answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `licenses.files`, whose first entry is the default, and `media.public_rendition_max_px`. Rome's cap: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
 27. **Deliberate position obfuscation** (carried from [Archive records](archive-records.md#open-items) item 15): handed to [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), which did not address it.
-28. **Terms versioning** (also [Foundations](foundations.md#open-items) item 8): how a new version of the terms is declared and recorded as accepted.
+28. **Terms versioning** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): an integer `terms.version` bumped by the Operator; each User's accepted version and its date are stored; see [Contribution and moderation](contribution-and-moderation.md#terms-of-use).
 
 ### Notes
 

@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), and [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`).
 
 ## Problem Statement
 
@@ -26,7 +26,7 @@ A collaborative, pre-moderated archive only works if people learn, without havin
 
 ## Solution
 
-Domain actions in the Contribution and moderation and the Rights and legal actions features raise events; a notifications module decides, for each event, which emails to send, to whom, and in which language, and enqueues them. The `worker` renders each email from the backend message catalogue as plain text plus minimal HTML, with no remote images, tracking pixels, or tracked links, and sends it through the Foundations SMTP adapter with bounded retries. Each email summarises the event and links to the page where the person can act; it never copies Submission content or files. Legal emails (Notice acknowledgement and decision, statements of reasons) cannot be turned off and set `Reply-To` to the Operator's legal contact so that a reply contests the decision. Submitters have one optional switch for updates on their Submissions; Moderators choose between one email per Submission, a daily **Moderator digest** (the default), or none, while Notice emails always arrive immediately. No email goes to the person who performed the action, and emails never name the Moderator.
+Domain actions in the Contribution and moderation and the Rights and legal actions features raise events; a notifications module decides, for each event, which emails to send, to whom, and in which language, and enqueues them. The `worker` renders each email from the backend message catalogue as plain text plus minimal HTML, with no remote images, tracking pixels, or tracked links, and sends it through the Foundations SMTP adapter with bounded retries. Each email summarises the event and links to the page where the person can act; it never copies Submission content or files. Legal emails (Notice acknowledgement and decision, statements of reasons) cannot be turned off and set `Reply-To` to the Operator's DSA contact so that a reply contests the decision. Submitters have one optional switch for updates on their Submissions; Moderators choose between one email per Submission, a daily **Moderator digest** (the default), or none, while Notice emails always arrive immediately. No email goes to the person who performed the action, and emails never name the Moderator.
 
 ## User Stories
 
@@ -68,7 +68,7 @@ Domain actions in the Contribution and moderation and the Rights and legal actio
 
 **Operator**
 
-22. As an Operator, I want replies to legal emails to reach my configured legal contact, so that contested decisions come to me.
+22. As an Operator, I want replies to legal emails to reach my configured DSA contact, so that contested decisions come to me.
 23. As an Operator, I want a final delivery failure logged, so that I can see when people are not being reached.
 
 ## Implementation Decisions
@@ -131,7 +131,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 - A Submitter gets no email when a Notice arrives about their content, only when a measure is taken. This keeps the notifier anonymous and avoids pressure before the decision.
 - A notifier gets no email on a later Reinstatement.
 - A notifier who gave no email gets no email. The notifier's name and email are erased six months after the decision ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
-- Every legal email sets `Reply-To` to the Operator's configured legal contact, because contesting is done by reply ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
+- Every legal email sets `Reply-To` to the Operator's DSA contact, `contacts.dsa` ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)), because contesting is done by reply ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
 
 **Account and access emails**
 
@@ -197,7 +197,7 @@ Per [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)
 - **Format**: multipart, plain text plus minimal HTML. No remote images, tracking pixels, or tracked links.
 - **Sender**: the From name is the archive name in the Content language; the From address comes from the SMTP environment settings.
 - **Content**: each email summarises the event and links to its page; it does not copy Submission content or files. The Notice acknowledgement is the one exception: it echoes the notifier's own input.
-- **Reply-To**: the Operator's legal contact on legal emails ([Legal emails](#email-catalogue)).
+- **Reply-To**: the Operator's DSA contact on legal emails ([Legal emails](#email-catalogue)).
 - **Delivery**: the `worker` sends with bounded retries and backoff. A final failure leaves the email job `failed` and is logged for the Operator, who lists failed jobs with `tart jobs failed` and retries them with `tart jobs retry <id|--all>`. Any permanently failed email in the last 24 hours turns the Email health check to `fail`, which the Operator's external monitor sees on `/api/health` and the `worker` reports to `OPERATOR_ALERT_EMAIL` at most once per check per day ([Operations and portability](operations-and-portability.md#5-monitoring), from [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45)). Bounce and complaint handling is not in the MVP.
 
 ## Testing Decisions
@@ -233,7 +233,7 @@ A good test drives a module through its external interface and asserts observabl
 12. Closing a Notice sends the notifier (if they gave an email) the decision, a short reason, and redress (email reply, out-of-court settlement, courts).
 13. A Withdrawal, Redaction, or Reinstatement sends every affected Submitter, as defined in ADR 0013, a statement of reasons with all six elements.
 14. No email goes to a Submitter when a Notice about their content arrives; no email goes to a notifier on a later Reinstatement.
-15. Every legal email has `Reply-To` set to the Operator's legal contact.
+15. Every legal email has `Reply-To` set to `contacts.dsa`.
 16. Legal emails, Notice received, the sign-in code, and the Invitation cannot be turned off from any setting.
 
 **All emails**
@@ -252,18 +252,18 @@ A good test drives a module through its external interface and asserts observabl
 
 ## Instance configuration
 
-Exact key names belong to the [Foundations](foundations.md) spec, which owns `instance.toml`; this spec reads the following values.
+The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; this spec reads the following values.
 
-| Setting | Use here | Rome |
-|---|---|---|
-| Archive name (Content language) | From name | Not decided ([Foundations open item 1](foundations.md#open-items)) |
-| Content language | Language of the From name | `it` |
-| Enabled UI languages and default | Email language; fallback when a User's language is disabled; Invitations from the CLI | `it` (default), `en` |
-| Time zone | Digest hour; dates in emails | `Europe/Rome` |
-| Legal contact | `Reply-To` of legal emails | Not decided (see Open items) |
-| Decision message reasons, Notice reasons (labels per UI language) | Translated labels quoted in emails | Not decided |
-| `self_approval` | Digest contents | `true` at launch |
-| `registration` | Whether Invitation emails occur (`invite` only) | `open` |
+| Setting | Key or path | Use here | Rome |
+|---|---|---|---|
+| Archive name (Content language) | `identity.name` | From name | Not decided ([Foundations open item 1](foundations.md#open-items)) |
+| Content language | `languages.content` | Language of the From name | `it` |
+| Enabled UI languages, default first | `languages.ui` | Email language; fallback when a User's language is disabled; Invitations from the CLI | `it` (default), `en` |
+| Time zone | `geography.time_zone` | Digest hour; dates in emails | `Europe/Rome` |
+| DSA contact | `contacts.dsa` | `Reply-To` of legal emails | Not decided |
+| Decision message reasons, Notice reasons (labels per UI language) | `vocabularies/decision_reasons.toml` plus the platform's `duplicate`, `vocabularies/notice_reasons.toml` | Translated labels quoted in emails | Not decided |
+| Self-review | `community.self_approval` | Digest contents | `true` at launch |
+| Registration mode | `community.registration` | Whether Invitation emails occur (`invite` only) | `open` |
 
 Environment: the SMTP settings, including the From address ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)).
 
@@ -303,7 +303,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 9. **Email subjects and wording.** No decision fixes subjects or body wording; they are catalogue strings to be written, in every platform UI language, without inventing legal text that needs review.
 
 **Configuration**
-10. **Legal contact.** Legal emails set `Reply-To` to "the Operator's configured legal contact", but [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) lists only general and DSA contact points, and [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) mentions a privacy contact ([Foundations open item 6](foundations.md#open-items)). Whether the legal contact is the DSA contact or a separate key is not decided.
+10. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `Reply-To` is the DSA contact, `contacts.dsa`; there is no separate legal contact key.
 11. **Archive name for the From name.** Rome's archive name in the Content language (`it`) is not decided ([Foundations open item 1](foundations.md#open-items)).
 12. **Platform constants.** The digest hour, the retry count, and the backoff schedule are not decided. Whether the sign-in code, which expires after 10 minutes, needs a shorter retry window than other emails is not stated.
 

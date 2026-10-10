@@ -21,7 +21,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Data dump, Licensor, Content language, UI language, User, Moderator, Moderation note, Submission, Submission log, Archive record, Revision, Artwork, Artist, Location, Site, Area, Series, Source, Documentation item, Creator credit, Rights basis, History event, Claim, Attribution, Crew membership, Uncertain date, Merge, Duplicate retirement, Withdrawal, Redaction, Reinstatement, Purge, Erasure log, Notice.
 
-**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis).
+**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (`operator.name`, the shape of `data_attribution`, `tart config check --database`).
 
 **Depends on**: every earlier feature spec, as listed above.
 
@@ -186,7 +186,7 @@ The small tile manifest in the data volume may be included ([#38](https://github
 **`tart upgrade <version>`** runs these steps in order:
 
 1. a backup tagged `pre-upgrade-<from>-<to>`;
-2. `tart config check` with the new image;
+2. `tart config check --database` with the new image;
 3. pull the images;
 4. stop `api`, `worker`, and `frontend`;
 5. run the Alembic migrations in a one-shot container;
@@ -275,9 +275,9 @@ Creator credits appear as shown publicly, so anonymised ones stay anonymised.
 **Completeness and re-import.** The format is committed to being complete for public data, so that a future importer could rebuild the archive into a new Instance (with no Users and an initial import Revision). There is no importer in the MVP; bulk import stays out of scope.
 
 **Licence and notices.** The package is under the Instance's Data licence.
-- `LICENSE`: the licence name, version, official URL, and full legal text, generated from the configured `data_license`, including the ODbL notice when applicable.
+- `LICENSE`: the licence name, version, official URL, and full legal text, generated from the configured `licenses.data`, including the ODbL notice when applicable.
 - `README`, in the Content language and in English, with:
-  - the attribution text from the `data_attribution` configuration key, defaulting to archive name, Operator, Instance URL, and dump date (a courtesy request when the licence is CC0);
+  - the attribution text: `licenses.data_attribution`, one string in the Content language quoted as is in both README languages, or by default the archive name and `operator.name`; the platform always follows it with the Instance URL and the dump date ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)). It is a courtesy request when the licence is CC0;
   - a statement that the Data licence covers neither Documentation item files (each has its own licence in the manifest) nor the depicted Artworks (there is no freedom of panorama in Italy);
   - a **non-binding request** that reusers drop content withdrawn after the dump date and prefer the latest dump. It is a request, not a condition, because CC and ODbL licences forbid additional restrictions;
   - "Powered by TART" with the TART version, granting no software licence ([ADR 0011](../adr/0011-provisional-software-license.md)).
@@ -325,8 +325,8 @@ The platform's processing inventory is specified in [Rights and legal actions](r
 | 3 | Write terms of use that describe moderation, the Notice reasons list, and redress by email reply. | Operator | Configuration (Markdown) | DSA Art. 14; [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
 | 4 | Write the privacy notice and the record of processing activities, starting from the platform's processing inventory. Name every external recipient, including an external tile provider when the map style uses one. | Operator | Configuration (Markdown) and external document | GDPR Art. 13, 30; [#38](https://github.com/spippoli/tart/issues/38) |
 | 5 | Sign data processing agreements with the hosting, storage, and SMTP providers. | Operator | External document | GDPR Art. 28 |
-| 6 | Set up points of contact for authorities and for users, with their languages, plus a privacy contact. | Operator | Configuration | DSA Art. 11–12 |
-| 7 | Choose `data_license`, `contribution_license`, `min_age` (🇮🇹 14), and the map attribution list; when the basemap uses OpenStreetMap data, include `© OpenStreetMap` → `https://www.openstreetmap.org/copyright`. | Operator | Configuration | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [0012](../adr/0012-per-file-licence-with-rights-basis.md), [0016](../adr/0016-licence-policy-for-map-assets-and-data.md) |
+| 6 | Set up points of contact for authorities and for users, with their languages (`contacts.dsa`, `contacts.dsa_languages`), plus a privacy contact (`contacts.privacy`); replies to legal emails reach `contacts.dsa`. | Operator | Configuration | DSA Art. 11–12 |
+| 7 | Choose `licenses.data`, `licenses.files` (default first), `community.min_age` (🇮🇹 14), and the map attribution list; when the basemap uses OpenStreetMap data, include `© OpenStreetMap` → `https://www.openstreetmap.org/copyright`. | Operator | Configuration | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [0012](../adr/0012-per-file-licence-with-rights-basis.md), [0016](../adr/0016-licence-policy-for-map-assets-and-data.md) |
 | 8 | Grant at least one Moderator through the CLI and name who handles escalation. | Operator | CLI | [#43](https://github.com/spippoli/tart/issues/43), [#46](https://github.com/spippoli/tart/issues/46) |
 | 9 | Tell Moderators that Moderation notes are personal data subject to access requests, so they must stay factual. | Operator, Moderators | Operator guide | GDPR Art. 15; [#43](https://github.com/spippoli/tart/issues/43) |
 | 10 | Read the Art. 6 position: approved records may not be shielded by the hosting exemption. ⚖️ | Operator | — | DSA Art. 6; [#19](https://github.com/spippoli/tart/issues/19) |
@@ -339,7 +339,7 @@ The platform's processing inventory is specified in [Rights and legal actions](r
 
 | # | Item | Who | Where | Basis |
 |---|---|---|---|---|
-| 15 | Get a clean `tart config check` run and a tested backup restore: a full restore drill on a clean machine. | Operator | CLI, host | [#45](https://github.com/spippoli/tart/issues/45), [#46](https://github.com/spippoli/tart/issues/46) |
+| 15 | Get a clean `tart config check --database` run and a tested backup restore: a full restore drill on a clean machine. | Operator | CLI, host | [#45](https://github.com/spippoli/tart/issues/45), [#46](https://github.com/spippoli/tart/issues/46) |
 | 16 | 🇮🇹 Notify AGCOM of the point of contact (`dsa@agcom.it`). ⚖️ | Operator | External | [#46](https://github.com/spippoli/tart/issues/46) |
 
 **Ongoing**
@@ -388,7 +388,7 @@ A good test drives a module through its external interface (a CLI command, an HT
 - **Alerting (integration)**: an Operator alert email when a check turns `fail`, no second one for the same check within a day; `BACKUP_PING_URL` receives a `GET` after backup and verify.
 - **Logs (unit)**: log records produced during sign-in, Notice intake, and email sending contain the User id where relevant and no email address, sign-in code, token, or Notice content.
 - **Jobs (integration)**: a job that exhausts its retries is `failed` and counted by the Email check when it is an email; `tart jobs failed` output shows no personal data in clear; `tart jobs retry` re-enqueues; completed jobs older than 30 days are deleted.
-- **Data dump (integration)**: from a fixture archive with every record kind, withdrawn, merged, duplicate-retired, purged, pending, and redacted cases, and a deleted account: the dump validates against the JSON Schema; every public field is present; nothing in the exclusion rule is present; `redirects.ndjson` covers merged and retired ids; `locations.geojson` is valid GeoJSON; `LICENSE` matches the configured `data_license` for each allowed value; the README carries the `data_attribution` text (and its default); `--with-media` contains only public renditions without EXIF and a manifest entry per file.
+- **Data dump (integration)**: from a fixture archive with every record kind, withdrawn, merged, duplicate-retired, purged, pending, and redacted cases, and a deleted account: the dump validates against the JSON Schema; every public field is present; nothing in the exclusion rule is present; `redirects.ndjson` covers merged and retired ids; `locations.geojson` is valid GeoJSON; `LICENSE` matches the configured `licenses.data` for each allowed value; the README carries the `licenses.data_attribution` text, or the default when it is absent, (and its default); `--with-media` contains only public renditions without EXIF and a manifest entry per file.
 
 ## Acceptance criteria
 
@@ -396,7 +396,7 @@ A good test drives a module through its external interface (a CLI command, an HT
 1. Tagged releases publish `api` and `frontend` images to GHCR with SemVer tags; no `latest` tag is referenced by the Compose file, which reads `TART_VERSION` from `.env`.
 2. Every release's notes contain an "Operator actions" section.
 3. The Instance makes no network request to check for updates.
-4. `tart upgrade <version>` performs, in order: a backup tagged `pre-upgrade-<from>-<to>`, `config check` with the new image, image pull, stopping `api`, `worker`, and `frontend`, migrations in a one-shot container, restart, and a wait for a green health check; on any failure it stops and prints rollback instructions.
+4. `tart upgrade <version>` performs, in order: a backup tagged `pre-upgrade-<from>-<to>`, `config check --database` with the new image, image pull, stopping `api`, `worker`, and `frontend`, migrations in a one-shot container, restart, and a wait for a green health check; on any failure it stops and prints rollback instructions.
 5. A configuration that fails the new image's check aborts the upgrade before any service is stopped.
 6. `api` and `worker` refuse to start when the database revision differs from the code's Alembic head; no service runs migrations at startup.
 7. The codebase contains no Alembic `downgrade` implementations.
@@ -438,17 +438,18 @@ A good test drives a module through its external interface (a CLI command, an HT
 
 ## Instance configuration
 
-Exact key names belong to the [Foundations](foundations.md) spec, which owns `instance.toml`; this spec reads or adds the following.
+The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; this spec reads the following.
 
 | Setting | Key | Use here | Rome |
 |---|---|---|---|
 | Configuration shape version | `config_version` | Checked by `tart upgrade` with the new image; bumped only in majors | `1` |
-| Data licence | `data_license` | Dump `LICENSE` and manifest | `CC-BY-SA-4.0` |
-| Data attribution | `data_attribution` (new) | Dump README attribution text; default: archive name, Operator, Instance URL, dump date | Not decided |
-| Archive name (Content language) | — | Dump manifest, default attribution | Not decided ([Foundations open item 1](foundations.md#open-items)) |
-| Content language | — | Dump manifest and README language | `it` |
-| Enabled UI languages | — | Vocabulary labels in the dump | `it`, `en` |
-| Public image rendition cap | — | Resolution cap of the media package | Not decided |
+| Data licence | `licenses.data` | Dump `LICENSE` and manifest | `CC-BY-SA-4.0` |
+| Data attribution (optional, one string in the Content language) | `licenses.data_attribution` | Dump README attribution text; default: archive name and Operator name; the Instance URL and dump date always follow | Not decided |
+| Operator name (required) | `operator.name` | Default attribution | Not decided |
+| Archive name (Content language) | `identity.name` | Dump manifest, default attribution | Not decided ([Foundations open item 1](foundations.md#open-items)) |
+| Content language | `languages.content` | Dump manifest and README language | `it` |
+| Enabled UI languages | `languages.ui` | Vocabulary labels in the dump | `it`, `en` |
+| Public image rendition cap | `media.public_rendition_max_px` | Resolution cap of the media package | Not decided |
 
 **Environment** (infrastructure and secrets, [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)):
 
@@ -515,9 +516,9 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 
 **Data dump**
 14. **Nested or separate files.** "One NDJSON file per record kind" covers the eight Archive record kinds; whether History events, Attributions, Crew memberships, and citations are nested in their records or exported as their own files is not decided.
-15. **Operator name.** The default `data_attribution` includes "Operator", but no configuration key holds the Operator's name ([Foundations](foundations.md#instance-configuration)). Whether a key is added, or the default omits it, is not decided.
+15. **Operator name.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `operator.name` is a required key; the default attribution is the archive name and the Operator name.
 16. **README language.** The README is in the Content language and English. The Content language need not be a platform UI language with a message catalogue; how the Content-language README text is produced in that case is not decided.
-17. **Shape of `data_attribution`.** Whether it is a single string, or one per language, is not decided.
+17. **Shape of `data_attribution`.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): one string in the Content language; the platform appends the Instance URL and the dump date.
 18. **Timeline names.** If public record pages name the Submitter of each History event ([Archive records open item 13](archive-records.md#open-items)), "every public field is present" and "no User names" conflict; the exclusion of User names is taken to win, but no decision says so.
 19. **Coarsened positions.** If deliberate position obfuscation is decided ([Archive records open item 15](archive-records.md#open-items)), the dump must carry the public position only; no decision states it yet.
 20. **Package naming and location.** The dump's file name and its path in the data volume are not decided.

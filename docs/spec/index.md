@@ -53,7 +53,7 @@ All seven feature specs are compiled. Each still lists open items in its Further
 
 ## Rome configuration summary
 
-Rome is the reference Instance. Its configuration is a secret-free directory of files (`instance.toml`, vocabulary files, Markdown texts, logo, map style, GeoJSON boundary); secrets and infrastructure live in environment variables ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)). Each feature spec's **Instance configuration** section is normative for the exact keys; this table only summarises the values decided so far.
+Rome is the reference Instance. Its configuration is a secret-free directory of files (`instance.toml`, vocabulary files, Markdown texts, logo, map style, GeoJSON boundary); secrets and infrastructure live in environment variables ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)). [Foundations](foundations.md#1-instance-configuration) fixes the file layout and the `instance.toml` keys, and each feature spec's **Instance configuration** section lists the keys it reads; this table only summarises the values decided so far.
 
 | Area | Rome | Decided in |
 |---|---|---|
@@ -61,21 +61,22 @@ Rome is the reference Instance. Its configuration is a secret-free directory of 
 | Geography | Country `IT`, time zone `Europe/Rome`; a GeoJSON boundary rejects Locations outside it | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
 | Content language | `it` | [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md) |
 | UI languages | `it` (default), `en`; both URL-prefixed | [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md) |
-| Open vocabularies | Expression type, Surface type, Decision message reasons; starting from the brief's §9 list | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
+| Open vocabularies | Expression type, Surface type, Decision message reasons (plus the platform's reserved `duplicate`), Notice reasons; starting from the brief's §9 list and the ADR 0013 Notice reasons | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) |
 | Areas | Archive data (e.g. the rioni), entered through Submissions; none at launch | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
 | Registration | `open` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
 | Minimum age | 14, self-declared | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
 | Data licence | `CC-BY-SA-4.0` | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
-| File licence allowlist | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
-| Operational | `draft_expiry_days = 90`, `max_upload_mb = 25` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
+| File licence allowlist | `licenses.files = ["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]`, the first one the default | [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) |
+| Operational | `community.draft_expiry_days = 90`, `media.max_upload_mb = 25` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) |
 | Map | Tinted-plan style ([ADR 0017](../adr/0017-map-cartography-style.md)) as two Instance-owned files, `map/style.light.json` and `map/style.dark.json`; walls and archaeology overlay from OpenStreetMap, committed as GeoJSON with its Overpass query; attribution `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md), [ADR 0017](../adr/0017-map-cartography-style.md) |
 | Basemap tiles | Local Protomaps extract (boundary + 2 km) made by `tart tiles update`, refreshed manually | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) |
-| Moderation | `self_approval = true` at launch; switched to `false` once at least two Moderators are active (Operator checklist) | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) |
+| Moderation | `community.self_approval = true` at launch; switched to `false` once at least two Moderators are active (Operator checklist) | [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) |
 | Hosting | Docker Compose on a Hetzner CX33 with Hetzner Object Storage through the S3 adapter; budget at most €20/month excluding VAT and off-site backups | [ADR 0004](../adr/0004-mvp-tech-stack.md) |
 | Authentication | Built-in passwordless (email code + passkeys); not configurable | [ADR 0005](../adr/0005-passwordless-in-app-auth.md) |
+| Terms | `terms.version = 1` at launch | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) |
 | Backups | On at launch: nightly `pg_dump` in restic and encrypted `rclone sync` of media to a Hetzner Storage Box | [ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) |
 
-**Not yet decided** (settled by [Rome Instance values](https://github.com/spippoli/tart/issues/86)): the archive name in Italian, short description and place name, the exact boundary polygon and default view, logo, favicon, and accent colour (a light and a dark value), contact points, the public image rendition cap, Surface types, Decision message reasons, Notice reasons, Rome's labels for Expression types, the Rome Operator, and the backup location, schedule, and Operator alert address.
+**Not yet decided** (settled by [Rome Instance values](https://github.com/spippoli/tart/issues/86)): the archive name in Italian, short description and place name, the exact boundary polygon and default view, logo, favicon, and accent colour (a light and a dark value), the Operator name, contact points (DSA with its languages, privacy, optional general), the public image rendition cap, the optional data dump attribution, Surface types, Decision message reasons, Notice reasons, Rome's labels for Expression types, the Rome Operator, and the backup location, schedule, and Operator alert address.
 
 ## Traceability
 
@@ -129,6 +130,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Spec index and Foundations housekeeping](https://github.com/spippoli/tart/issues/82) | This index, `foundations.md` | Spec index; Foundations |
 | [Apply decided answers across feature specs](https://github.com/spippoli/tart/issues/83) | ADR 0002 (amended), `archive-records.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md` | Contribution and moderation; Archive records; Rights and legal actions; Notifications |
 | [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | `foundations.md` | Foundations |
+| [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | ADR 0009 (amended), `foundations.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | ADR 0003 (amended), Glossary, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md` | Archive records; Discovery; Contribution and moderation |
 
 ### Open
@@ -138,7 +140,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | Ticket | Feeds |
 |---|---|
 | [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) | Foundations; Contribution and moderation; Notifications |
-| [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
 | [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
