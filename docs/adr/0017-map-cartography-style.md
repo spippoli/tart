@@ -49,4 +49,5 @@ Measured: marker ink ≥ 11:1 and accent ≥ 6:1 on every fill; labels ≥ 5.4:1
 
 - The Rome archive starts empty, so the map shows no district labels until Areas are recorded.
 - The `font-faces` path works in MapLibre GL JS 6.13 in the prototype, although the style specification's support table still marks GL JS as unsupported; pin and test the version.
-- Who owns the style (Instance theme vs style file), the tile pipeline, and overlay behaviour stay with their own decisions ([Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38), [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39)).
+- The Instance owns the style as two finished files, light and dark, and the accent has a light and a dark value (ADR 0009, amended by [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37)); the platform ships this ADR's style as the reference.
+- The tile pipeline and overlay behaviour stay with their own decisions ([Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38), [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39)).
