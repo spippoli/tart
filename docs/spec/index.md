@@ -132,6 +132,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | `foundations.md` | Foundations |
 | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | ADR 0009 (amended), `foundations.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | ADR 0003 (amended), Glossary, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md` | Archive records; Discovery; Contribution and moderation |
+| [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) | ADR 0009 (amended), `foundations.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 
 ### Open
 
@@ -145,7 +146,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
 | [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) | Archive records; Rights and legal actions; Operations and portability |
 | [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) | Archive records; Rights and legal actions; Discovery |
-| [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) | Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Notice handling details](https://github.com/spippoli/tart/issues/94) | Rights and legal actions; Notifications |
 | [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) | Rights and legal actions |
 | [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96) | Contribution and moderation |

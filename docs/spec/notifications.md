@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents).
 
 ## Problem Statement
 
@@ -111,7 +111,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 
 | Email | Trigger | Recipient | Opt-out | Content |
 |---|---|---|---|---|
-| Notice received | A Notice is sent | Every Moderator | Mandatory; always immediate, never in the digest | The Notice reason, the reported URL, a link to the Notice page |
+| Notice received | A Notice is sent | Every Moderator, including one whose own content is reported; never the Operator | Mandatory; always immediate, never in the digest | The Notice reason, the reported URL, a link to the Notice page |
 | New Submission | A Submission is submitted or resubmitted | Every Moderator whose mode is *one email per Submission* | Optional (Submission email mode) | A summary and a link to the Submission page (exact content: Open item 8) |
 | Moderator digest | Daily, see [Moderator digest](#moderator-digest) | Every Moderator whose mode is *digest* | Optional (Submission email mode) | Pending count, the new Submissions (kind, record, link), the oldest one waiting |
 
@@ -160,7 +160,8 @@ For a rejection, the Decision message (a configured reason plus free text, [#5](
 - **Performer rule.** No email goes to the person who performed the action. For example, a Moderator approving their own Submission under `self_approval = true` gets no Approved email; a Moderator submitting a Submission gets no New Submission email for it.
 - **Moderator anonymity.** Emails never name the Moderator; they say "a Moderator" ([#43](https://github.com/spippoli/tart/issues/43)).
 - **No address, no email.** A User whose account was deleted has no email address ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)); nothing is sent to them.
-- **Digest and self-approval.** With `self_approval = false`, a Moderator's digest leaves out their own Submissions.
+- **Digest and self-approval.** A Moderator's digest counts the Submissions that Moderator may decide: with `self_approval = false` it leaves out their own, with `true` it counts them. Their own Submissions are never listed as new, by the performer rule ([#93](https://github.com/spippoli/tart/issues/93)).
+- **Notices about a Moderator's content.** The rule that a Submitter learns nothing before a measure applies to Submitters as such; a Moderator whose content is reported receives Notice received like every other Moderator. The Operator is not a recipient: with no Moderator, nobody receives it, and the configuration warning in Foundations flags that state.
 
 ### Opt-out
 
@@ -172,9 +173,9 @@ For a rejection, the Decision message (a configured reason plus free text, [#5](
 ### Moderator digest
 
 - Sent daily, at a platform-constant hour in the Instance time zone.
-- Sent to a Moderator only when something new (a new or resubmitted Submission) has arrived since that Moderator's previous digest; otherwise nothing is sent.
+- Sent to a Moderator only when something new (a new or resubmitted Submission by another User) has arrived since that Moderator's previous digest; otherwise nothing is sent. The Moderator's own Submissions are never "something new".
 - Lists the pending count, the new Submissions (kind, record, link), and the oldest Submission waiting.
-- With `self_approval = false`, it leaves out the Moderator's own Submissions.
+- The pending count and the oldest Submission waiting cover the Submissions the Moderator may decide: with `self_approval = false` they leave out the Moderator's own, with `true` they include them. The list of new Submissions always leaves them out.
 - Notices are never in the digest.
 
 ### Language
@@ -225,7 +226,7 @@ A good test drives a module through its external interface and asserts observabl
 6. A new Notice sends every Moderator an immediate email with the reason, the reported URL, and a link to the Notice page, whatever their Submission email mode.
 7. A new or resubmitted Submission sends one email to each Moderator in *one email per Submission* mode and none to others.
 8. A Moderator in *digest* mode receives at most one digest per day, at the platform-constant hour in the Instance time zone, only if something new arrived since their previous digest, listing the pending count, the new Submissions, and the oldest one waiting.
-9. With `self_approval = false`, a Moderator's digest omits their own Submissions.
+9. With `self_approval = false`, a Moderator's digest omits their own Submissions; with `true`, its pending count and oldest waiting include them, but they are never listed as new and alone never trigger a digest.
 10. A new Moderator defaults to *digest*; a new User's "Updates on my Submissions" switch defaults to on.
 
 **Legal emails**
@@ -249,6 +250,10 @@ A good test drives a module through its external interface and asserts observabl
 
 **Account page**
 26. The notification settings on the Account page pass axe with no WCAG 2.2 AA violations in every enabled UI language; each control has a visible, translated label, is keyboard-operable, and does not convey its state by colour alone.
+
+**Self-review** ([Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93))
+
+27. A Notice about a Moderator's own content sends Notice received to that Moderator as well; no Notice received is ever sent to an Operator address.
 
 ## Instance configuration
 
@@ -290,9 +295,9 @@ Not normative.
 The inputs leave these questions unsettled. Implementers must not fill them by assumption; each needs a decision (a resolution comment or an ADR) before the affected ticket is built.
 
 **Recipients**
-1. **Notice about a Moderator's own content.** Every Moderator gets Notice received, but a Submitter must not learn of a Notice about their content before a measure is taken. When the reported content is a Moderator's own, the two rules conflict. Whether that Moderator is left out of Notice received (and, if they are the only Moderator, what happens) is not decided.
-2. **No Moderator, or Operator escalation.** Notices escalate Moderator → Operator → counsel ([#43](https://github.com/spippoli/tart/issues/43)), and without a Moderator the Operator decides. The Operator is not a User and has no email in the configuration, so whether and where the Operator receives Notice received (for example at the legal or DSA contact) is not decided.
-3. **Own Submissions under `self_approval = true`.** The digest leaves out a Moderator's own Submissions only when `self_approval = false`; the performer rule excludes them from New Submission emails. Whether the digest includes them under `true` (as the wording implies) and whether they count as "something new" is not stated explicitly.
+1. **Notice about a Moderator's own content.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): that Moderator receives Notice received like every Moderator; see Recipient rules.
+2. **No Moderator, or Operator escalation.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator receives no Notice received and has no decision path of its own; with no Moderator the Notice waits, and startup warns.
+3. **Own Submissions under `self_approval = true`.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): they count in the pending count and the oldest waiting, but are never listed as new and never trigger a digest; see Moderator digest.
 4. **Statements of reasons to deleted accounts.** A deleted User has no address, so an affected Submitter whose account was deleted receives no statement of reasons. Whether the Art. 17 duty needs any other handling in that case is not decided (and ties to the legal-review item on "affected recipients", [#19](https://github.com/spippoli/tart/issues/19) item 5).
 
 **Content**
