@@ -135,6 +135,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) | ADR 0009 (amended), `foundations.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) | Glossary, ADR 0012, ADR 0013, ADR 0020 (amended), `rights-and-legal-actions.md`, `archive-records.md`, `contribution-and-moderation.md`, `notifications.md`, `operations-and-portability.md`, `foundations.md` | Rights and legal actions; Archive records; Contribution and moderation; Notifications; Operations and portability; Foundations |
 | [Search and filter details](https://github.com/spippoli/tart/issues/99) | `discovery.md` | Discovery |
+| [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | `archive-records.md`, `contribution-and-moderation.md`, `discovery.md`, `foundations.md` | Archive records; Contribution and moderation; Discovery; Foundations |
 
 ### Open
 
@@ -145,7 +146,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) | Foundations; Contribution and moderation; Notifications |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
-| [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
 | [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) | Archive records; Rights and legal actions; Operations and portability |
 | [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) | Archive records; Rights and legal actions; Discovery |
 | [Notice handling details](https://github.com/spippoli/tart/issues/94) | Rights and legal actions; Notifications |

@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Content language, UI language, Instance configuration, Data licence, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Missing, Condition group, History event, Condition record, Creation event, Timeline, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution, User, Moderator, Submitter, Submission, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Notice.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event types, Condition mapping, Uncertain date ranges and ordering, stratigraphy), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (redacted current values, purged ids).
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event types, Condition mapping, Uncertain date ranges and ordering, stratigraphy), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (redacted current values, purged ids), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (descriptive fields, Source citations, periods, Series and Crew cardinality, Place description, alt text, slugs, default Surface types).
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, storage and media pipeline, i18n shell, page shell).
 
@@ -165,7 +165,8 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
   - no latest bound is ever later than the date of the Submission; this also truncates `circa`.
 - The range is used only for filtering by overlap ([Discovery](discovery.md)). Ordering uses the chronological key below.
 - **Chronological key**: the midpoint of the base range of the entered values, ignoring the widening of `circa`: `2016` and `c. 2016` → mid-2016; `2014–2015` → end of 2014; `before X` → the start of X; `after X` → the end of X. Ties are broken by the later approval (the Revision timestamp), then by id, so information approved later wins. An `unknown` date has no key. The same key orders the Condition derivation, the Timeline, the stratigraphy, and first and last documentation, in both directions.
-- It is used for: the Observed date of Documentation items and History events, the date of a Creation event, an Artist's period of activity, and Crew membership periods.
+- It is used for: the Observed date of Documentation items and History events, the date of a Creation event, the date of a Source, and the two ends of a period.
+- A **period** (an Artist's period of activity, a Crew membership period) is a **start** and an **end**, each an optional Uncertain date with its own precision and qualifier. The start's chronological key must not be later than the end's. Without an end the period shows as "from …", without a start as "until …", and without both there is no period. No flag says that an activity or membership is ongoing ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)).
 - Display uses one platform message per precision × qualifier combination, formatted with `Intl` in the UI language and the Instance's time zone (ADR 0008), producing forms such as `c. 2016`, `before 2012`, `2014–2015` (ADR 0015).
 - Uncertain dates are never "disputed". When Sources conflict, the History event carries the widest compatible range and a note.
 - The submitted and approved dates of a Claim are not Uncertain dates: they are exact timestamps from the Submission and the Revision.
@@ -181,7 +182,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Attributions | Zero or more (see Attribution) |
 | History events | Zero or more; the Artwork's physical history |
 | Documentation items | Linked many-to-many; a new Artwork has at least one (Contribution and moderation validates this) |
-| Series | Linked to Series |
+| Series | Zero or more Series |
 | Sources | Record-level citations: background references that never change an Evidence level (ADR 0006) |
 
 - Identity rules (from [#3](https://github.com/spippoli/tart/issues/3)): overpainting by someone else creates a new Artwork, and the old one gets an overpainting History event optionally linking to the covering Artwork; a refresh by the same artist is a `modified` event on the same Artwork; a detached or moved piece gets a `removed` event on its original Location, whose note and citations say where it went, and if it reappears in another urban place that is a new Artwork documented there (ADR 0003, amended by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
@@ -201,18 +202,20 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Uncertainty radius | Optional, in metres, for approximate points only |
 | Surface type | From the open vocabulary |
 | Site | At most one |
+| Place description | Optional, Content language, one line of at most 200 characters saying in words where the surface is ("Shutter at no. 12, left of the entrance", "North pier of the bridge, river side"). Not a structured address, and never geocoded |
 
 - A Location has no Condition, no physical history of its own, and is never deleted (ADR 0003).
 - Several Artworks can share a Location, side by side or in succession.
+- **Title**: the Place description; without one, the Surface type label followed by the Site name, else the first Area by name ("Shutter · Pigneto"); without either, "Location {id}" (a UI string). The title is used for the page header, the browser title, the map panel, and every link to the Location ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)).
 - **Stratigraphy**: the Artworks on a Location, ordered by the chronological key of their Creation event, or of their first documentation when they have none, most recent first; ties as for the key. `covered` links never reorder it: a covered Artwork placed above the one covering it is inconsistent data, corrected by a Submission. Disappeared Artworks stay in it with their Condition word and sign. The Location page and the map side panel use the same order ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
 - Documentation items that document a disappearance link to the Location as well as to the Artworks (glossary: Documentation item).
 
 ### Site, Area, Series
 
-- **Site**: a name, and the Locations that belong to it (membership is the Location's Site field). Record-level Sources.
-- **Area**: a name and a polygon geometry. Areas may overlap. Locations fall within Areas by geometry, computed. Areas are archive data entered through Submissions, never configuration; Rome starts with none (ADR 0009). Record-level Sources.
-- **Series**: a name, and its Artworks, regardless of where they are. Record-level Sources. A documented commission (a festival, a municipal project) may be told in a Series or a description, with a Source (ADR 0014).
-- Whether Sites, Areas, and Series have a description field, and how many Series an Artwork may belong to, are open items (see Further Notes).
+- **Site**: a name, an optional description, and the Locations that belong to it (membership is the Location's Site field). Record-level Sources.
+- **Area**: a name, an optional description, and a polygon geometry. Areas may overlap. Locations fall within Areas by geometry, computed. Areas are archive data entered through Submissions, never configuration; Rome starts with none (ADR 0009). Record-level Sources.
+- **Series**: a name, an optional description, and its Artworks, regardless of where they are. An Artwork may belong to zero or more Series. Record-level Sources. A documented commission (a festival, a municipal project) may be told in a Series or a description, with a Source (ADR 0014).
+- The description is free text in the Content language, subject to the Artist content rules of ADR 0014 when it names people ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)).
 
 ### Artist, Alias, Crew membership
 
@@ -222,14 +225,15 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Kind | Individual or collective |
 | Aliases | Zero or more alternative public names |
 | Biography | Optional free text |
-| Period of activity | Optional Uncertain date period |
+| Period of activity | Optional period (see Uncertain date) |
 | Areas of activity | Zero or more Areas |
-| Crew memberships | This Artist as a member of a collective Artist, each optionally with an Uncertain date period |
+| Crew memberships | This Artist, individual or collective, as a member of a collective Artist, each with an optional period |
 | Sources | Record-level citations; the artist's own public channels are linked only as Sources |
 
 - Content rules (ADR 0014), enforced by Moderators at review and repeated in the editorial guidelines: free text never states a legal identity, age or date of birth, residence, physical appearance, or any allegation of an offence. An Artist has no image of the person, and no field for one.
 - There is no link of any kind between a User and an Artist, not even a verified or read-only claim (ADR 0014).
 - Artists are local to the Instance (ADR 0001).
+- Crew memberships may nest (a crew inside a larger collective) but never form a cycle: no collective is a member of itself, directly or through a chain. Pages show direct memberships only, never the transitive closure.
 - When an Artist is withdrawn, its Attributions and Crew memberships are hidden with it, and its Artworks show no Attribution, exactly as Artworks without Attributions do; Reinstatement restores them (ADR 0014).
 
 ### Attribution
@@ -248,9 +252,21 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 
 - A Source is a citable external reference (article, book, the artist's own publication). It can be cited by Artworks, Artists, Sites, Areas, Attributions, and History events.
 - It may carry its own language tag, used as its `lang` when rendered (ADR 0008).
+- Its fields ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)):
+
+  | Field | Rules |
+  |---|---|
+  | Title | Required; the text of the reference |
+  | Author | Optional free text; may hold several names or a pseudonym |
+  | Publication | Optional: periodical, publisher, website, or channel |
+  | Date | Optional Uncertain date |
+  | URL | Optional |
+  | Note | Optional: pages, context, where an archived copy is |
+  | Language | Optional language tag |
+
+- It has no Source type: no rule or filter needs one. Its rendered citation is "Author, *Title*, Publication, Date", omitting absent parts, followed by the URL.
 - Sources are Archive records, editable through Submissions, with their own Revisions ([#5](https://github.com/spippoli/tart/issues/5)).
 - External testimony enters the archive as a Source ([#4](https://github.com/spippoli/tart/issues/4)).
-- The descriptive fields of a Source (beyond its language tag) are an open item.
 
 ### Documentation item
 
@@ -264,6 +280,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Licence | For uploaded files: one licence from the Instance allowlist (ADR 0012) |
 | Creator credit | For uploaded files: required; may be a pseudonym; independent of the Submitter |
 | Rights basis | For uploaded files: own work, or third-party work already under an allowlisted licence with its creator and origin URL |
+| Alt text | For `image`: required, Content language, at most 250 characters. Describes what the image shows (the work, the surface, its state) without interpreting it, and follows the content rules of ADR 0014: no appearance or identity of people in the photo. Written by the Submitter in the Documentation step, checked by the Moderator at review like any other field, and corrected later by an edit Submission |
 | Text | For `text`: the text itself |
 | URL | For `link`: the linked address. Material whose rights do not allow upload is linked, never uploaded |
 | Language | Optional language tag for `text` and `link` items |
@@ -272,6 +289,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 - Documentation items are Archive records, editable through Submissions with their own Revisions; the file itself never changes.
 - Public renditions of images are WebP, carry no EXIF, and are capped at a resolution set in the Instance configuration; the original is never public (ADR 0004, ADR 0012). PDFs show a first-page preview (ADR 0004). Producing renditions is part of the Foundations media pipeline.
 - Every licence notice states that it covers the file only, never the depicted Artwork (ADR 0012).
+- There is no separate caption field: the visible caption is composed from the Observed date, the Creator credit, and the licence. A PDF's first-page preview carries a platform alt text ("First page of the document") and links to the file ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)).
 - All stored objects are private and served through the app; a pending or withdrawn file is hidden by a database flag (ADR 0004).
 
 ### Physical history
@@ -350,6 +368,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Revisions of any record | `…/revisioni` | `…/revisions` |
 
 - Only the id resolves the record. The slug is derived from the record's current name. A wrong, missing, or outdated slug answers 301 to the canonical URL (ADR 0010). Kinds whose route has no slug (Location, Source, Documentation item) are canonical at the bare id.
+- **Slug derivation** ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)): lowercase the name, strip accents (`unaccent`), turn every run of non-alphanumeric characters into `-`, trim leading and trailing `-`, and cut at 60 characters on the last `-` that fits. A record with no name (an untitled Artwork), or whose name yields an empty slug, is canonical at the bare id (`/it/opere/4821`); when it later gets a name, the bare id answers 301 to `…/{id}-{slug}`.
 - The browser title is `<Page> — <Archive name>`.
 - Every record and Documentation item page has a "Report" action leading to `/it/segnala?oggetto=…` (`/en/report?object=…`); the form belongs to Rights and legal actions.
 - Every record page links to its `/revisions` subpage.
@@ -369,9 +388,9 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 **Other record pages** follow a reduced version of the same pattern ([#15](https://github.com/spippoli/tart/issues/15)):
 
 - **Artist**: header (name, kind, Aliases, period of activity), biography, Areas of activity, Crew memberships (in both directions: members of a collective, collectives a member belongs to), attributed Artworks each with its Attribution certainty in words, Sources, actions, Revisions link. No image of the person.
-- **Location**: header (Surface type, exact or approximate with radius, Site, Areas), mini-map, the stratigraphy (the Artworks on that surface, most recent first as defined under Location, each with its Condition word and sign), the Documentation items that document disappearances there, actions, Revisions link.
-- **Site, Area, Series**: header (name, and for Site and Area their place), map, list of Artworks with Condition word and sign, Sources, actions, Revisions link.
-- **Source** and **Documentation item**: minimal permalinks, needed for citation, Notices, and Merge redirects. A Source shows its reference and what cites it. A Documentation item shows the file rendition or preview (or text, or link), Observed date, Creator credit, licence with "covers the file only", the Artworks it documents, and, for a disappearance, its Location.
+- **Location**: header (title, Place description, Surface type, exact or approximate with radius, Site, Areas), mini-map, the stratigraphy (the Artworks on that surface, most recent first as defined under Location, each with its Condition word and sign), the Documentation items that document disappearances there, actions, Revisions link.
+- **Site, Area, Series**: header (name, and for Site and Area their place), description, map, list of Artworks with Condition word and sign, Sources, actions, Revisions link.
+- **Source** and **Documentation item**: minimal permalinks, needed for citation, Notices, and Merge redirects. A Source shows its rendered citation, its Note, and what cites it. A Documentation item shows the file rendition or preview with its alt text (or text, or link), Observed date, Creator credit, licence with "covers the file only", the Artworks it documents, and, for a disappearance, its Location.
 
 **Indexes** (Artists, Sites, Areas, Series) list records by name with links to their pages, alphabetically in the Content language, paginated by 24, with a "Filter by name" field (name plus Aliases for Artists) specified in [Discovery](discovery.md#index-name-filter). They never rank by popularity or activity.
 
@@ -427,8 +446,8 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 
 27. Condition, Condition group, Attribution certainty, Evidence level, approximate location, and pending state are each conveyed in text; the sign and any colour are redundant, and the page remains correct in grayscale.
 28. Every page is fully operable by keyboard with visible focus; nothing essential depends on hover, including gallery navigation and Timeline details.
-29. Every image has a meaningful text alternative.
-30. Record pages are fully usable without WebGL2: the location is stated in text (Location, Areas, Site, approximate notice) when the mini-map cannot render.
+29. Every image has a meaningful text alternative: an image Documentation item's alt text, or a platform alt text for a PDF preview.
+30. Record pages are fully usable without WebGL2: the location is stated in text (Location title, Place description, Areas, Site, approximate notice) when the mini-map cannot render.
 31. Archive content is marked up with the Content language's `lang` (and `dir`); Sources and text or link Documentation items with their own language tag use that tag.
 32. No user-facing string (labels, statuses, Condition and vocabulary names, error codes, aria labels, empty states) is hardcoded; the build fails on a missing message key.
 33. The Timeline is a semantic, chronologically ordered list; the gallery exposes each item's Observed date as text.
@@ -443,6 +462,18 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 39. Changing an Artwork's Location creates no History event, and the Artwork leaves its former Location's stratigraphy.
 40. The stratigraphy lists Artworks by the chronological key of their Creation event, or of their first documentation without one, most recent first, regardless of `covered` links.
 
+**Descriptive fields, text alternatives and slugs**
+
+41. Sites, Areas, and Series accept an optional description, rendered after the page header in the Content language.
+42. A Source without a Title is rejected with a stable error code; its page renders "Author, *Title*, Publication, Date" omitting absent parts, then the URL.
+43. A period whose start has a later chronological key than its end is rejected; a period with only a start shows "from …", with only an end "until …".
+44. An Artwork can be linked to several Series; a Crew membership that would make a collective a member of itself, directly or through a chain, is rejected.
+45. A Location's title is its Place description, else "Surface type · Site or first Area", else "Location {id}"; a Place description longer than 200 characters is rejected.
+46. An image Documentation item without alt text, or with one longer than 250 characters, is rejected; every image rendition is served with its item's alt text.
+47. An untitled Artwork is canonical at `/it/opere/{id}` and `/en/artworks/{id}`; after it gets a title, the bare id answers 301 to `…/{id}-{slug}`.
+48. The slug of "Lupa à rebours — Stencil n°3" is `lupa-a-rebours-stencil-n-3`; a name yielding no alphanumeric character gives the bare-id URL.
+49. A new Instance's Surface type file holds the platform's default list, in its order, with `it` and `en` labels.
+
 ## Instance configuration
 
 Exact key names belong to the [Foundations](foundations.md) spec, which owns `instance.toml`; this spec reads the following values.
@@ -454,12 +485,29 @@ Exact key names belong to the [Foundations](foundations.md) spec, which owns `in
 | Time zone | Formatting of Observed, submitted, and approved dates | `Europe/Rome` |
 | Archive name | Browser title `<Page> — <Archive name>` | "Rome Urban Art Archive" |
 | Expression type vocabulary | Artwork Expression types, labels per UI language, `retired` | Starting from the brief's §9 list |
-| Surface type vocabulary | Location Surface type, labels per UI language, `retired` | Starting from the platform default list (not yet written) |
+| Surface type vocabulary | Location Surface type, labels per UI language, `retired` | Starting from the platform default list below |
 | Boundary (GeoJSON) | Rejects Location geometries outside it | Not yet decided |
 | File licence allowlist | Licence values shown on Documentation items | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` |
 | Public image rendition cap | Maximum resolution of public renditions | Not yet decided |
 
 The Data licence is shown in the footer (Foundations); this spec does not render it per record.
+
+**Default Surface type list** ([Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)), shipped by the platform as a starting vocabulary in this order; an Instance edits or retires entries in its own file (ADR 0009). Vehicles and trains are not Locations, so they have no entry.
+
+| `key` | `it` | `en` |
+|---|---|---|
+| `building_wall` | Muro di edificio | Building wall |
+| `boundary_wall` | Muro di cinta o di contenimento | Boundary or retaining wall |
+| `shutter` | Saracinesca | Shutter |
+| `door` | Porta o portone | Door |
+| `hoarding` | Recinzione di cantiere | Construction hoarding |
+| `fence` | Cancello o recinzione | Gate or fence |
+| `bridge_underpass` | Ponte, sottopasso, galleria | Bridge, underpass, tunnel |
+| `railway` | Infrastruttura ferroviaria | Railway infrastructure |
+| `street_furniture` | Arredo urbano (cabina, palo, cartello) | Street furniture (cabinet, pole, sign) |
+| `ground` | Pavimentazione, scala | Pavement, steps |
+| `free_standing` | Struttura autonoma | Free-standing structure |
+| `other` | Altro | Other |
 
 ## Testing Decisions
 
@@ -494,11 +542,11 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 4. **Range derivation.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): see Uncertain date; `unknown` is a precision only.
 5. **Relocation and the Location field.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): there is no `relocated` type; a detached piece is `removed` on its original Location, and the Location field changes only by correction (ADR 0003 amended).
 6. **Stratigraphy order.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): by the chronological key of the Creation event, else first documentation, most recent first; see Location.
-7. **Descriptive fields of Site, Area, Series, and Source.** Beyond names, geometry, and a Source's language tag, no decision fixes descriptions for Sites, Areas, and Series, or the citation fields of a Source (title, author, publication, date, URL). The Artist period of activity and Crew membership periods are "an Uncertain date period": whether that is one Uncertain date or a start and end pair is not decided.
-8. **Series membership cardinality.** Whether an Artwork may belong to several Series is not decided. Likewise, whether a collective may be a member of another collective.
-9. **Location text.** A Location has no name or address field in the decisions, so its page title, its text description for users without the map (acceptance criterion 30 relies on Areas and Site only), and the slugless route follow from that. Whether to add a textual address or description is open.
-10. **Image text alternatives.** WCAG requires meaningful alternatives for images, but no decision adds an alt text or caption field to Documentation items, nor says who writes it. Acceptance criterion 29 depends on this.
-11. **Slug for untitled records.** ADR 0010 derives the slug from the current name; the canonical URL of an untitled Artwork is not decided.
+7. **Descriptive fields of Site, Area, Series, and Source.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): Sites, Areas, and Series have an optional description; a Source has Title (required), Author, Publication, Date, URL, Note, and Language; a period is a start and an end, each an optional Uncertain date.
+8. **Series membership cardinality.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): an Artwork may belong to zero or more Series; a collective may be a member of another collective, without cycles.
+9. **Location text.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): an optional one-line Place description, which also gives the Location's title, with a composed fallback; the route stays slugless.
+10. **Image text alternatives.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): a required alt text on image Documentation items, written by the Submitter and checked by the Moderator; no separate caption; a platform alt text for PDF previews.
+11. **Slug for untitled records.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): an untitled record is canonical at the bare id; see Public record pages for the slug derivation.
 12. **Withdrawal effects beyond Artists.** ADR 0014 settles a withdrawn Artist. Not settled: whether a Claim whose only citation is a withdrawn Documentation item or Source becomes `reported`, whether a `confirmed` Attribution then stays valid, how a withdrawn Artwork appears in its Location's stratigraphy, Series, or as a covering-Artwork link, and what a withdrawn Location means for its Artworks. These belong to Rights and legal actions but change what record pages show.
 13. **Public provenance details.** Decided: `/revisions` shows the Submitter's display name. Not decided: whether the approving Moderator's name is public, whether the Timeline names the Submitter of each History event (handed from [#4](https://github.com/spippoli/tart/issues/4) to [#14](https://github.com/spippoli/tart/issues/14), which settled only `/revisions`), and how a Revision's content is shown on `/revisions` (snapshot or change list).
 14. **Public file rights fields.** The licence notice and Creator credit must be public; whether the Rights basis and a third party's origin URL are shown publicly is not decided.
@@ -506,7 +554,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 16. **Public signal of pending Submissions.** [#15](https://github.com/spippoli/tart/issues/15) decided that the public sees nothing; ADR 0015 still lists as open whether the public sees that a record has Submissions under review. This spec follows #15.
 17. **Timeline dates for Documentation items.** ADR 0015 requires the three dates for History events; whether Documentation items on the Timeline also show submitted and approved dates is not stated.
 18. **Index ordering.** Answered by [Search and filters](https://github.com/spippoli/tart/issues/41), as compiled in [Discovery](discovery.md#index-name-filter): alphabetical by name in the Content language, with a "Filter by name" field (name plus Aliases for Artists) and pagination by 24; see Indexes.
-19. **Default Surface type list.** The platform ships the brief's §9 list for Expression types; no default Surface type list has been written.
+19. **Default Surface type list.** Answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): see Instance configuration.
 20. **Mini-map fallback without WebGL2.** Answered by [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39), as compiled in [Discovery](discovery.md#mini-map): no server-rendered image; a text box with Location, Areas, Site, the approximate notice, coordinates, and an "Open in a maps app" `geo:` link replaces it.
 
 ### Notes
