@@ -22,7 +22,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Condition, Condition group, History event, Creation event, Uncertain date, Observed date, Source, Artist, Alias, Attribution, Archive record, Revision, Merge, Withdrawal, Redaction, Submission.
 
-**Decision tickets incorporated**: [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40), [Search and filters](https://github.com/spippoli/tart/issues/41), [Map cartography style](https://github.com/spippoli/tart/issues/36), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (map attribution and assets), and, for the parts that shape discovery, [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (Explore and Archive views, header search, empty archive), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (signs), [Submission form flow](https://github.com/spippoli/tart/issues/27) (Location drawing modes that the map module serves), and [Research: map cartography style inputs](https://github.com/spippoli/tart/issues/34) (background), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (stratigraphy order, Uncertain date range and sort key).
+**Decision tickets incorporated**: [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40), [Search and filters](https://github.com/spippoli/tart/issues/41), [Map cartography style](https://github.com/spippoli/tart/issues/36), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (map attribution and assets), and, for the parts that shape discovery, [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (Explore and Archive views, header search, empty archive), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (signs), [Submission form flow](https://github.com/spippoli/tart/issues/27) (Location drawing modes that the map module serves), and [Research: map cartography style inputs](https://github.com/spippoli/tart/issues/34) (background), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (stratigraphy order, Uncertain date range and sort key), and [Search and filter details](https://github.com/spippoli/tart/issues/99) (query-string keys, Condition filter state, relevance, "Also matching", availability of documentation).
 
 **Prototype and research assets** (throwaway, linked rather than copied): the cartography prototype on branch [`prototype/36-map-cartography`](https://github.com/spippoli/tart/tree/prototype/36-map-cartography/frontend/prototypes/map-cartography), with screenshots at [Campo Marzio z17](https://github.com/spippoli/tart/blob/prototype/36-map-cartography/frontend/prototypes/map-cartography/screenshots/campo-marzio-z17-ABCD.jpg), [z14](https://github.com/spippoli/tart/blob/prototype/36-map-cartography/frontend/prototypes/map-cartography/screenshots/campo-marzio-z14-ABCD.jpg), and [dark, greyscale, and deuteranopia checks](https://github.com/spippoli/tart/blob/prototype/36-map-cartography/frontend/prototypes/map-cartography/screenshots/checks-dark-grey-deut.jpg) (variant C is the chosen strand); the research notes on branch [`research/map-cartography-style`](https://github.com/spippoli/tart/tree/research/map-cartography-style/docs/research) (`maplibre-pmtiles-style.md`, `early-1900s-urban-map-graphics.md`); the presentation prototype on branch `prototype/17-status-presentation`. Their markers and Area records are fictional.
 
@@ -121,7 +121,7 @@ The basemap is the Instance's own pair of finished MapLibre styles (light and da
 | Module | Interface (what callers see) | Lives in |
 |---|---|---|
 | Map module | Render a map into a container from a served style and a data source: Explore (Locations GeoJSON, selection, viewport, events for selection and movement end), area/site/series map (fit to an extent, only given Locations), mini-map (one highlighted Location, muted neighbours), drawing (point, line, simple polygon; click and crosshair modes) for the editor. Reports "map unavailable" on missing WebGL2 or a style that fails to load. The only code that imports MapLibre ([ADR 0004](../adr/0004-mvp-tech-stack.md)) | frontend |
-| Filter state | Parse and serialise the shared query-string state (search, filters, order, selection `luogo`, viewport `mappa`) with localized keys and stable values; remap keys on a UI-language switch | frontend |
+| Filter state | Parse and serialise the shared query-string state (search, filters, order, selection `superficie`, viewport `mappa`) with localized keys and stable values; remap keys on a UI-language switch | frontend |
 | Discovery query | Given a filter state, return (a) the matching Artworks as one page of list entries with the total, (b) all matching Locations as one lightweight GeoJSON (id, geometry, representative point, prevailing Condition group, matching count, per-group counts), (c) the "Also matching" records, (d) the count of Artworks left out by "Created between" | backend (`api`) |
 | Location panel | Given a Location id and a filter state, return the Location header and its stratigraphy of matching Artworks plus the count of non-matching ones | backend (`api`) |
 | Index name filter | Filter an index (Artists with Aliases, Sites, Areas, Series) by name, alphabetical in the Content language, 24 per page | backend (`api`) |
@@ -163,7 +163,7 @@ From [ADR 0019](../adr/0019-map-shows-locations-not-artworks.md) and [#39](https
 - **Contents**: the Location header (Surface type, approximate notice with radius, Site, Areas) and a link to the Location page; then the **stratigraphy**: the matching Artworks in the stratigraphy order of [Archive records](archive-records.md) (chronological key of the Creation event, else of first documentation, most recent first), each as a [list entry](#list-entries) card. An Artwork that has left this Location through a correction of its Location field no longer appears.
 - A line states filtered-out works: "2 more artworks on this surface don't match the filters".
 - A Location with a single matching Artwork uses the same panel; selection never jumps straight to an Artwork page.
-- The selection goes into the query string (`?luogo=<id>`), so a link reopens it and browser Back closes it.
+- The selection goes into the query string (`?superficie=<id>`), so a link reopens it and browser Back closes it.
 
 ### Map/list sync
 
@@ -171,7 +171,7 @@ From [#39](https://github.com/spippoli/tart/issues/39) point 8 and [#40](https:/
 
 - The Explore list shows the matching Artworks of Locations **in the viewport**. It updates when map movement ends, resets to page 1, and a polite live region announces the total and page ("32 artworks in this area · page 1 of 2").
 - The viewport goes into the URL as `?mappa=<z>/<lat>/<lon>` via `replaceState` when movement ends. Without it, the view is set by [Filters and the viewport](#filters-and-the-explore-viewport).
-- **List to map.** Each entry's "Show on map" button selects the Location, centres it if needed, and opens the panel with focus on its title, exactly as selecting the sign does; Esc or "Close" returns focus to that button. On mobile it first switches from List to Map. In `/archivio` it is a link to Explore with `?luogo=…&mappa=…`. Without WebGL2 it is not rendered.
+- **List to map.** Each entry's "Show on map" button selects the Location, centres it if needed, and opens the panel with focus on its title, exactly as selecting the sign does; Esc or "Close" returns focus to that button. On mobile it first switches from List to Map. In `/archivio` it is a link to Explore with `?superficie=…&mappa=…`. Without WebGL2 it is not rendered.
 - **Map to list.** Visible entries of the selected Location get a "Selected" text label and a thick outline, so colour never carries the state alone. The list does not reorder, change page, scroll, or take focus; focus stays in the panel, whose stratigraphy is the complete set. Entries on other pages are not flagged. Closing the panel clears the label.
 - Nothing happens on hover, anywhere.
 
@@ -201,7 +201,7 @@ From [#39](https://github.com/spippoli/tart/issues/39) point 8 and [#40](https:/
 On Artwork and Location pages ([Archive records](archive-records.md), answering its open item 20):
 
 - Framed on the Location at z17, or on the geometry's extent if larger. The record's Location is highlighted, nearby Locations are muted; no clustering and no panel.
-- Static by default: no wheel or drag pan/zoom, only the zoom buttons of the map control, plus an "Open on the map" link to Explore with `?luogo=…&mappa=…`.
+- Static by default: no wheel or drag pan/zoom, only the zoom buttons of the map control, plus an "Open on the map" link to Explore with `?superficie=…&mappa=…`.
 - **Without WebGL2** there is no server-rendered image. A text box takes its place: Location, Areas, Site, approximate notice ([Archive records](archive-records.md) acceptance criterion 30), coordinates, and an "Open in a maps app" link with a `geo:` URI.
 
 ### Explore without WebGL2 or JavaScript
@@ -209,7 +209,7 @@ On Artwork and Location pages ([Archive records](archive-records.md), answering 
 - SSR always renders the list, so every view works without JavaScript. Detection runs on the client: a `getContext('webgl2')` probe plus MapLibre's error event. A style that fails to load is treated the same way ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)).
 - Without WebGL2, `/it/` renders the **Archive view in place**: filters only, paginated, no viewport, no redirect, so shared URLs keep working.
 - A persistent, non-dismissible text notice (not an alert) sits above it: "The map isn't available on this browser or device because it needs WebGL2. You can browse the whole archive from the list." Its "Why?" link leads to a short help entry (enable hardware acceleration, update the browser).
-- The Map/List switch omits "Map" rather than showing it disabled. `?mappa=` is ignored. `?luogo=<id>` shows a notice ("You opened a link to a location on the map") linking to the Location page.
+- The Map/List switch omits "Map" rather than showing it disabled. `?mappa=` is ignored. `?superficie=<id>` shows a notice ("You opened a link to a location on the map") linking to the Location page.
 - With JavaScript and WebGL2, desktop keeps the list beside the map; on mobile the Map view becomes the initial view after hydration.
 
 ### Search
@@ -218,11 +218,20 @@ From [#41](https://github.com/spippoli/tart/issues/41):
 
 - **Only public, approved content** is searchable or filterable. Excluded: pending content, withdrawn records and Documentation items, Attributions hidden by a withdrawn Artist ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)), redacted Revision values, and merged duplicates.
 - **Results are Artworks only**, reached through related records. An Artwork matches `q` on its title, its description, the name or an Alias of an attributed Artist, or the name of its Series, its Site, or one of its Areas. Sources, Documentation items, and History event notes are not searched.
-- **"Also matching"**: above the results, in both views, a compact box links directly to Artists, Sites, Areas, and Series whose name or Alias matches `q`.
+- **"Also matching"**: above the results, in both views, a compact box links directly to Artists, Sites, Areas, and Series whose name or Alias matches `q` ([Search and filter details](https://github.com/spippoli/tart/issues/99)):
+  - At most **3 records per kind**, grouped in the fixed order Artists, Series, Sites, Areas; within a kind, by name similarity descending, then name in the Content language, then id. An Artist matched through an Alias shows its name followed by "(also: <alias>)".
+  - A kind with more than 3 matches ends with "Show all (N)", linking to its index with "Filter by name" prefilled (`?nome=`).
+  - The box is absent without `q` or when nothing matches (no empty state), excludes what search excludes, and is the same on every page of the results.
 - **Engine**: PostgreSQL only.
   - Names (titles, Artist names, Aliases, Site, Area, and Series names): `unaccent` plus trigram similarity (`pg_trgm`), tolerant of typos and prefixes, no stemming.
   - Free text (descriptions): `tsvector` with the stemming configuration of the **Content language**, derived from its code (`it` → `italian`), falling back to `simple`. No configuration key.
   - The UI language never affects search: `/en/archive?q=muro` returns exactly what `/it/archivio?q=muro` returns.
+- **Query normalisation**: `q` is trimmed, inner whitespace collapsed, and passed through `unaccent`. Under 2 characters it counts as absent; beyond 100 characters it is truncated.
+- **Matching and relevance** ([Search and filter details](https://github.com/spippoli/tart/issues/99)). An Artwork matches when either holds:
+  - a name field has `word_similarity(q, name) ≥ 0.5`;
+  - its description matches `websearch_to_tsquery(<Content-language configuration>, q)`.
+
+  Its score is the best name similarity weighted by field (title ×1.0, Artist name or Alias ×0.9, Series ×0.8, Site ×0.7, Area ×0.6) plus `0.5 × ts_rank_cd` of the description, normalised to 0–1, so a matching title outranks a mention in a description. "Also matching" uses the same name threshold. The threshold and weights are platform constants, tuned before launch against a ranking test on fictional fixtures; they are not Instance configuration.
 
 ### Filters
 
@@ -230,7 +239,7 @@ All filters live in the shared query-string state and apply to Artworks ([ADR 00
 
 | Filter | Values | Notes |
 |---|---|---|
-| Condition group | present, disappeared, unknown; all on by default | Drill-down to the single **Condition** (filters are where covered differs from destroyed, [ADR 0015](../adr/0015-condition-and-uncertainty-presentation.md)) |
+| Condition | The nine Conditions, shown grouped by Condition group; all on by default | Filters are where covered differs from destroyed ([ADR 0015](../adr/0015-condition-and-uncertainty-presentation.md)); see Condition state below |
 | Expression type | Multi-select from the vocabulary | `retired` entries stay filterable |
 | Area | Multi-select from the Areas index | Membership by geometry; Areas may overlap |
 | Attribution | "Unknown artist" / "Attributed" (`confirmed` or `probable`) / "Disputed" | |
@@ -239,16 +248,17 @@ All filters live in the shared query-string state and apply to Artworks ([ADR 00
 | Documented between | Year from/to, either end open | Any Observed date of a public Documentation item |
 | Created between | Year from/to, either end open | The Creation event; Artworks without one are excluded and a notice says "N artworks without a creation date are not included" |
 
+- **Condition state** ([Search and filter details](https://github.com/spippoli/tart/issues/99)): the state holds only single Conditions, under one repeatable key. Each Condition group is an interface shortcut: its checkbox is checked when all its Conditions are selected and mixed (`aria-checked="mixed"`) when only some are; checking it selects them all, unchecking it clears them all. *unknown* is a group of one. No key means all nine; selecting all nine removes the key. A complete group shows as one chip ("Remove filter: disappeared"); otherwise each selected Condition has its own chip.
 - **Date matching** is by overlap of the Uncertain date's stored earliest–latest range with the filter range: `c. 2016` (2015–2017) matches "from 2017"; `before 2012` matches any range reaching back to 2012 or earlier. There is no "disappeared between" filter.
 - **Combination**: OR within a filter, AND across filters. Map and list show the same set; the Explore list further restricts it to the viewport.
 - **No per-option counts**; only the total, announced by the live region.
-- **Not filterable**: Evidence level, approximate Location, Surface type, Site (a Site has its own page with a map).
+- **Not filterable**: Evidence level, approximate Location, Surface type, Site (a Site has its own page with a map), availability of documentation (every Artwork has at least one Documentation item by construction; an Artwork left without a public one is [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92)) ([Search and filter details](https://github.com/spippoli/tart/issues/99)).
 
 ### Ordering
 
 - No view counts, clicks, or any engagement signal, ever.
 - **Without `q`**: default "Most recently documented". Also selectable: "First documented" (oldest first), "Recently added to the archive" (approval date of the Artwork's first Revision), and "Title A–Z" ("Untitled" last).
-- **With `q`**: default textual relevance (full-text rank plus name similarity). The other orders stay selectable.
+- **With `q`**: default textual relevance (see Matching and relevance), ties broken by "Most recently documented", then id. The other orders stay selectable; "Relevance" is offered only with `q`, and `?ordine=relevance` without `q` is ignored.
 - **Uncertain-date sort key**: the chronological key of [Archive records](archive-records.md) (midpoint of the entered values, ignoring `circa` widening), then id; it is never the stored range. "Most recently documented" sorts by the key of last documentation descending, "First documented" by the key of first documentation ascending. Artworks whose only Observed dates are `unknown` sort last in both directions. The final id tie-break keeps pages stable ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
 - The Explore list uses the same ordering as the Archive view, never distance from the map centre.
 - The order lives in the query string (`?ordine=`).
@@ -274,13 +284,32 @@ All filters live in the shared query-string state and apply to Artworks ([ADR 00
 
 ### Index name filter
 
-The Artists, Sites, Areas, and Series indexes each have a "Filter by name" field (name plus Aliases for Artists) using the name matching of [Search](#search), alphabetical order in the Content language, and pagination by 24. This answers [Archive records](archive-records.md#open-items) open item 18 for the indexes.
+The Artists, Sites, Areas, and Series indexes each have a "Filter by name" field (`?nome=`/`?name=`) (name plus Aliases for Artists) using the name matching of [Search](#search), alphabetical order in the Content language, and pagination by 24. This answers [Archive records](archive-records.md#open-items) open item 18 for the indexes.
 
 ### Query-string keys
 
-- Keys are localized like path segments ([ADR 0010](../adr/0010-public-url-scheme.md)): `?ordine=`/`?sort=`, `?artista=`/`?artist=`, and so on, including `luogo` and `mappa`. The language switcher remaps them.
-- **Values are always stable**: vocabulary keys, ids, enum values, never translated labels.
-- Key names are UI strings and may change before launch.
+Keys are localized like path segments ([ADR 0010](../adr/0010-public-url-scheme.md)) and remapped by the language switcher; values are always stable (vocabulary keys, ids, enum values), never translated labels. Key names are UI strings and may change before launch. The full table ([Search and filter details](https://github.com/spippoli/tart/issues/99)):
+
+| Concept | `it` | `en` | Values |
+|---|---|---|---|
+| Search | `q` | `q` | Free text; the key is not localized |
+| Order | `ordine` | `sort` | `recent`, `oldest`, `added`, `title`, `relevance` |
+| Condition | `condizione` | `condition` | Condition key, repeatable |
+| Expression type | `tipo` | `type` | Vocabulary key, repeatable |
+| Area | `area` | `area` | Id, repeatable |
+| Attribution | `attribuzione` | `attribution` | `unknown`, `attributed`, `disputed`, repeatable |
+| Artist | `artista` | `artist` | Id |
+| Series | `serie` | `series` | Id |
+| Documented between | `documentata-dal`, `documentata-al` | `documented-from`, `documented-to` | Year |
+| Created between | `creata-dal`, `creata-al` | `created-from`, `created-to` | Year |
+| Selection | `superficie` | `location` | Location id |
+| Viewport | `mappa` | `map` | `<z>/<lat>/<lon>` |
+| Page (Archive view and indexes) | `pagina` | `page` | Integer ≥ 2; absent means page 1 |
+| Index name filter | `nome` | `name` | Free text |
+
+- The selection key is `superficie`, not `luogo`, because `luoghi` is the path segment of Sites and the key holds a Location id.
+- A repeatable key repeats (`?tipo=stencil&tipo=sticker`), never comma-joined. Default values are omitted.
+- Unknown keys and unknown or malformed values are ignored silently (no 400) and dropped from the canonical URL. A key in the other UI language is accepted as well.
 
 ### Location entry without the map
 
@@ -359,7 +388,7 @@ A good test drives a module through its external interface and asserts observabl
 7. Every sign's target is at least 24×24 px, and each Location has exactly one focusable element.
 8. An approximate point shows a smaller sign and, from z15 when unclustered, the hatched area; an approximate line or polygon states its approximation in words.
 9. Selecting a sign opens the side panel (bottom sheet on mobile) with focus on its title, the Location header, the stratigraphy of matching Artworks, the count of non-matching ones, and a link to the Location page; Esc or "Close" returns focus to the opener.
-10. `?luogo=<id>` reopens the panel; browser Back closes it. `?mappa=<z>/<lat>/<lon>` is written with `replaceState` when movement ends and restores the view.
+10. `?superficie=<id>` reopens the panel; browser Back closes it. `?mappa=<z>/<lat>/<lon>` is written with `replaceState` when movement ends and restores the view.
 11. Site names appear as focusable linked labels from z16; Areas appear only as district labels on Explore and as a continuous outline on their own page; there are no layer toggles.
 12. The map control offers zoom ±, four pan buttons, and a reset to the default view; rotation and pitch are disabled; with reduced motion, moves are instant.
 13. The legend is a disclosure button that is open on the first visit, shows the three signs, stack, cluster, and hatch with translated text, and works when `localStorage` is unavailable.
@@ -369,7 +398,7 @@ A good test drives a module through its external interface and asserts observabl
 **List and sync**
 16. The Explore list shows the matching Artworks of Locations in the viewport, 24 per page, reset to page 1 and announced ("N artworks in this area · page X of Y") when movement ends; the page number is not in the URL.
 17. The Archive view ignores the viewport, is paginated by 24, and shares the filter state; switching views keeps filters and drops the viewport.
-18. Each entry has a title link to the Artwork page and a separate "Show on map: <title>" button that selects and centres the Location and opens the panel; in `/archivio` it links to Explore with `?luogo=…&mappa=…`.
+18. Each entry has a title link to the Artwork page and a separate "Show on map: <title>" button that selects and centres the Location and opens the panel; in `/archivio` it links to Explore with `?superficie=…&mappa=…`.
 19. Entries of the selected Location show a "Selected" text label and a thick outline; the list does not reorder, change page, scroll, or take focus.
 20. Hover triggers nothing on the map or the list.
 21. A skip link before the map leads to the list and a "Back to the map" link returns; map and list are named `region` landmarks; DOM order is filter bar, map, list.
@@ -392,13 +421,13 @@ A good test drives a module through its external interface and asserts observabl
 36. Each index offers a "Filter by name" field, alphabetical in the Content language, 24 per page.
 
 **Without WebGL2, JavaScript, or tiles**
-37. Without WebGL2, `/it/` renders the Archive view in place, with the persistent notice and its "Why?" link, no "Map" option in the switch, `?mappa=` ignored, and a notice linking to the Location page when `?luogo=` is present.
+37. Without WebGL2, `/it/` renders the Archive view in place, with the persistent notice and its "Why?" link, no "Map" option in the switch, `?mappa=` ignored, and a notice linking to the Location page when `?superficie=` is present.
 38. Without JavaScript, Explore renders the list and every filter works through the form.
 39. Without WebGL2, record pages replace the mini-map with the text box (Location, Areas, Site, approximate notice, coordinates, `geo:` link).
 40. A style that fails to load, or a missing tile extract, leaves list and search fully working.
 
 **Mini-map**
-41. The mini-map frames the Location at z17 (or its larger extent), highlights it, mutes neighbours, has no clustering, panel, wheel, or drag zoom, and links to Explore with `?luogo=…&mappa=…`.
+41. The mini-map frames the Location at z17 (or its larger extent), highlights it, mutes neighbours, has no clustering, panel, wheel, or drag zoom, and links to Explore with `?superficie=…&mappa=…`.
 
 **Location entry**
 42. The editor's coordinates field accepts all four input forms, confirms the point in words, and rejects points outside the boundary with a text message; it is available with and without the map.
@@ -414,6 +443,14 @@ A good test drives a module through its external interface and asserts observabl
 **Accessibility and i18n**
 49. Explore, Archive, the indexes, and record-page maps pass axe with no WCAG 2.2 AA violations in every enabled UI language, by keyboard alone; status (Condition, selection, active filters) is never conveyed by colour alone.
 50. Every user-facing string of this spec (labels, accessible names, live-region texts, notices, empty states, legend lines, query keys) comes from the i18n catalogue; dates and counts are formatted with `Intl` in the UI language; content keeps its Content-language `lang`.
+
+**Search and filter details**
+51. The query string uses exactly the keys and values of [Query-string keys](#query-string-keys); repeatable keys repeat, defaults are omitted, unknown keys and values are ignored without an error and dropped from the canonical URL, and a key in the other UI language is accepted.
+52. The Condition filter holds single Conditions only; a group checkbox is checked, mixed, or unchecked from its Conditions and toggles them all; no key means all nine; a complete group shows as one chip.
+53. `q` is normalised (trim, collapsed whitespace, `unaccent`), ignored under 2 characters, and truncated beyond 100; an Artwork matches on name word similarity ≥ 0.5 or on a description full-text match, and a matching title ranks above a mention in a description in the ranking fixture.
+54. Relevance ties break by "Most recently documented", then id; "Relevance" is offered only with `q`, and `?ordine=relevance` without `q` is ignored.
+55. "Also matching" shows at most 3 records per kind in the order Artists, Series, Sites, Areas, sorted by similarity, name, then id, with "Show all (N)" linking to the index filtered by `?nome=`; it is absent without `q` or matches.
+56. There is no filter on the availability of documentation.
 
 ## Instance configuration
 
@@ -472,7 +509,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 5. **Archive-layer tokens and fonts.** `metadata.tart:tokens` is required, but the exact token list the platform reads (beyond `marker.ink`, `map.ink`, and the accent) is not decided, nor whether the accent comes from `instance.toml` or the tokens when they disagree. Platform layers use Goudy (district and Site labels, small caps) and Noto Sans (cluster counts), which an Instance style supplies under `map/`; what happens when an Instance style lacks them is not decided.
 6. **The "?" in the *unknown* sign.** The dotted sign needs a stronger differentiator ([ADR 0015](../adr/0015-condition-and-uncertainty-presentation.md)); it stays a drawing task.
 7. **Stratigraphy order under uncertain dates.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): chronological key of the Creation event, else first documentation, most recent first; see Selection and the side panel.
-8. **`?luogo=` edge cases.** A link to a Location that has no matching Artwork under the current filters, that is withdrawn, or that does not exist: what the map shows is not decided.
+8. **`?superficie=` edge cases.** A link to a Location that has no matching Artwork under the current filters, that is withdrawn, or that does not exist: what the map shows is not decided.
 9. **Map bounds.** "The boundary also bounds the map" ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)); whether panning is limited to the boundary, the extract (+2 km), or a bounding box, and the minimum and maximum zoom, are not decided.
 10. **Series page map.** [#39](https://github.com/spippoli/tart/issues/39) fixes the map of Area and Site pages; the Series page map (fit to its Artworks' Locations, presumably) is not stated.
 11. **Mini-map neighbours.** How far "nearby Locations" reach on the mini-map, and whether they respect any filter, is not decided.
@@ -481,13 +518,13 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 14. **Scale of the single GeoJSON response.** All filtered Locations come in one response with no viewport paging; there is no decided size threshold or caching policy if the archive grows large.
 
 **Search and filters**
-15. **Full key table.** Only `ordine`/`sort`, `artista`/`artist`, `luogo`, `mappa`, and `q` are named; the English keys for `luogo` and `mappa`, the Series key, the keys of the other filters, and whether `q` is localized are not decided.
-16. **Relevance formula and thresholds.** How full-text rank and name similarity are combined, and the trigram similarity threshold, are not decided.
+15. **Full key table.** Answered by [Search and filter details](https://github.com/spippoli/tart/issues/99): see Query-string keys. Formerly: only `ordine`/`sort`, `artista`/`artist`, `luogo`, `mappa`, and `q` are named; the English keys for `luogo` and `mappa`, the Series key, the keys of the other filters, and whether `q` is localized are not decided.
+16. **Relevance formula and thresholds.** Answered by [Search and filter details](https://github.com/spippoli/tart/issues/99): see Search, Matching and relevance. Formerly: how full-text rank and name similarity are combined, and the trigram similarity threshold, are not decided.
 17. **"First documented" sort key.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): one chronological key in both directions; see Ordering.
 18. **Artworks with no public Documentation item** (for example after a Withdrawal): their place in "documented" orderings, their thumbnail, and "Documented between" are not decided. The brief's "missing images" state for list entries whose latest Documentation item is not an image (PDF, text, link) is also not decided.
-19. **Condition drill-down semantics.** How a group and individual Conditions coexist in the state (e.g. group *disappeared* with only *covered* selected) is not detailed.
-20. **"Also matching" size.** How many records the box shows, and in which order, is not decided.
-21. **Availability of documentation.** The brief (§18) lists it as a search criterion; the decisions neither include nor exclude it.
+19. **Condition drill-down semantics.** Answered by [Search and filter details](https://github.com/spippoli/tart/issues/99): see Filters, Condition state. Formerly: how a group and individual Conditions coexist in the state (e.g. group *disappeared* with only *covered* selected) is not detailed.
+20. **"Also matching" size.** Answered by [Search and filter details](https://github.com/spippoli/tart/issues/99): see Search. Formerly: how many records the box shows, and in which order, is not decided.
+21. **Availability of documentation.** Answered by [Search and filter details](https://github.com/spippoli/tart/issues/99): not a filter; see Filters, Not filterable. Formerly: the brief (§18) lists it as a search criterion; the decisions neither include nor exclude it.
 22. **Range derivation.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): see [Archive records](archive-records.md), Uncertain date; an open bound overlaps everything on its side.
 
 **Style and tiles**
