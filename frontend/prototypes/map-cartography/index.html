@@ -36,6 +36,12 @@
   .maplibregl-popup-tip { display: none; }
   .maplibregl-popup-content small { font-family: system-ui, sans-serif; font-size: 12px; }
 
+  .specimen { position: absolute; left: 12px; top: 12px; width: min(760px, calc(100% - 380px)); max-height: calc(100% - 260px); overflow: auto;
+    background: #F3EEE2; color: #3A332E; border: 1px solid #6F6359; padding: 8px 14px; z-index: 4; }
+  .specimen .row { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: baseline; border-bottom: 1px solid #d9cfc0; padding: 6px 0; }
+  .specimen .key { font: 12px ui-monospace, monospace; color: #6F6359; }
+  .specimen .caps { text-transform: uppercase; letter-spacing: .3em; color: #5E4636; }
+  .specimen .it { font-style: normal; color: #2F5562; }
   /* --- prototype chrome, deliberately NOT part of the design ------------------------------- */
   .proto { position: absolute; top: 10px; right: 10px; width: 330px; max-height: calc(100% - 220px); overflow: auto;
     background: #111; color: #eee; font: 12px/1.4 ui-monospace, monospace; padding: 10px; border-radius: 8px;
@@ -65,6 +71,7 @@
 </svg>
 
 <div id="map"></div>
+<section class="specimen" id="specimen" hidden aria-label="Typeface specimen"></section>
 
 <aside class="legend" aria-label="Legend">
   <h2>Legend</h2>
@@ -103,7 +110,8 @@
   <div data-param="approxline" data-opts="none,solid"></div>
   <div class="note">Label language (UI)</div>
   <div data-param="lang" data-opts="it,en"></div>
-  <div class="note">Map typeface (OFL)</div>
+  <div class="note">Map typeface (OFL) · specimen card</div>
+  <div data-param="specimen" data-opts="off,on"></div>
   <div data-param="font" data-opts="spectral,oldstandard,goudy,linden,fell,garamond,cinzel+oldstandard,cinzel+goudy"></div>
   <h3>Contrast (WCAG ratio)</h3>
   <table id="contrast"></table>
@@ -232,7 +240,7 @@ const areas = { type: "FeatureCollection", features: [
 // URL state
 // ---------------------------------------------------------------------------------------------
 const DEFAULTS = { variant: "A", theme: "light", filter: "none", dpi: "native", public: "off", overlay: "off",
-  districts: "osm", hatch: "6", approxline: "none", lang: "it", font: "spectral", place: "Campo Marzio z17" };
+  districts: "osm", hatch: "6", approxline: "none", lang: "it", font: "spectral", specimen: "off", place: "Campo Marzio z17" };
 const params = () => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, new URLSearchParams(location.search).get(k) ?? DEFAULTS[k]]));
 function setParam(k, v) {
   const u = new URL(location.href); u.searchParams.set(k, v); history.replaceState(null, "", u); render();
@@ -471,6 +479,19 @@ function renderState() {
   document.getElementById("state").textContent = JSON.stringify({ ...params(), zoom: +map.getZoom().toFixed(2), center: [+c.lng.toFixed(4), +c.lat.toFixed(4)] }, null, 1);
 }
 
+
+// Specimen card: the same labels at map size (12–13 px) and enlarged (26 px), one row per candidate.
+const ff = document.createElement("style");
+ff.textContent = [...new Set(Object.values(FONTS).flatMap((f) => [f.r, f.i, f.c]))]
+  .map((file) => `@font-face { font-family: "spec-${file}"; src: url("fonts/${file}.ttf"); }`).join("\n");
+document.head.append(ff);
+document.getElementById("specimen").innerHTML = Object.entries(FONTS).map(([k, f]) => {
+  const line = (px) => `<span class="caps" style="font-family:'spec-${f.c}';font-size:${px}px">Parione</span> ·
+    <span style="font-family:'spec-${f.r}';font-size:${px}px">Via del Governo Vecchio</span> ·
+    <span class="it" style="font-family:'spec-${f.i}';font-size:${px + 1}px">Tevere · Tempio di Minerva</span>`;
+  return `<div class="row"><span class="key">${k}</span><div>${line(12)}<br>${line(26)}</div></div>`;
+}).join("");
+
 let prev = null;
 function render() {
   p = params();
@@ -487,6 +508,7 @@ function render() {
   document.getElementById("places").innerHTML = Object.keys(PLACES).map((o) => `<button aria-pressed="${p.place === o}" data-k="place" data-v="${o}">${o}</button>`).join("");
   document.getElementById("contrast").innerHTML = contrastRows(p).map(([n, r, min]) =>
     `<tr><td>${n}</td><td class="n">${r.toFixed(2)}</td><td class="${r >= min ? "ok" : "bad"}">${r >= min ? "✓" : "✗"} ≥${min}</td></tr>`).join("");
+  document.getElementById("specimen").hidden = p.specimen !== "on";
   const mapEl = document.getElementById("map");
   mapEl.className = p.filter === "none" ? "" : `f-${p.filter}`;
   map.setPixelRatio(p.dpi === "1x" ? 1 : devicePixelRatio);
