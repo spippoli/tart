@@ -25,7 +25,7 @@ The invariants in [`CLAUDE.md`](../../CLAUDE.md), the vocabulary in [`GLOSSARY.m
 
 **Glossary terms used**: **Instance**, **Operator**, **Instance configuration**, **Data licence**, **Licensor**, **UI language**, **Content language**, **User**, **Moderator**, **Submitter**, **Submission**, **Submission status**, **Documentation item**, **Creator credit**, **Rights basis**, **Invitation**, **Expression type**, **Surface type**, **Decision message**, **Area**, **Location**, **Withdrawal**, **Purge**, **Notice**.
 
-**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language).
+**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching).
 
 ## Problem Statement
 
@@ -224,12 +224,17 @@ The map module ([ADR 0004](../adr/0004-mvp-tech-stack.md)) is specified by the D
 3. FastAPI writes the file to a quarantine area and enqueues a processing job.
 
 **Processing** (in the `worker`, Procrastinate on PostgreSQL, same image as `api`, with its own memory and time limits). Following the outline of [#10](https://github.com/spippoli/tart/issues/10) as adopted by [ADR 0004](../adr/0004-mvp-tech-stack.md):
-1. Detect the file type from its content (magic bytes), not from its name or declared type.
-2. Enforce size and pixel limits (Pillow's decompression-bomb guard, tightened), fully decode the file, and reject it if decoding fails.
+1. Detect the file type from its content (magic bytes), not from its name or declared type. Accepted types are a platform constant: JPEG, PNG, WebP, AVIF, HEIC, and PDF ([#88](https://github.com/spippoli/tart/issues/88)). GIF and TIFF are refused. Animated WebP or AVIF is accepted, and only its first frame is kept.
+2. Enforce size and pixel limits, fully decode the file, and reject it if decoding fails. The pixel limit is a platform constant of 100 megapixels, enforced as an error (Pillow's decompression-bomb guard, tightened); a larger image is refused with a translatable error code asking for a smaller image ([#88](https://github.com/spippoli/tart/issues/88)).
 3. Read the EXIF capture date and GPS **as suggestions only**, returned to the Submission form to prefill the Observed date and a map pin ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)). They are never stored as a Location: the artwork location is not the submitter's location.
 4. Strip GPS and device identifiers from the stored original. The original stays private.
-5. Images: apply EXIF orientation and produce WebP renditions with Pillow, with no EXIF, XMP, or IPTC metadata. Public renditions are capped at a resolution set in the Instance configuration ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)). HEIC is decoded with `pi-heif` (decode-only).
-6. PDFs: render a first-page preview with `pypdfium2`.
+5. Images: apply EXIF orientation and produce WebP renditions with Pillow, with no EXIF, XMP, or IPTC metadata. HEIC is decoded with `pi-heif` (decode-only); AVIF is decoded by Pillow itself. There are three renditions, sized by their long edge ([#88](https://github.com/spippoli/tart/issues/88)):
+   - **thumbnail**, 480 px (lists and the panel);
+   - **view**, 1280 px (record pages);
+   - **large**, the public rendition cap set in the Instance configuration ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)).
+
+   480 and 1280 are platform constants. A rendition is never upscaled: when the original, or the cap, is smaller than a size, that rendition takes the smaller value.
+6. PDFs: render a first-page preview with `pypdfium2`, under the same pixel limit, and derive the same three renditions from it.
 7. PyMuPDF (AGPL) and libvips are excluded ([ADR 0004](../adr/0004-mvp-tech-stack.md), [ADR 0011](../adr/0011-provisional-software-license.md)).
 
 The per-file fields a Submitter fills in (Observed date, **Rights basis**, **Creator credit**, licence from the allowlist) are specified by the Contribution and moderation spec ([#27](https://github.com/spippoli/tart/issues/27)); a link is linked, never uploaded.
@@ -238,10 +243,15 @@ The per-file fields a Submitter fills in (Observed date, **Rights basis**, **Cre
 - Draft media are server-side and private, and never public ([#5](https://github.com/spippoli/tart/issues/5)).
 - A draft never edited is discarded after 24 hours ([#15](https://github.com/spippoli/tart/issues/15)).
 - An abandoned draft expires after `draft_expiry_days`, and its media are deleted ([#5](https://github.com/spippoli/tart/issues/5)).
-- The worker also cleans up abandoned uploads ([ADR 0004](../adr/0004-mvp-tech-stack.md)).
+- The worker also cleans up abandoned uploads ([ADR 0004](../adr/0004-mvp-tech-stack.md)): an upload never attached to a draft is deleted 24 hours after it was uploaded, by a sweep that runs hourly. A file rejected during processing is deleted at once; only its error code reaches the form ([#88](https://github.com/spippoli/tart/issues/88)).
 - Media of approved Documentation items are never deleted except by a Purge ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
 
 **Serving.** Files are streamed by the app with an authorisation check: an approved, non-withdrawn Documentation item's renditions are public; pending media are visible only to their Submitter and to Moderators; originals are never public. PMTiles are served by Caddy from the data volume (Discovery spec).
+
+**Caching** ([#88](https://github.com/spippoli/tart/issues/88)). Files are immutable but their visibility is not: a Withdrawal or a legal action must take a public image down. So caching stays short:
+- Public renditions and previews: `Cache-Control: public, max-age=3600` with an ETag, so a takedown reaches intermediate caches within an hour.
+- Draft, pending, and other non-public media: `Cache-Control: private, no-store`.
+- The reference stack has no CDN. An Operator may put one in front only if it honours these headers and never extends their lifetime; the Operator documentation says so.
 
 ### 4. i18n shell
 
@@ -309,7 +319,7 @@ A good test exercises a module through its external interface and asserts observ
 - **Configuration loader**: a directory and an environment in, a validated configuration or a complete error list out (pytest). Fixtures: Rome's configuration as a valid case; one directory per failure (unknown key, wrong `config_version`, missing label, low-contrast accent, empty attribution, missing legal text). The same fixtures run through `tart config check`.
 - **Authentication and sessions**: through the HTTP API with FastAPI's test client and an email adapter that captures messages. Covers code expiry and attempt limits, registration under each `registration` mode, session revocation on sign-out, and the CSRF rules (missing custom header, foreign `Origin`).
 - **Storage**: one contract test suite run against both adapters (put, streamed get with byte ranges, delete, quarantine vs permanent). How the S3 adapter is exercised in CI is left to implementation.
-- **Media pipeline**: worker jobs fed fixture files (JPEG with GPS EXIF, rotated JPEG, HEIC, PNG, PDF, a truncated file, a decompression bomb, a file whose extension lies). Asserts on the stored outputs: no GPS or device identifiers in the original, no metadata in renditions, orientation applied, the rendition cap respected, rejections with error codes.
+- **Media pipeline**: worker jobs fed fixture files (JPEG with GPS EXIF, rotated JPEG, HEIC, AVIF, animated WebP, PNG, GIF, PDF, an image over 100 megapixels, a truncated file, a decompression bomb, a file whose extension lies). Asserts on the stored outputs: no GPS or device identifiers in the original, no metadata in renditions, orientation applied, the rendition cap respected, rejections with error codes.
 - **Shell**: Playwright with axe over the shell pages in every enabled UI language, at desktop and mobile widths: root redirect order, switcher, disabled-language 404, `lang` on content, keyboard-only navigation of the Menu button and user menu.
 - **CI checks** ([ADR 0004](../adr/0004-mvp-tech-stack.md), [ADR 0011](../adr/0011-provisional-software-license.md), [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)): missing message keys (frontend and backend), OpenAPI client drift, the dependency licence allow-list, and the third-party asset manifest.
 
@@ -346,8 +356,8 @@ A good test exercises a module through its external interface and asserts observ
 24. After processing, the stored original has no GPS or device identifiers, renditions carry no EXIF, XMP, or IPTC metadata, and EXIF orientation is applied.
 25. No public rendition exceeds the configured resolution cap; the original is never served publicly.
 26. The EXIF capture date and GPS reach the Submission form only as prefilled suggestions, and no Location is stored from them unless the Submitter places it.
-27. A PDF upload produces a first-page preview.
-28. Draft and pending media are served only to their Submitter and to Moderators; a never-edited draft is discarded after 24 hours, and an abandoned draft's media are deleted after `draft_expiry_days`.
+27. A PDF upload produces a first-page preview. Images and previews get thumbnail (480 px), view (1280 px), and large (cap) renditions by long edge, none upscaled; an image above 100 megapixels, a GIF, or a TIFF is refused with a translatable error code.
+28. Draft and pending media are served only to their Submitter and to Moderators; a never-edited draft is discarded after 24 hours, and an abandoned draft's media are deleted after `draft_expiry_days`; an upload never attached to a draft is deleted within 25 hours, and a rejected file at once. Public renditions are served with `public, max-age=3600`, everything else with `private, no-store`.
 
 **i18n shell**
 29. `/` redirects by cookie, then `Accept-Language`, then the Instance default; every other page is under a UI-language prefix.
@@ -455,11 +465,11 @@ The decisions are silent on these. Each needs a decision (or an owning ticket) b
 17. **Language of a sign-in email to an unregistered address.** Answered by [Notifications](https://github.com/spippoli/tart/issues/44): the sign-in page's UI language.
 
 **Media**
-18. **Accepted file types**: [ADR 0004](../adr/0004-mvp-tech-stack.md) names image processing, HEIC, and PDF; the research ([#10](https://github.com/spippoli/tart/issues/10)) listed JPEG, PNG, WebP, HEIC, AVIF, and PDF. The final list (AVIF in particular) is not decided. HEIC is also subject to legal review ([ADR 0011 §9](../adr/0011-provisional-software-license.md)); if ruled out, HEIC uploads are dropped. Owner: [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88).
-19. **Renditions**: the number and sizes of WebP renditions (the research suggested 3–4) and the pixel limit for the decompression guard are not decided. Owner: [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88).
+18. **Accepted file types.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): JPEG, PNG, WebP, AVIF, HEIC, and PDF; no GIF or TIFF; first frame only of animated images. HEIC stays subject to legal review ([ADR 0011 §9](../adr/0011-provisional-software-license.md)); see [Storage and media pipeline](#3-storage-and-media-pipeline).
+19. **Renditions.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): three WebP renditions by long edge (480 px, 1280 px, and the Instance cap), never upscaled; a 100-megapixel limit, enforced as an error; see [Storage and media pipeline](#3-storage-and-media-pipeline).
 20. **Upload limit scope**: whether `max_upload_mb` applies per file or per request is not stated. Owner: [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84).
-21. **Abandoned uploads**: when an upload not attached to any draft is cleaned up is not decided. Owner: [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88).
-22. **Caching** of served media (headers, whether a CDN may cache public renditions) is not decided; [ADR 0004](../adr/0004-mvp-tech-stack.md) rules out direct bucket access. Owner: [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88).
+21. **Abandoned uploads.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): deleted 24 hours after upload by an hourly sweep; rejected files at once.
+22. **Caching.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): `public, max-age=3600` with an ETag for public renditions, `private, no-store` otherwise; no CDN in the reference stack, and an Operator's CDN must honour the headers.
 
 **Shell**
 23. **Theme selection**: whether the light/dark theme follows `prefers-color-scheme` only or also offers a toggle is not decided. Owner: [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98).
