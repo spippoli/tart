@@ -200,6 +200,10 @@ _Avoid_: Feedback, comment
 A remark on a Submission, a Notice, a Withdrawal, or a Redaction, visible only to Moderators and never changed once written.
 _Avoid_: Comment, internal message
 
+**Moderator digest**:
+A daily email to a Moderator summarising the Submissions waiting for review, sent only when new ones have arrived since the previous digest; a Moderator may choose it instead of one email per Submission, or no email at all.
+_Avoid_: Newsletter, notification feed
+
 **Archive record**:
 An approved, authoritative Artwork, Artist, Location, Site, Series, Area, Source, or Documentation item as published to the public.
 _Avoid_: Entry, listing
