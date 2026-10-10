@@ -4,7 +4,7 @@ All changes to Archive records (Artworks, Artists, Locations, Sites, Series, Are
 
 ## Consequences
 
-- There is no "edit in place" path in the data model; a quick correction is still a Submission, possibly auto-approved by policy.
+- There is no "edit in place" path in the data model; a quick correction is still a Submission and goes through a Moderator like any other: there is no auto-approval (amended by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43); previously "possibly auto-approved by policy").
 - A Submission is approved or rejected as a whole; partial approval is not supported, so Moderators request changes instead. Moderators never amend a Submitter's content.
 - A Merge is a Submission. Undoing an approved change is a new Submission pre-filled from an earlier Revision, never a rollback.
 - Withdrawal is the one exception: it changes visibility, not content, so it is a direct Moderator action with its own log and produces no Revision.
