@@ -12,7 +12,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 |---|---|
 | [0001](../adr/0001-one-instance-per-deployment.md) | Records are local to one Instance; no cross-Instance Artist |
 | [0002](../adr/0002-every-change-is-a-submission.md) | Records change only through approved Submissions; one Revision per touched record; Withdrawal produces no Revision |
-| [0003](../adr/0003-location-as-shared-physical-surface.md) | Location as a shared surface; relocation as a History event; Locations have no Condition and are never deleted |
+| [0003](../adr/0003-location-as-shared-physical-surface.md) | Location as a shared surface; an Artwork's Location changes only by correction, a detached piece is `removed` (amended by #89); Locations have no Condition and are never deleted |
 | [0006](../adr/0006-derived-evidence-level.md) | Evidence level derived from citations on Claims; record-level citations are background |
 | [0007](../adr/0007-edit-submissions-as-field-changesets.md) | The field and item structure that edit changesets address |
 | [0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md) | Content rendered in the Content language with its own `lang`; dates through `Intl`; one message per Uncertain date precision × qualifier |
@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Content language, UI language, Instance configuration, Data licence, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Missing, Condition group, History event, Condition record, Creation event, Timeline, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution, User, Moderator, Submitter, Submission, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Notice.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), and [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds).
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event types, Condition mapping, Uncertain date ranges and ordering, stratigraphy).
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, storage and media pipeline, i18n shell, page shell).
 
@@ -34,7 +34,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 Urban art in Rome appears, changes, and disappears faster than anyone records it. What survives is scattered across personal photo rolls, social media, and articles, with no shared place that says what was on a given wall, who is believed to have made it, what happened to it, and how sure anyone is. Existing catalogues tend to treat a work as a pin with a photo: when the work is painted over, the pin is deleted and its history goes with it; when the author is uncertain, the uncertainty is either hidden or not recorded; and a contributor's guess looks the same as a documented fact.
 
-A visitor (Journey A) needs to open any artwork, including one that no longer exists, and understand what it is, where it is or was, what documentation exists and from when, who made it if known, what happened to it over time, and how much of that is evidenced. A researcher needs stable, citable pages and an inspectable record of how each entry changed. A community needs these records to survive overpainting, relocation, and demolition, and to tell the physical life of a work apart from the edits made to its database entry.
+A visitor (Journey A) needs to open any artwork, including one that no longer exists, and understand what it is, where it is or was, what documentation exists and from when, who made it if known, what happened to it over time, and how much of that is evidenced. A researcher needs stable, citable pages and an inspectable record of how each entry changed. A community needs these records to survive overpainting, removal, and demolition, and to tell the physical life of a work apart from the edits made to its database entry.
 
 ## Solution
 
@@ -68,7 +68,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 16. As a visitor, I want an Artwork without a Creation event to read as having an unknown creation date, distinct from its first documentation, so that I do not mistake the first photo for the date it was made.
 17. As a visitor, I want uncertain dates written as `c. 2016`, `before 2012`, or `2014–2015` in my UI language, so that uncertainty reads as language, not as an error.
 18. As a visitor, I want an overpainting event to link to the Artwork that covered this one, so that I can follow the layers on a wall.
-19. As a visitor, I want a relocation to appear as an event moving the Artwork between Locations, so that I can follow a work that was physically moved.
+19. As a visitor, I want a detached or moved piece to stay on the wall it came from as a `removed` event saying where it went, so that the wall keeps the memory of what was there.
 20. As a visitor, I want the Sources cited by the Artwork, so that I can check the references myself.
 21. As a visitor, I want links to related Artworks (same Location, same Artist, same Series), so that I can continue exploring.
 22. As a visitor, I want each Artwork page to link to its Revisions, so that I can see how the record itself was edited, separately from the work's physical history.
@@ -154,7 +154,17 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 
 ### Uncertain date
 
-- An Uncertain date stores an earliest–latest range, a precision (`day`, `month`, `year`, `decade`, `unknown`), and a qualifier (`exact`, `circa`, `before`, `after`).
+- An Uncertain date is entered as a precision (`day`, `month`, `year`, `decade`, `unknown`), a qualifier (`exact`, `circa`, `before`, `after`), and one or two values at that precision. A second value is allowed only with `exact` and gives the "from–to" form (`2014–2015`, `March–May 2016`). `unknown` is a precision only: it has no value and no qualifier. The form's "Unknown date" choice stores precision `unknown` ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
+- It stores the entered values together with a derived earliest–latest range (day-precise bounds, either of which may be open):
+  - the **base range** of a value is the first to the last day it covers (`2016` → 1 Jan–31 Dec 2016; `March 2016` → 1–31 Mar; `1990s` → 1 Jan 1990–31 Dec 1999);
+  - `exact`: the base range, or from the start of the first value to the end of the second;
+  - `circa`: the base range widened by one unit of the precision on each side (`c. 2016` → 2015–2017; `c. March 2016` → Feb–Apr 2016; `c. 1990s` → 1980–2009);
+  - `before X`: earliest open, latest the day before X starts;
+  - `after X`: earliest the day after X ends, latest the date of the Submission;
+  - `unknown`: both bounds open;
+  - no latest bound is ever later than the date of the Submission; this also truncates `circa`.
+- The range is used only for filtering by overlap ([Discovery](discovery.md)). Ordering uses the chronological key below.
+- **Chronological key**: the midpoint of the base range of the entered values, ignoring the widening of `circa`: `2016` and `c. 2016` → mid-2016; `2014–2015` → end of 2014; `before X` → the start of X; `after X` → the end of X. Ties are broken by the later approval (the Revision timestamp), then by id, so information approved later wins. An `unknown` date has no key. The same key orders the Condition derivation, the Timeline, the stratigraphy, and first and last documentation, in both directions.
 - It is used for: the Observed date of Documentation items and History events, the date of a Creation event, an Artist's period of activity, and Crew membership periods.
 - Display uses one platform message per precision × qualifier combination, formatted with `Intl` in the UI language and the Instance's time zone (ADR 0008), producing forms such as `c. 2016`, `before 2012`, `2014–2015` (ADR 0015).
 - Uncertain dates are never "disputed". When Sources conflict, the History event carries the widest compatible range and a note.
@@ -167,19 +177,19 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Title | Optional, Content language. Without one, every surface shows an explicit "Untitled" (a UI string) |
 | Expression types | One or more, from the open vocabulary |
 | Description | Optional free text, subject to the Artist content rules of ADR 0014 when it names people |
-| Location | Exactly one current Location (an Artwork is on one Location at a time) |
+| Location | Exactly one Location. It changes only to correct wrong data, never for a physical move |
 | Attributions | Zero or more (see Attribution) |
 | History events | Zero or more; the Artwork's physical history |
 | Documentation items | Linked many-to-many; a new Artwork has at least one (Contribution and moderation validates this) |
 | Series | Linked to Series |
 | Sources | Record-level citations: background references that never change an Evidence level (ADR 0006) |
 
-- Identity rules (from [#3](https://github.com/spippoli/tart/issues/3)): overpainting by someone else creates a new Artwork, and the old one gets an overpainting History event optionally linking to the covering Artwork; a refresh by the same artist is a `modified` event on the same Artwork; a physical move is a `relocated` event between Locations.
-- An edit Submission may move the Artwork to another Location; editing a Location's geometry is a separate Submission on that Location ([#27](https://github.com/spippoli/tart/issues/27)). A `relocated` History event records that the Artwork was physically moved. How the two relate is open item 5.
+- Identity rules (from [#3](https://github.com/spippoli/tart/issues/3)): overpainting by someone else creates a new Artwork, and the old one gets an overpainting History event optionally linking to the covering Artwork; a refresh by the same artist is a `modified` event on the same Artwork; a detached or moved piece gets a `removed` event on its original Location, whose note and citations say where it went, and if it reappears in another urban place that is a new Artwork documented there (ADR 0003, amended by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
+- An edit Submission may change the Artwork's Location to correct wrong data; it produces a Revision and no History event. Editing a Location's geometry is a separate Submission on that Location ([#27](https://github.com/spippoli/tart/issues/27)).
 - Derived values, never stored by hand:
   - **Condition**: see Physical history.
-  - **First documentation**: the earliest Observed date among the Artwork's public Documentation items.
-  - **Last documented**: the latest Observed date among the Artwork's public Documentation items.
+  - **First documentation**: the Observed date of the Artwork's public Documentation item that comes first by chronological key.
+  - **Last documented**: the Observed date of the Artwork's public Documentation item that comes last by chronological key.
   - **Areas**: the Areas the Artwork's Location falls within by geometry.
 
 ### Location
@@ -194,6 +204,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 
 - A Location has no Condition, no physical history of its own, and is never deleted (ADR 0003).
 - Several Artworks can share a Location, side by side or in succession.
+- **Stratigraphy**: the Artworks on a Location, ordered by the chronological key of their Creation event, or of their first documentation when they have none, most recent first; ties as for the key. `covered` links never reorder it: a covered Artwork placed above the one covering it is inconsistent data, corrected by a Submission. Disappeared Artworks stay in it with their Condition word and sign. The Location page and the map side panel use the same order ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)).
 - Documentation items that document a disappearance link to the Location as well as to the Artworks (glossary: Documentation item).
 
 ### Site, Area, Series
@@ -266,16 +277,32 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 ### Physical history
 
 - **History events** are Claims on one Artwork. Each has a type from the platform's closed vocabulary (ADR 0009), an Observed date (Uncertain date), an optional note, citations (Sources and Documentation items), and type-specific links:
-  - an overpainting event may link the covering Artwork;
-  - a `relocated` event links the Location moved from and the Location moved to.
-- Event types named by the decisions so far: `created` (the Creation event), `condition recorded` (the Condition record), `attribution changed`, `modified`, `relocated`, and an overpainting event; the glossary also names damage, removal, and destruction as occurrences. The full list of type keys is an open item (see Further Notes).
+  - a `covered` event may link the covering Artwork.
+- The closed vocabulary has nine types ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)):
+
+| Type | Meaning | Sets Condition |
+|---|---|---|
+| `created` | The Creation event: the Artwork was made | No |
+| `condition recorded` | The Condition record: the state observed, without asserting a change | The Condition it states (any of the nine) |
+| `deteriorated` | Natural decay (fading, flaking, peeling) | `deteriorated` |
+| `damaged` | Partial damage (vandalism, tags over it, breakage) | `damaged` |
+| `modified` | Altered or refreshed by the same artist | `modified` |
+| `covered` | Covered by overpainting, buffing, or posters; optionally links the covering Artwork | `covered` |
+| `removed` | Taken away from its surface (detached, scraped off, removed); the note says where it went when known | `removed` |
+| `destroyed` | Destroyed with its surface (demolition) | `destroyed` |
+| `attribution changed` | A real-world change of attribution, such as an artist publicly claiming a piece | No |
+
+- The seven types that set a Condition are the **condition-changing** types. `missing`, `unknown`, a restoration (`intact`), and a covered piece re-exposed are recorded with a `condition recorded` event. There is no `relocated`, `restored`, or `not found` type.
 - History events have no certainty of their own; their Evidence level and the `missing` Condition are enough ([#4](https://github.com/spippoli/tart/issues/4)).
-- **Condition** is one of `intact`, `deteriorated`, `damaged`, `modified`, `covered`, `removed`, `destroyed`, `missing`, `unknown`. It is always derived from the Artwork's most recent condition-changing History event, never stored or set by hand, and recomputed on every approval that touches the Artwork's History events ([#5](https://github.com/spippoli/tart/issues/5)).
+- **Condition** is one of `intact`, `deteriorated`, `damaged`, `modified`, `covered`, `removed`, `destroyed`, `missing`, `unknown`. It is always derived from the Artwork's most recent public condition-changing History event by chronological key, never stored or set by hand, and recomputed on every approval that touches the Artwork's History events ([#5](https://github.com/spippoli/tart/issues/5)).
 - A `condition recorded` event states the Condition observed on its Observed date without asserting a change; it counts for the derivation. Every new Artwork gets one, required and asked explicitly, dated to the latest Observed date and citing that document; there is no implicit `intact` ([#27](https://github.com/spippoli/tart/issues/27)).
+- Events with an `unknown` Observed date count for the derivation only when no dated condition-changing event is public; among them, the most recently approved wins.
+- **Invariant**: an approved Artwork always has at least one condition-changing History event. A Submission that would remove the last one is rejected at submission with a stable error code (form: "At least one event must record the Artwork's state"); the Submitter replaces it instead, for example with a `condition recorded` `unknown` event.
+- **Fallback**: when no condition-changing event is public (for example after a Redaction), the Condition shown is `unknown`, worded "state not documented", without a date. This is the only Condition shown without a date.
 - **Condition group** is derived from Condition: *present* (`intact`, `deteriorated`, `damaged`, `modified`), *disappeared* (`covered`, `removed`, `destroyed`, `missing`), *unknown* (`unknown`). It describes whether the Artwork can still be seen where it is, never whether the record is public.
 - A disappeared Artwork remains a full public Archive record. Disappearance is never deletion.
 - **Creation**: the Creation event states when the Artwork was made. With no Creation event, the creation date is unknown and is shown as such; it is never inferred from the first documentation.
-- **Timeline**: the chronological presentation of an Artwork's public History events and public Documentation items. It never includes Revisions, Submission log entries, Withdrawals, or Redactions.
+- **Timeline**: the chronological presentation of an Artwork's public History events and public Documentation items, ascending by chronological key; on equal keys a History event precedes a Documentation item. Items with an `unknown` Observed date follow in a final "Undated" group. It never includes Revisions, Submission log entries, Withdrawals, or Redactions.
 
 ### Evidence level
 
@@ -332,7 +359,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 2. **Gallery**: the public Documentation items with their Observed dates, Creator credits, and licences ("covers the file only").
 3. **Where**: mini-map, Location (link), Areas, Site, and the approximate-location notice when applicable.
 4. **Description and Attribution detail**: the description; each Attribution with certainty, Alias used, note, Evidence level, and citations.
-5. **Timeline**: History events and Documentation items in chronological order; each History event shows its type, Observed date, submitted date, approved date, Evidence level, citations, note, and links (covering Artwork, Locations of a relocation).
+5. **Timeline**: History events and Documentation items in chronological order; each History event shows its type, Observed date, submitted date, approved date, Evidence level, citations, note, and the covering Artwork link of a `covered` event.
 6. **Sources**: the record-level Sources.
 7. **Related**: Artworks on the same Location, by the same Artist, and in the same Series.
 8. **Actions**: propose an edit, add documentation, report a condition change, report content. Contribution actions for an anonymous visitor go to sign-in with `?next=` and return.
@@ -341,7 +368,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 **Other record pages** follow a reduced version of the same pattern ([#15](https://github.com/spippoli/tart/issues/15)):
 
 - **Artist**: header (name, kind, Aliases, period of activity), biography, Areas of activity, Crew memberships (in both directions: members of a collective, collectives a member belongs to), attributed Artworks each with its Attribution certainty in words, Sources, actions, Revisions link. No image of the person.
-- **Location**: header (Surface type, exact or approximate with radius, Site, Areas), mini-map, the stratigraphy (the Artworks on that surface in succession, each with its Condition word and sign), the Documentation items that document disappearances there, actions, Revisions link.
+- **Location**: header (Surface type, exact or approximate with radius, Site, Areas), mini-map, the stratigraphy (the Artworks on that surface, most recent first as defined under Location, each with its Condition word and sign), the Documentation items that document disappearances there, actions, Revisions link.
 - **Site, Area, Series**: header (name, and for Site and Area their place), map, list of Artworks with Condition word and sign, Sources, actions, Revisions link.
 - **Source** and **Documentation item**: minimal permalinks, needed for citation, Notices, and Merge redirects. A Source shows its reference and what cites it. A Documentation item shows the file rendition or preview (or text, or link), Observed date, Creator credit, licence with "covers the file only", the Artworks it documents, and, for a disappearance, its Location.
 
@@ -353,7 +380,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 
 - Words carry the meaning, shape carries the group, colour is redundant. Three signs, one per Condition group, used identically on cards, record pages, and the Timeline: solid square for *present*, dashed square for *disappeared*, dotted square for *unknown*, always next to the word for the exact Condition. The *unknown* sign needs a stronger differentiator than dotting (for example a "?" inside) when drawn.
 - An approximate Location is drawn as a hatched area with a smaller sign and no precise point, and stated in words with its radius when known.
-- A Condition is never shown without a date: "Intact · last documented 12 Apr 2026".
+- A Condition is never shown without a date: "Intact · last documented 12 Apr 2026". The only exception is the `unknown` fallback "state not documented" (see Physical history).
 - Uncertainty is language, not alarm: no warning icons, no red. Fixed wordings: `[name] — probable attribution`, `Disputed attribution: A or B`, `Unknown artist`, `approximate location, within N m`, `documented · N sources`, `reported · no sources cited` (all UI strings, translated).
 - Cards show only the Condition and the latest documentation date; the Timeline shows the three dates of each History event.
 - One accent colour marks *disappeared*, one marks pending content; both stay readable in grayscale.
@@ -406,6 +433,15 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 33. The Timeline is a semantic, chronologically ordered list; the gallery exposes each item's Observed date as text.
 34. Axe checks report no violations on each record page kind, in both UI languages, in the states: complete record, Untitled, unknown artist, disputed attribution, approximate location, disappeared, destroyed, no image (link-only documentation), pending (as Submitter), merged, withdrawn.
 
+**Physical history and Uncertain dates**
+
+35. The History event type vocabulary is exactly the nine types of Physical history, and each condition-changing type sets the Condition in its table.
+36. The derived range matches the rules of Uncertain date for every precision × qualifier, including open bounds for `before` and `unknown`, `after` closed at the Submission date, and no latest bound after the Submission date; a second value is rejected unless the qualifier is `exact`.
+37. Of two condition-changing events with equal chronological keys, the later-approved one sets the Condition; an `unknown`-dated event never overrides a dated one.
+38. A Submission that would leave an Artwork with no condition-changing History event is rejected with a stable error code; an Artwork whose condition-changing events are all non-public shows `unknown` with "state not documented".
+39. Changing an Artwork's Location creates no History event, and the Artwork leaves its former Location's stratigraphy.
+40. The stratigraphy lists Artworks by the chronological key of their Creation event, or of their first documentation without one, most recent first, regardless of `covered` links.
+
 ## Instance configuration
 
 Exact key names belong to the [Foundations](foundations.md) spec, which owns `instance.toml`; this spec reads the following values.
@@ -427,7 +463,7 @@ The Data licence is shown in the footer (Foundations); this spec does not render
 ## Testing Decisions
 
 - Test external behaviour only: the archive domain's public interface (read views, the write operation, derivations), the API's responses, and the rendered pages. Never assert on table layouts or private helpers.
-- **Archive domain (unit, pytest)**: Uncertain date construction and the precision × qualifier matrix; Condition derivation over sequences of History events, including `condition recorded`, disappearance, and ordering of uncertain Observed dates once decided; Condition group mapping; Evidence level derivation, including record-level citations not counting; Attribution rules (`confirmed` needs a citation, collaboration, disputed alternatives); the image-shows-a-single-Location rule; the boundary and self-intersection checks; that no operation deletes Artworks or Locations.
+- **Archive domain (unit, pytest)**: Uncertain date construction and the precision × qualifier matrix; Condition derivation over sequences of History events, including `condition recorded`, disappearance, and ordering by chronological key, ties, and `unknown`-dated events; range derivation for every precision × qualifier; the at-least-one-condition-changing-event invariant; Condition group mapping; Evidence level derivation, including record-level citations not counting; Attribution rules (`confirmed` needs a citation, collaboration, disputed alternatives); the image-shows-a-single-Location rule; the boundary and self-intersection checks; that no operation deletes Artworks or Locations.
 - **Persistence and API (integration, pytest against PostGIS)**: Area membership by geometry, including overlapping Areas; one Revision per touched record in one transaction; visibility of pending content by caller (public, Submitter, Moderator, other User); 301 for slugs and Merge, 410 for Withdrawal, 404 for pending-only records; Moderation notes never returned to non-Moderators.
 - **Pages (end-to-end, Playwright with axe)**: each record page kind in both UI languages, through the state matrix in acceptance criterion 34; keyboard-only reading of gallery and Timeline; rendering without WebGL2; grayscale check of the three signs.
 - **i18n**: the missing-key check covers every Condition, History event type, certainty, Evidence level, Uncertain date, and vocabulary label message.
@@ -451,12 +487,12 @@ The Data licence is shown in the footer (Foundations); this spec does not render
 
 The inputs leave these questions unsettled. Implementers must not fill them by assumption; each needs a decision (a resolution comment or an ADR) before the affected ticket is built.
 
-1. **History event type list and Condition mapping.** The closed vocabulary of History event types is not enumerated. The decisions name `created`, `condition recorded`, `attribution changed`, `modified`, `relocated`, and an overpainting event (whose key is not fixed), and the glossary mentions damage, removal, and destruction. Still undecided: the full list of keys; which types are condition-changing; which Condition each sets (for example whether overpainting sets `covered`); and whether `created`, `relocated`, and `attribution changed` affect Condition.
-2. **"Most recent" with Uncertain dates.** Condition derives from the most recent condition-changing event, and the Timeline is chronological, but no rule orders events whose Observed date ranges overlap or have `unknown` precision, or breaks ties.
-3. **Artwork with no condition-changing event.** The form requires an initial Condition record, but the derived Condition is undefined if none exists (for example after an edit removes it). The fallback (presumably `unknown`) and whether such an edit is allowed are not decided.
-4. **Range derivation.** How the stored earliest–latest range is computed from a qualifier, precision, and value (for example the range of "c. 2016" or "before 2012") is not decided. Also, the form ([#27](https://github.com/spippoli/tart/issues/27)) lists `unknown` among the qualifiers, while the glossary lists it as a precision; the stored model follows the glossary until reconciled.
-5. **Relocation and the Location field.** Whether approving a `relocated` event updates the Artwork's Location by itself, or the Submission must also set the Location field, is not decided; nor whether a relocated Artwork still appears in its former Location's stratigraphy.
-6. **Stratigraphy order.** The order of Artworks on a Location page (by creation, first documentation, or overpainting links) is not decided.
+1. **History event type list and Condition mapping.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): nine types, seven of them condition-changing; see Physical history.
+2. **"Most recent" with Uncertain dates.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): the chronological key with ties broken by later approval; see Uncertain date.
+3. **Artwork with no condition-changing event.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): such a Submission is rejected; with no public condition-changing event the Condition shows `unknown` ("state not documented"); see Physical history.
+4. **Range derivation.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): see Uncertain date; `unknown` is a precision only.
+5. **Relocation and the Location field.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): there is no `relocated` type; a detached piece is `removed` on its original Location, and the Location field changes only by correction (ADR 0003 amended).
+6. **Stratigraphy order.** Answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89): by the chronological key of the Creation event, else first documentation, most recent first; see Location.
 7. **Descriptive fields of Site, Area, Series, and Source.** Beyond names, geometry, and a Source's language tag, no decision fixes descriptions for Sites, Areas, and Series, or the citation fields of a Source (title, author, publication, date, URL). The Artist period of activity and Crew membership periods are "an Uncertain date period": whether that is one Uncertain date or a start and end pair is not decided.
 8. **Series membership cardinality.** Whether an Artwork may belong to several Series is not decided. Likewise, whether a collective may be a member of another collective.
 9. **Location text.** A Location has no name or address field in the decisions, so its page title, its text description for users without the map (acceptance criterion 30 relies on Areas and Site only), and the slugless route follow from that. Whether to add a textual address or description is open.
