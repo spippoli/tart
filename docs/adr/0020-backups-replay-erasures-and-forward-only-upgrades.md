@@ -11,7 +11,7 @@ An Instance backs up its database with `pg_dump` into a restic repository (7 dai
 
 ## Consequences
 
-- A Purge and an account deletion leave a content-free tombstone (kind, target id, date) in the Erasure log; the rest of what a Purge leaves behind is decided by the Rights and legal actions spec.
+- A Purge and an account deletion leave a content-free tombstone (kind, target id, date) in the Erasure log; the rest of what a Purge leaves behind is decided by the Rights and legal actions spec. *Amended by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95):* a Creator credit anonymisation writes an entry too, so a restore applies it again.
 - `api` and `worker` refuse to start when the database revision differs from the code's Alembic head, in the same fail-fast style as `config_version` (ADR 0009). This replaces "migrations run at `api` startup" in ADR 0004's topology.
 - A rollback loses the contributions made after the upgrade, so it only makes sense right after an upgrade.
 - Media copied with `rclone` have no snapshots: a legitimate deletion leaves the backup within 30 days, and so does an accidental deletion that goes unnoticed for longer than that.

@@ -233,7 +233,7 @@ Hiding an Archive record or Documentation item from the public for legal, rights
 _Avoid_: Deletion, takedown, removal (reserved for the physical History event)
 
 **Redaction**:
-Hiding the content of past Revisions of an Archive record from the public for legal, rights, or privacy reasons, while the record itself stays public.
+Hiding from the public, for legal, rights, or privacy reasons, selected operations of one or more Revisions of one Archive record (up to whole Revisions), including a value that is still current, while the record itself stays public.
 _Avoid_: Censoring, Withdrawal (reserved for whole records and Documentation items)
 
 **Reinstatement**:
@@ -245,7 +245,7 @@ The permanent erasure of withdrawn or redacted content, done only when the law r
 _Avoid_: Deletion, Withdrawal
 
 **Erasure log**:
-The content-free list of every Purge and account deletion, kept so that erasures are applied again after a restore from backup.
+The content-free list of every Purge, account deletion, and Creator credit anonymisation, kept so that erasures are applied again after a restore from backup.
 _Avoid_: Deletion log, Purge log
 
 **Notice**:
