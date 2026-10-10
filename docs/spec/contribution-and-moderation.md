@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Content language, UI language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Base revision, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Notice, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Condition group, History event, Condition record, Creation event, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, authentication and sessions, media pipeline, i18n shell, Operator CLI), [Archive records](archive-records.md) (record model, the archive write operation, Revisions, pending-content display on record pages), and Discovery (the map module, used by the Location step and the Submission page).
 
@@ -72,7 +72,7 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 17. As a contributor, I want to enter the title or mark it explicitly Untitled, choose Expression types, and write a description, so that the record says what the work is.
 18. As a contributor, I want to say the authorship is unknown, or attribute it with a certainty, so that I never overstate who made it.
 19. As a contributor, I want to create a new Artist inline, with a reminder that only public artist names are allowed, so that I can attribute a work to an Artist not yet in the archive.
-20. As a contributor, I want to enter uncertain dates as a qualifier, a precision, and a value, with a live readout such as "c. 2019", so that I can say exactly how sure I am.
+20. As a contributor, I want to enter uncertain dates as a qualifier, a precision, and one or two values, with a live readout such as "c. 2019", so that I can say exactly how sure I am.
 21. As a contributor, I want to cite Sources, so that my Claims are documented.
 22. As a contributor, I want a preview of my contribution in the archive's own label, marked "Proposed · not public until approved", so that I see what Moderators will review.
 23. As a contributor, I want to leave a note to the Moderators that is never public, so that I can explain something or answer their request.
@@ -192,10 +192,20 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 | New Artwork | Location → Documentation → The Artwork (title or explicit *Untitled*, Expression types, description) → Attribution → Creation date (optional) → Sources → Review and submit |
 | Edit | What changes (per field: *Edit* reveals current vs proposed; item-level for Attributions) → Supporting Sources → Review and submit |
 | Add documentation | Documentation → "Does it show a change?" (optionally adds a History event citing the new files) → Sources → Review and submit |
-| History event (including disappearance) | Event type (grouped as still visible / no longer visible / other), Observed date, optional covering Artwork (existing or created inline) → Evidence (files and Sources, with a live Evidence level readout, *reported* if none) → Review and submit |
+| History event (including disappearance) | Event type (grouped as below), Observed date, optional covering Artwork (existing or created inline) → Evidence (files and Sources, with a live Evidence level readout, *reported* if none) → Review and submit |
 | New Artist | Public identity (artist name only, individual or collective, Aliases, biography) → Activity (Uncertain-date period, Areas, Crew memberships) → Sources → Review and submit |
 
-- An edit may move the Artwork to another Location; editing a Location's geometry is a separate Submission on that Location ([#27](https://github.com/spippoli/tart/issues/27)). The relation to a `relocated` History event is [Archive records](archive-records.md) open item 5.
+- An edit may change the Artwork's Location only to correct wrong data; it creates no History event. A detached or moved piece is reported as a `removed` event, with the note saying where it went. Editing a Location's geometry is a separate Submission on that Location ([#27](https://github.com/spippoli/tart/issues/27)).
+- **History event type groups** ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)), each type with a one-line description (a translated UI string; for `removed`: "taken away or detached from its surface; if it was moved elsewhere, say so in the note"):
+
+| Group | Types |
+|---|---|
+| Observed state | `condition recorded`, with the choice of Condition, `missing` and `unknown` included |
+| Visible change | `deteriorated`, `damaged`, `modified` |
+| Disappearance | `covered` (optional covering Artwork), `removed`, `destroyed` |
+| Other facts | `created`, `attribution changed` |
+
+- The Artwork page's "Report a condition change" action opens the History event step with the first three groups only; "Other facts" is reached from "Propose an edit".
 - The steps of the other kinds (new Site, Area, Series, or Source; Location geometry edits; Merge, Duplicate retirement, Unmerge) are open item 3.
 - Values from a `retired` vocabulary entry are not selectable in new Submissions (ADR 0009).
 
@@ -227,7 +237,7 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 - **Autosave** to the server draft, with a status line ("saved automatically · 10:42"), plus *Exit and continue later* and *Delete draft*.
 - **Resume**: reopening a draft lands on the first incomplete step with a dismissible notice.
 - **Validation** runs only on submit (and resubmit), never blocking navigation between steps. It shows a focused error summary at the top linking to each field, inline text errors bound with `aria-describedby` and `aria-invalid`, and step states as words (complete / to complete / to fix), never colour alone. The server validates again and answers with stable error codes.
-- **Uncertain date input**: qualifier, precision, and value, with a live readout ("c. 2019") and the stored range. The input lists the qualifiers exact, circa, before, after, unknown and the precisions day, month, year, decade; how this maps to the glossary's model is [Archive records](archive-records.md) open item 4.
+- **Uncertain date input**: qualifier (exact, circa, before, after), precision (day, month, year, decade), and one value, or two with `exact` for a "from–to" range, plus a separate "Unknown date" choice that stores precision `unknown` with no value or qualifier. A live readout ("c. 2019") shows the derived range defined in [Archive records](archive-records.md), Uncertain date.
 - **Attribution**: unknown authorship is an explicit choice. `confirmed` requires at least one citation (ADR 0006). Several non-disputed Attributions mean collaboration; alternatives are all `disputed`. A new Artist can be created inline, with the public-name-only rule shown (ADR 0014).
 - **Preview**: proposed content is drawn hatched with a dashed outline and labelled "Proposed · not public until approved". For History events, the displayed Condition stays unchanged until approval (ADR 0015).
 - **Note to Moderators**: optional, in the Review step, never public, stored as the message of that round's `submitted` log entry.
@@ -489,7 +499,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 16. **What Moderators see of a Submitter.** The queue filters by Submitter; whether Moderators see only the display name or also the email address is not decided.
 17. **Image and map comparison.** The brief (§17) asks for image comparison and a map preview in review. The decisions fix the current-versus-proposed comparison but not how files and geometries are compared (side by side, overlay).
 18. **Location step without WebGL2.** Answered by [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40), point 6: existing-Location text list, coordinates field (always available, as a third mode), current position, Point only without WebGL2, no geocoding; see the Location step and [Discovery](discovery.md#location-entry-without-the-map).
-19. **Dependencies on Archive records open items.** The History event step's type grouping depends on the History event type list ([Archive records](archive-records.md) open item 1); the date input's `unknown` qualifier on open item 4; moving an Artwork versus a `relocated` event on open item 5; image text alternatives, which the Documentation step would collect, on open item 10.
+19. **Dependencies on Archive records open items.** The History event type groups, the date input, and Location correction versus physical moves are answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (see Form flow). Still open: image text alternatives, which the Documentation step would collect ([Archive records](archive-records.md) open item 10).
 
 ### Notes
 

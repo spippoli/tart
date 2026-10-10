@@ -95,7 +95,7 @@ _Avoid_: Visible, no longer visible, existing, gone, status
 ### Physical history
 
 **History event**:
-A dated occurrence in an Artwork's physical life, such as creation, damage, overpainting (optionally linked to the covering Artwork), a Condition record, relocation between Locations, removal, destruction, or a real-world attribution change (e.g. an artist publicly claiming a piece); a correction to an Attribution is a Revision, not a History event.
+A dated occurrence in an Artwork's physical life, such as creation, damage, overpainting (optionally linked to the covering Artwork), a Condition record, removal (including detachment of a piece taken elsewhere), destruction, or a real-world attribution change (e.g. an artist publicly claiming a piece); a correction to an Attribution is a Revision, not a History event.
 _Avoid_: Change, edit, update, log entry
 
 **Condition record**:
@@ -111,7 +111,7 @@ The chronological presentation of an Artwork's History events and Documentation 
 _Avoid_: History (unqualified)
 
 **Uncertain date**:
-A historical date expressed as an earliest–latest range with a precision (day, month, year, decade, unknown) and a qualifier (exact, circa, before, after).
+A historical date given as one or two values at a precision (day, month, year, decade, unknown) with a qualifier (exact, circa, before, after), from which an earliest–latest range is derived; an unknown date has no value and no qualifier.
 _Avoid_: Fuzzy date, approximate date
 
 **Observed date**:

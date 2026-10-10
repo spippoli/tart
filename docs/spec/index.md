@@ -129,6 +129,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Spec index and Foundations housekeeping](https://github.com/spippoli/tart/issues/82) | This index, `foundations.md` | Spec index; Foundations |
 | [Apply decided answers across feature specs](https://github.com/spippoli/tart/issues/83) | ADR 0002 (amended), `archive-records.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md` | Contribution and moderation; Archive records; Rights and legal actions; Notifications |
 | [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | `foundations.md` | Foundations |
+| [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | ADR 0003 (amended), Glossary, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md` | Archive records; Discovery; Contribution and moderation |
 
 ### Open
 
@@ -140,7 +141,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
-| [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | Archive records; Discovery; Contribution and moderation |
 | [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
 | [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) | Archive records; Rights and legal actions; Operations and portability |
 | [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) | Archive records; Rights and legal actions; Discovery |
