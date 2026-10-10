@@ -127,6 +127,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) | `notifications.md` | Notifications |
 | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) | `operations-and-portability.md` | Operations and portability |
 | [Spec index and Foundations housekeeping](https://github.com/spippoli/tart/issues/82) | This index, `foundations.md` | Spec index; Foundations |
+| [Apply decided answers across feature specs](https://github.com/spippoli/tart/issues/83) | ADR 0002 (amended), `archive-records.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md` | Contribution and moderation; Archive records; Rights and legal actions; Notifications |
 | [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | `foundations.md` | Foundations |
 
 ### Open
@@ -135,7 +136,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 
 | Ticket | Feeds |
 |---|---|
-| [Apply decided answers across feature specs](https://github.com/spippoli/tart/issues/83) | Contribution and moderation; Archive records; Rights and legal actions; Notifications |
 | [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) | Foundations; Contribution and moderation; Notifications |
 | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
