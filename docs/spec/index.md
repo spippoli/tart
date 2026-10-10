@@ -47,7 +47,7 @@ Build in this order; each spec depends only on the ones above it.
 | 4 | Contribution and moderation | [`contribution-and-moderation.md`](contribution-and-moderation.md) | Submission form, lifecycle, duplicates and Merge, roles | [Compile Contribution and moderation spec](https://github.com/spippoli/tart/issues/53) |
 | 5 | Rights and legal actions | [`rights-and-legal-actions.md`](rights-and-legal-actions.md) | Per-file licences, Notices, Withdrawal, Redaction, Reinstatement, Purge, account deletion | [Compile Rights and legal actions spec](https://github.com/spippoli/tart/issues/54) |
 | 6 | Notifications | [`notifications.md`](notifications.md) | Email notifications | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) |
-| 7 | Operations and portability | `operations-and-portability.md` | Backups, upgrades, monitoring, public data dump, Operator compliance checklist | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) |
+| 7 | Operations and portability | [`operations-and-portability.md`](operations-and-portability.md) | Backups, upgrades, monitoring, public data dump, Operator compliance checklist | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) |
 
 A feature spec is compiled as soon as the decision tickets it needs are closed; the compile ticket's blockers in the tracker show which specs are ready. A file listed here that does not exist yet has not been compiled.
 
