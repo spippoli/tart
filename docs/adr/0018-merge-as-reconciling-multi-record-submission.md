@@ -15,4 +15,4 @@ A Merge folds a duplicate Archive record X into a surviving record Y of the same
 - Merging Artists adds X's name and Aliases to Y as Aliases, pre-filled and editable in the changeset (ADR 0014 still applies: never a legal name).
 - After a Merge, X's page answers 301 to Y, but X's `/revisions` subpage answers 200 and shows X's own Revisions read-only with a "merged into Y" notice; Y's Merge Revision links to it (ADR 0010 amended).
 - Merge, Duplicate retirement, and Unmerge are allowed only when both records are public and neither has an open Notice; otherwise the Submission is Outdated. Redacted Revisions of X stay redacted.
-- Any User may propose these Submissions and a Moderator approves them; finer role tiers belong to the roles ticket.
+- Any User may propose these Submissions, and approving them is an ordinary Moderator duty: no higher role tier is needed.
