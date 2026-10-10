@@ -1,0 +1,502 @@
+<!doctype html>
+<!--
+  PROTOTYPE (issue #36 "Map cartography style"), throwaway. Not production code.
+  Question: what should TART's basemap look like under the ADR 0015 signs?
+  Four structurally different basemap strands of central Rome, switchable via ?variant=A|B|C|D,
+  with the checks of research R8 (low DPI, greyscale, deuteranopia) and the open decisions as toggles.
+  Run: python3 frontend/prototypes/map-cartography/serve.py  →  http://localhost:8036/?variant=A
+  All artwork markers, approximate areas and Area records are FICTIONAL sample data.
+  UI strings are hardcoded on purpose (prototype); production strings come from Paraglide.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Map cartography</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.css">
+<style>
+  html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
+  #map { position: absolute; inset: 0; }
+  #map.f-grey { filter: grayscale(1); }
+  #map.f-deut { filter: url(#deuteranopia); }
+  #map.f-prot { filter: url(#protanopia); }
+
+  /* --- design under evaluation: legend, pan pad, popup ------------------------------------- */
+  .legend { position: absolute; left: 12px; bottom: 44px; padding: 10px 12px; font: 13px/1.5 "Spectral", Georgia, serif;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--casing); max-width: 240px; }
+  .legend h2 { font: 600 11px/1.4 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 6px; }
+  .legend div { display: flex; align-items: center; gap: 8px; }
+  .legend canvas { flex: none; }
+  .panpad { position: absolute; right: 12px; bottom: 44px; display: grid; grid-template-columns: repeat(3, 36px); gap: 4px; }
+  .panpad button { width: 36px; height: 36px; font: 600 16px system-ui; background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink); border-radius: 2px; cursor: pointer; }
+  .panpad button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .maplibregl-popup-content { background: var(--paper); color: var(--ink); font: 14px/1.45 "Spectral", Georgia, serif;
+    border: 1px solid var(--ink); border-radius: 0; box-shadow: none; }
+  .maplibregl-popup-tip { display: none; }
+  .maplibregl-popup-content small { font-family: system-ui, sans-serif; font-size: 12px; }
+
+  /* --- prototype chrome, deliberately NOT part of the design ------------------------------- */
+  .proto { position: absolute; top: 10px; right: 10px; width: 330px; max-height: calc(100% - 220px); overflow: auto;
+    background: #111; color: #eee; font: 12px/1.4 ui-monospace, monospace; padding: 10px; border-radius: 8px;
+    box-shadow: 0 4px 16px #0008; z-index: 5; }
+  .proto.collapsed > :not(.proto-head) { display: none; }
+  .proto-head { display: flex; justify-content: space-between; align-items: center; }
+  .proto h3 { margin: 10px 0 4px; font-size: 11px; color: #f5c518; text-transform: uppercase; letter-spacing: .08em; }
+  .proto button, .proto select { font: inherit; background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 2px 6px; margin: 1px; cursor: pointer; }
+  .proto button[aria-pressed="true"] { background: #f5c518; color: #111; border-color: #f5c518; }
+  .proto table { border-collapse: collapse; width: 100%; }
+  .proto td { padding: 1px 4px; border-bottom: 1px solid #333; }
+  .proto td.n { text-align: right; }
+  .proto .bad { color: #ff8a80; } .proto .ok { color: #9ccc65; }
+  .proto .note { color: #aaa; margin: 4px 0; }
+  .switcher { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px;
+    align-items: center; background: #111; color: #fff; padding: 6px 10px; border-radius: 999px; font: 13px system-ui; box-shadow: 0 4px 16px #0008; }
+  .switcher button { background: #333; color: #fff; border: 0; border-radius: 999px; width: 28px; height: 28px; cursor: pointer; font-size: 14px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Machado et al. 2009 simulation matrices, severity 1.0 -->
+  <filter id="deuteranopia" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="
+    0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/></filter>
+  <filter id="protanopia" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="
+    0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
+</svg>
+
+<div id="map"></div>
+
+<aside class="legend" aria-label="Legend">
+  <h2>Legend</h2>
+  <div><canvas data-sign="present" width="22" height="22"></canvas>present (intact, damaged…)</div>
+  <div><canvas data-sign="disappeared" width="22" height="22"></canvas>disappeared (covered, removed…)</div>
+  <div><canvas data-sign="unknown" width="22" height="22"></canvas>condition unknown</div>
+  <div><canvas data-sign="approx" width="22" height="22"></canvas>approximate location</div>
+</aside>
+
+<div class="panpad" role="group" aria-label="Move and zoom the map">
+  <button data-zoom="1" aria-label="Zoom in">+</button><button data-pan="0,-1" aria-label="Move north">↑</button><button data-zoom="-1" aria-label="Zoom out">−</button>
+  <button data-pan="-1,0" aria-label="Move west">←</button><button data-home aria-label="Back to default view">⌂</button><button data-pan="1,0" aria-label="Move east">→</button>
+  <span></span><button data-pan="0,1" aria-label="Move south">↓</button><span></span>
+</div>
+
+<section class="proto" id="proto">
+  <div class="proto-head"><strong>PROTOTYPE #36</strong><button id="collapse">hide</button></div>
+  <div id="variantName"></div>
+  <h3>Place (R8)</h3>
+  <div id="places"></div>
+  <h3>Theme</h3>
+  <div data-param="theme" data-opts="light,dark"></div>
+  <h3>Check</h3>
+  <div data-param="filter" data-opts="none,grey,deut,prot"></div>
+  <div data-param="dpi" data-opts="native,1x"></div>
+  <h3>Decisions</h3>
+  <div class="note">Public/monumental buildings tint</div>
+  <div data-param="public" data-opts="off,on"></div>
+  <div class="note">Walls + archaeology overlay (OSM)</div>
+  <div data-param="overlay" data-opts="off,on"></div>
+  <div class="note">District labels</div>
+  <div data-param="districts" data-opts="osm,areas,none"></div>
+  <div class="note">Approx-area hatch spacing (px, 45°)</div>
+  <div data-param="hatch" data-opts="4,6,8,10"></div>
+  <div class="note">Approx-area outline</div>
+  <div data-param="approxline" data-opts="none,solid"></div>
+  <div class="note">Label language (UI)</div>
+  <div data-param="lang" data-opts="it,en"></div>
+  <h3>Contrast (WCAG ratio)</h3>
+  <table id="contrast"></table>
+  <h3>State</h3>
+  <pre id="state" style="white-space:pre-wrap;margin:0"></pre>
+</section>
+
+<nav class="switcher" aria-label="Prototype variant switcher">
+  <button id="prev" aria-label="Previous variant">←</button>
+  <span id="switchLabel"></span>
+  <button id="next" aria-label="Next variant">→</button>
+</nav>
+
+<script type="module">
+import * as maplibregl from "https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs";
+import { Protocol } from "https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/+esm";
+import { layers as pmLayers, namedFlavor } from "https://cdn.jsdelivr.net/npm/@protomaps/basemaps@5.7.2/+esm";
+
+const BASE = new URL(".", location.href).href;
+
+// ---------------------------------------------------------------------------------------------
+// Variants: four basemap strands. Tokens follow research R2; structure flags change the drawing.
+// ---------------------------------------------------------------------------------------------
+const VARIANTS = {
+  A: {
+    name: "Line plan + one warm tint",
+    blurb: "EB1911 strand (R1): paper streets, warm block tint with casing outlines, serif labels.",
+    serif: true, buildingOutline: true, streetCasing: true, buildings: true, waterlines: true, rail: "chequer",
+    light: { paper: "#F4EFE4", block: "#EBDCD2", blockPublic: "#D9B8A8", park: "#E2E6D3", water: "#D3DEE0", waterline: "#9DB2B8",
+      ink: "#2A2521", casing: "#857A70", roadFill: "#F4EFE4", ruinLine: "#7A6C60", labelStreet: "#3A332E", labelDistrict: "#6A5546",
+      labelWater: "#3F5F69", markerInk: "#1F1B18", accent: "#2E3F8F" },
+    dark: { paper: "#1D1B19", block: "#2A2522", blockPublic: "#3A2F2A", park: "#232821", water: "#1B2427", waterline: "#33454B",
+      ink: "#E9E2D6", casing: "#7A7068", roadFill: "#1D1B19", ruinLine: "#9C8E80", labelStreet: "#D8CFC3", labelDistrict: "#B9A694",
+      labelWater: "#9FBAC2", markerInk: "#F4EFE4", accent: "#9DB0FF" },
+  },
+  B: {
+    name: "Figure-ground (Nolli poché)",
+    blurb: "Solid mid-tone building masses, no street casings: the city reads as mass vs open space.",
+    serif: true, buildingOutline: false, streetCasing: false, buildings: true, waterlines: false, rail: "line",
+    light: { paper: "#F7F4EE", block: "#C9C1B6", blockPublic: "#A99E92", park: "#E3E6D8", water: "#D6DFE2", waterline: null,
+      ink: "#2A2521", casing: "#F7F4EE", roadFill: "#F7F4EE", ruinLine: "#6E6257", labelStreet: "#2F2925", labelDistrict: "#4F4339",
+      labelWater: "#3B5963", markerInk: "#1A1613", accent: "#26357A" },
+    dark: { paper: "#161514", block: "#3B3631", blockPublic: "#4E463F", park: "#1E221C", water: "#152024", waterline: null,
+      ink: "#ECE6DB", casing: "#161514", roadFill: "#161514", ruinLine: "#A49582", labelStreet: "#E2DACE", labelDistrict: "#C9B8A6",
+      labelWater: "#A6C2CA", markerInk: "#FAF6EE", accent: "#AEBDFF" },
+  },
+  C: {
+    name: "Chromolitho tint (Baedeker)",
+    blurb: "Baedeker strand: pink blocks, carmine public buildings, ruled water, key-plate ink. More colour, less headroom.",
+    serif: true, buildingOutline: true, streetCasing: true, buildings: true, waterlines: true, rail: "chequer",
+    light: { paper: "#F3EEE2", block: "#EBCBBE", blockPublic: "#D79B88", park: "#DCE5CC", water: "#C5D7DE", waterline: "#8EA9B3",
+      ink: "#2A2521", casing: "#6F6359", roadFill: "#F3EEE2", ruinLine: "#6E5E52", labelStreet: "#3A332E", labelDistrict: "#5E4636",
+      labelWater: "#2F5562", markerInk: "#1F1B18", accent: "#2E3F8F" },
+    dark: { paper: "#1E1B18", block: "#3A2A25", blockPublic: "#55372E", park: "#222A20", water: "#18252B", waterline: "#36505A",
+      ink: "#EAE2D5", casing: "#857669", roadFill: "#1E1B18", ruinLine: "#A69482", labelStreet: "#DCD2C5", labelDistrict: "#C9AE9A",
+      labelWater: "#A0C0CA", markerInk: "#F6F0E6", accent: "#A3B4FF" },
+  },
+  D: {
+    name: "Street network (no blocks)",
+    blurb: "Modern wayfinding plan: no building fills, streets by width only, sans labels. Maximum marker headroom.",
+    serif: false, buildingOutline: false, streetCasing: false, buildings: false, waterlines: false, rail: "line",
+    light: { paper: "#FAF9F6", block: "#FAF9F6", blockPublic: "#ECE7DF", park: "#E9ECE2", water: "#DDE5E8", waterline: null,
+      ink: "#3A3633", casing: "#FAF9F6", roadFill: "#DCD8D2", ruinLine: "#857A70", labelStreet: "#4A4541", labelDistrict: "#6A5F57",
+      labelWater: "#45636D", markerInk: "#1F1B18", accent: "#2E3F8F" },
+    dark: { paper: "#181818", block: "#181818", blockPublic: "#262421", park: "#1C201B", water: "#172024", waterline: null,
+      ink: "#DDD8D0", casing: "#181818", roadFill: "#3A3835", ruinLine: "#8F857B", labelStreet: "#D2CCC4", labelDistrict: "#B3A99F",
+      labelWater: "#9AB6BE", markerInk: "#F4F1EC", accent: "#9DB0FF" },
+  },
+};
+const KEYS = Object.keys(VARIANTS);
+
+const PLACES = {
+  "Campo Marzio z14": [12.4745, 41.8990, 14], "Campo Marzio z17": [12.4740, 41.8985, 17],
+  "Forum z14": [12.4880, 41.8920, 14], "Forum z17": [12.4865, 41.8925, 17],
+  "Prati z14": [12.4640, 41.9070, 14], "Prati z17": [12.4650, 41.9068, 17],
+};
+
+// ---------------------------------------------------------------------------------------------
+// FICTIONAL sample data. None of these records exist; titles say so.
+// ---------------------------------------------------------------------------------------------
+const C = { present: ["intact", "deteriorated", "damaged", "modified"], disappeared: ["covered", "removed", "destroyed", "missing"], unknown: ["unknown"] };
+const groupOf = (c) => Object.keys(C).find((g) => C[g].includes(c));
+const SAMPLES = [
+  // Campo Marzio
+  [12.4731, 41.8996, "stencil", "intact"], [12.4722, 41.8957, "paste-up", "covered"], [12.4762, 41.8992, "sticker", "unknown"],
+  [12.4712, 41.8978, "graffiti", "damaged"], [12.4768, 41.9010, "mural", "removed"], [12.4748, 41.8972, "paste-up", "intact", 60],
+  [12.4703, 41.9003, "stencil", "missing", 40], [12.4785, 41.8968, "installation", "deteriorated"], [12.4741, 41.8983, "sticker", "unknown", 80],
+  // Forum / Monti
+  [12.4900, 41.8952, "mural", "intact"], [12.4918, 41.8960, "stencil", "destroyed"], [12.4885, 41.8942, "paste-up", "unknown"],
+  [12.4935, 41.8939, "graffiti", "modified"], [12.4870, 41.8931, "sticker", "covered", 50], [12.4893, 41.8970, "stencil", "intact", 90],
+  // Prati
+  [12.4655, 41.9068, "mural", "intact"], [12.4628, 41.9081, "graffiti", "removed"], [12.4672, 41.9055, "stencil", "unknown"],
+  [12.4610, 41.9060, "paste-up", "damaged", 70], [12.4688, 41.9089, "sticker", "covered"], [12.4640, 41.9047, "installation", "intact"],
+];
+const artworks = { type: "FeatureCollection", features: SAMPLES.map(([lon, lat, kind, cond, radius], i) => ({
+  type: "Feature", id: i + 1, geometry: { type: "Point", coordinates: [lon, lat] },
+  properties: { title: `Sample record ${String(i + 1).padStart(2, "0")} (fictional)`, kind, condition: cond, group: groupOf(cond), radius: radius || 0 },
+})) };
+function circle([lon, lat], m, n = 48) {
+  const dLat = m / 111320, dLon = m / (111320 * Math.cos((lat * Math.PI) / 180));
+  const ring = [...Array(n + 1)].map((_, k) => { const a = (2 * Math.PI * k) / n; return [lon + dLon * Math.cos(a), lat + dLat * Math.sin(a)]; });
+  return { type: "Polygon", coordinates: [ring] };
+}
+const approxAreas = { type: "FeatureCollection", features: artworks.features.filter((f) => f.properties.radius)
+  .map((f) => ({ type: "Feature", properties: f.properties, geometry: circle(f.geometry.coordinates, f.properties.radius) })) };
+// Fictional Area records (archive data, ADR 0009) used as district labels, to compare with OSM neighbourhoods.
+const areas = { type: "FeatureCollection", features: [
+  ["Campo Marzio", 12.4770, 41.9045], ["Parione", 12.4715, 41.8975], ["Sant'Eustachio", 12.4750, 41.8985], ["Pigna", 12.4795, 41.8975],
+  ["Monti", 12.4930, 41.8965], ["Campitelli", 12.4840, 41.8915], ["Prati", 12.4630, 41.9080], ["Borgo", 12.4610, 41.9030],
+].map(([name, lon, lat]) => ({ type: "Feature", properties: { name }, geometry: { type: "Point", coordinates: [lon, lat] } })) };
+
+// ---------------------------------------------------------------------------------------------
+// URL state
+// ---------------------------------------------------------------------------------------------
+const DEFAULTS = { variant: "A", theme: "light", filter: "none", dpi: "native", public: "off", overlay: "off",
+  districts: "osm", hatch: "6", approxline: "none", lang: "it", place: "Campo Marzio z17" };
+const params = () => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, new URLSearchParams(location.search).get(k) ?? DEFAULTS[k]]));
+function setParam(k, v) {
+  const u = new URL(location.href); u.searchParams.set(k, v); history.replaceState(null, "", u); render();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Canvas-drawn images: the ADR 0015 signs and the 45° hatch. Names encode their parameters.
+// ---------------------------------------------------------------------------------------------
+const PR = 2;
+function drawSign(ctx, group, s, ink, accent, halo, approx) {
+  const size = approx ? s * 0.62 : s, c = ctx.canvas.width / 2, h = size / 2;
+  ctx.lineJoin = "miter";
+  // paper halo under the sign keeps 3:1 over every fill
+  ctx.fillStyle = halo; ctx.fillRect(c - h - 2 * PR, c - h - 2 * PR, size + 4 * PR, size + 4 * PR);
+  const col = group === "disappeared" ? accent : ink;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.2 * PR;
+  if (group === "present") { ctx.fillRect(c - h, c - h, size, size); return; }
+  ctx.setLineDash(group === "disappeared" ? [3.2 * PR, 2 * PR] : [0.01, 2.6 * PR]);
+  ctx.lineCap = group === "unknown" ? "round" : "butt";
+  ctx.strokeRect(c - h + PR, c - h + PR, size - 2 * PR, size - 2 * PR);
+  ctx.setLineDash([]);
+  if (group === "unknown") { ctx.font = `700 ${size * 0.62}px system-ui, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("?", c, c + PR * 0.5); }
+}
+function signImage(name) { // sign|group|approx|ink|accent|halo
+  const [, group, approx, ink, accent, halo] = name.split("|");
+  const cv = document.createElement("canvas"); cv.width = cv.height = 26 * PR;
+  drawSign(cv.getContext("2d"), group, 16 * PR, ink, accent, halo, approx === "1");
+  return cv;
+}
+function hatchImage(name) { // hatch|spacing|color
+  const [, sp, color] = name.split("|"); const s = Number(sp) * PR, n = s * 4;
+  const cv = document.createElement("canvas"); cv.width = cv.height = n; const ctx = cv.getContext("2d");
+  ctx.strokeStyle = color; ctx.lineWidth = 1.1 * PR;
+  for (let k = -n; k <= 2 * n; k += s) { ctx.beginPath(); ctx.moveTo(k, n); ctx.lineTo(k + n, 0); ctx.stroke(); }
+  return cv;
+}
+const hex = (c) => c.replace("#", "%23");
+
+// ---------------------------------------------------------------------------------------------
+// Style generation: Protomaps base → TART transform → TART overlays
+// ---------------------------------------------------------------------------------------------
+function flavorFrom(t, v) {
+  const f = { ...namedFlavor("light") };
+  for (const k of Object.keys(f)) if (typeof f[k] === "string") f[k] = t.paper;
+  Object.assign(f, {
+    background: t.paper, earth: t.paper, water: t.water, buildings: t.block,
+    park_a: t.park, park_b: t.park, wood_a: t.park, wood_b: t.park, scrub_a: t.park, scrub_b: t.park, zoo: t.park,
+    highway: t.roadFill, major: t.roadFill, minor_a: t.roadFill, minor_b: t.roadFill, minor_service: t.roadFill, link: t.roadFill, other: t.roadFill,
+    bridges_highway: t.roadFill, bridges_major: t.roadFill, bridges_minor: t.roadFill, bridges_link: t.roadFill, bridges_other: t.roadFill,
+    tunnel_highway: t.paper, tunnel_major: t.paper, tunnel_minor: t.paper, tunnel_link: t.paper, tunnel_other: t.paper,
+    railway: t.ink, boundaries: t.casing,
+    roads_label_major: t.labelStreet, roads_label_major_halo: t.paper, roads_label_minor: t.labelStreet, roads_label_minor_halo: t.paper,
+    subplace_label: t.labelDistrict, subplace_label_halo: t.paper, city_label: t.labelDistrict, city_label_halo: t.paper,
+    address_label: t.labelStreet, address_label_halo: t.paper, ocean_label: t.labelWater,
+  });
+  for (const k of Object.keys(f)) if (k.endsWith("_casing") || k.startsWith("major_casing") || k.startsWith("highway_casing")) f[k] = v.streetCasing ? t.casing : t.roadFill;
+  for (const k of Object.keys(f)) if (k.startsWith("tunnel_") && k.endsWith("_casing")) f[k] = v.streetCasing ? t.block : t.paper;
+  f.landcover = Object.fromEntries(Object.keys(f.landcover).map((k) => [k, t.paper]));
+  f.pois = Object.fromEntries(Object.keys(f.pois).map((k) => [k, t.labelStreet]));
+  if (v.serif) Object.assign(f, { regular: "Spectral Regular", bold: "Spectral Medium", italic: "Spectral Italic" });
+  return f;
+}
+
+const DROP = /^(pois|roads_shields|roads_oneway|roads_runway|roads_taxiway|landuse_runway|landuse_aerodrome|boundaries_country|places_country|places_region|places_locality|earth_label_islands|water_label_ocean|address_label|boundaries)$/;
+
+function buildStyle(p) {
+  const v = VARIANTS[p.variant], t = v[p.theme];
+  const serif = (w) => (v.serif ? [{ r: "Spectral Regular", i: "Spectral Italic", m: "Spectral Medium" }[w]] : [{ r: "Noto Sans Regular", i: "Noto Sans Italic", m: "Noto Sans Medium" }[w]]);
+  let L = pmLayers("pm", flavorFrom(t, v), { lang: p.lang }).filter((l) => !DROP.test(l.id));
+  L = L.map((l) => {
+    if (l.id === "buildings") {
+      l.paint = { "fill-color": t.block, "fill-opacity": 1 };
+      if (!v.buildings) l.layout = { visibility: "none" };
+    }
+    if (l.id === "places_subplace") {
+      l.layout["text-font"] = serif("r"); l.layout["text-letter-spacing"] = 0.3; l.layout.visibility = p.districts === "osm" ? "visible" : "none";
+      l.layout["text-size"] = ["interpolate", ["linear"], ["zoom"], 12, 11, 15, 14]; l.maxzoom = 16.5;
+      l.paint = { "text-color": t.labelDistrict, "text-halo-color": t.paper, "text-halo-width": 1.5 };
+    }
+    if (l.id === "roads_labels_major" || l.id === "roads_labels_minor") {
+      l.layout["text-font"] = serif("r"); l.layout["text-size"] = l.id.endsWith("major") ? 12 : 11;
+      l.paint["text-halo-width"] = 1.5; l.paint["text-color"] = t.labelStreet; l.paint["text-halo-color"] = t.paper;
+      if (l.id.endsWith("minor")) l.minzoom = 16;
+    }
+    if (l.id === "water_waterway_label" || l.id === "water_label_lakes") {
+      l.layout["text-font"] = serif("i"); l.layout["text-size"] = 13; l.layout["text-letter-spacing"] = 0.25;
+      l.paint = { "text-color": t.labelWater, "text-halo-color": t.water, "text-halo-width": 1.2 };
+    }
+    if (l.id === "water_river" || l.id === "water_stream") l.paint["line-color"] = t.water;
+    if (l.id === "roads_rail") l.paint = { "line-color": t.ink, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 17, 2.4] };
+    if (l.type === "symbol" && l.layout && l.layout["text-font"] && !v.serif) l.layout["text-font"] = l.layout["text-font"].map((f) => f.replace("Spectral", "Noto Sans"));
+    return l;
+  });
+  const idx = (id) => L.findIndex((l) => l.id === id);
+  const insertAfter = (id, ...ls) => L.splice(idx(id) + 1, 0, ...ls);
+
+  if (v.buildingOutline) insertAfter("buildings", { id: "tart_buildings_outline", type: "line", source: "pm", "source-layer": "buildings",
+    minzoom: 14, filter: ["in", ["get", "kind"], ["literal", ["building", "building_part"]]],
+    paint: { "line-color": t.casing, "line-width": ["interpolate", ["linear"], ["zoom"], 14, 0.3, 17, 0.8] } });
+  if (v.waterlines) insertAfter("water", ...[3, 6, 9].map((o, i) => ({ id: `tart_waterline_${i}`, type: "line", source: "pm", "source-layer": "water",
+    minzoom: 14 + i * 0.5, filter: ["==", ["geometry-type"], "Polygon"], paint: { "line-color": t.waterline, "line-width": 0.6, "line-offset": o } })),
+    { id: "tart_waterbank", type: "line", source: "pm", "source-layer": "water", minzoom: 13, filter: ["==", ["geometry-type"], "Polygon"],
+      paint: { "line-color": t.casing, "line-width": 0.9 } });
+  if (v.rail === "chequer") insertAfter("roads_rail", { id: "tart_rail_chequer", type: "line", source: "pm", "source-layer": "roads", minzoom: 13,
+    filter: ["==", ["get", "kind"], "rail"], paint: { "line-color": t.paper, "line-width": ["interpolate", ["linear"], ["zoom"], 13, 0.8, 17, 1.6], "line-dasharray": ["literal", [3, 3]] } });
+
+  // Rome overlay (OSM, ODbL): public buildings tint, walls, ruins.
+  const ov = [];
+  if (p.public === "on") ov.push({ id: "rome_public", type: "fill", source: "rome", filter: ["all", ["==", ["get", "class"], "public"], ["==", ["geometry-type"], "Polygon"]],
+    minzoom: 13, paint: { "fill-color": t.blockPublic } });
+  if (p.overlay === "on") ov.push(
+    { id: "rome_ruins", type: "line", source: "rome", minzoom: 13, filter: ["==", ["get", "class"], "ruin"],
+      paint: { "line-color": t.ruinLine, "line-width": ["interpolate", ["linear"], ["zoom"], 13, 0.6, 17, 1.4] } },
+    { id: "rome_walls", type: "line", source: "rome", filter: ["==", ["get", "class"], "wall"],
+      paint: { "line-color": t.ink, "line-width": ["interpolate", ["linear"], ["zoom"], 11, 1.5, 14, 2, 17, 3.5] } });
+  insertAfter(v.buildingOutline ? "tart_buildings_outline" : "buildings", ...ov);
+  const firstSymbol = L.findIndex((l) => l.type === "symbol");
+  if (p.overlay === "on") L.push({ id: "rome_ruins_label", type: "symbol", source: "rome", minzoom: 15.5,
+    filter: ["all", ["==", ["get", "class"], "ruin"], ["has", "name"]],
+    layout: { "text-field": p.lang === "en" ? ["coalesce", ["get", "name:en"], ["get", "name"]] : ["get", "name"], "text-font": serif("i"), "text-size": 12, "text-max-width": 8 },
+    paint: { "text-color": t.ruinLine, "text-halo-color": t.paper, "text-halo-width": 1.5 } });
+  if (p.districts === "areas") L.push({ id: "tart_areas_label", type: "symbol", source: "areas", minzoom: 12, maxzoom: 16.5,
+    layout: { "text-field": ["upcase", ["get", "name"]], "text-font": serif("r"), "text-letter-spacing": 0.3, "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11, 15, 14] },
+    paint: { "text-color": t.labelDistrict, "text-halo-color": t.paper, "text-halo-width": 1.5 } });
+  void firstSymbol;
+
+  // TART overlay: approximate areas, clusters, Condition signs. Always on top of basemap labels.
+  const sign = (approx) => ["concat", "sign|", ["get", "group"], "|", approx, "|", t.markerInk, "|", t.accent, "|", t.paper];
+  L.push(
+    { id: "tart_approx_fill", type: "fill", source: "approx", minzoom: 15, paint: { "fill-pattern": `hatch|${p.hatch}|${t.markerInk}` } },
+    ...(p.approxline === "solid" ? [{ id: "tart_approx_line", type: "line", source: "approx", minzoom: 15, paint: { "line-color": t.markerInk, "line-width": 1 } }] : []),
+    { id: "tart_clusters", type: "circle", source: "artworks", filter: ["has", "point_count"],
+      paint: { "circle-color": t.markerInk, "circle-radius": ["step", ["get", "point_count"], 13, 5, 16, 10, 19], "circle-stroke-color": t.paper, "circle-stroke-width": 2 } },
+    { id: "tart_cluster_count", type: "symbol", source: "artworks", filter: ["has", "point_count"],
+      layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["Noto Sans Medium"], "text-size": 13, "text-allow-overlap": true },
+      paint: { "text-color": t.paper } },
+    { id: "tart_signs", type: "symbol", source: "artworks", filter: ["!", ["has", "point_count"]],
+      layout: { "icon-image": ["case", [">", ["get", "radius"], 0], sign("1"), sign("0")], "icon-size": 1, "icon-allow-overlap": true, "icon-ignore-placement": true } },
+  );
+
+  const fontFile = (f) => `${BASE}fonts/${f}.ttf`;
+  return {
+    version: 8,
+    glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+    ...(v.serif ? { "font-faces": { "Spectral Regular": fontFile("Spectral-Regular"), "Spectral Italic": fontFile("Spectral-Italic"), "Spectral Medium": fontFile("Spectral-Medium") } } : {}),
+    sources: {
+      pm: { type: "vector", url: `pmtiles://${BASE}rome.pmtiles`, attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>' },
+      rome: { type: "geojson", data: `${BASE}rome-overlay.geojson` },
+      areas: { type: "geojson", data: areas },
+      approx: { type: "geojson", data: approxAreas },
+      artworks: { type: "geojson", data: artworks, cluster: true, clusterMaxZoom: 15, clusterRadius: 36 },
+    },
+    layers: L,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Contrast checks (WCAG 2.x relative luminance)
+// ---------------------------------------------------------------------------------------------
+function lum(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
+  .reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0); }
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+function contrastRows(p) {
+  const v = VARIANTS[p.variant], t = v[p.theme];
+  const fills = { paper: t.paper, block: t.block, ...(p.public === "on" ? { public: t.blockPublic } : {}), park: t.park, water: t.water, road: t.roadFill };
+  const rows = [];
+  for (const [fn, fc] of Object.entries(fills)) {
+    rows.push(["marker ink vs " + fn, ratio(t.markerInk, fc), 3]);
+    rows.push(["accent vs " + fn, ratio(t.accent, fc), 3]);
+  }
+  rows.push(["hatch (ink) vs block", ratio(t.markerInk, t.block), 3]);
+  rows.push(["street label vs halo", ratio(t.labelStreet, t.paper), 4.5]);
+  rows.push(["street label vs block", ratio(t.labelStreet, t.block), 4.5]);
+  rows.push(["district label vs halo", ratio(t.labelDistrict, t.paper), 4.5]);
+  rows.push(["district label vs block", ratio(t.labelDistrict, t.block), 4.5]);
+  if (p.public === "on") rows.push(["district label vs public", ratio(t.labelDistrict, t.blockPublic), 4.5]);
+  rows.push(["water label vs water", ratio(t.labelWater, t.water), 4.5]);
+  if (p.overlay === "on") rows.push(["ruin line vs paper", ratio(t.ruinLine, t.paper), 3]);
+  if (v.streetCasing) rows.push(["casing vs paper", ratio(t.casing, t.paper), 3]);
+  return rows;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Map + render loop
+// ---------------------------------------------------------------------------------------------
+maplibregl.addProtocol("pmtiles", new Protocol().tile);
+let p = params();
+const [lon0, lat0, z0] = PLACES[p.place];
+const map = new maplibregl.Map({ container: "map", style: buildStyle(p), center: [lon0, lat0], zoom: z0, maxBounds: [[12.23, 41.65], [12.86, 42.08]],
+  attributionControl: { compact: false }, hash: false, canvasContextAttributes: { preserveDrawingBuffer: true } });
+window.__map = map;
+map.on("error", (e) => console.warn("map error:", e.error?.message ?? e));
+const toData = (cv) => cv.getContext("2d").getImageData(0, 0, cv.width, cv.height);
+map.setMissingStyleImageResolver((id) => {
+  if (map.hasImage(id)) return;
+  if (id.startsWith("sign|")) map.addImage(id, toData(signImage(id)), { pixelRatio: PR });
+  else if (id.startsWith("hatch|")) map.addImage(id, toData(hatchImage(id)), { pixelRatio: PR });
+});
+map.on("click", "tart_signs", (e) => {
+  const f = e.features[0].properties;
+  const approx = f.radius ? `<br><small>approximate location, within ${f.radius} m</small>` : "";
+  new maplibregl.Popup({ closeButton: true }).setLngLat(e.lngLat)
+    .setHTML(`<strong>${f.title}</strong><br>${f.kind}<br>${f.condition[0].toUpperCase() + f.condition.slice(1)} · last documented 12 Apr 2026${approx}`).addTo(map);
+});
+map.on("click", "tart_clusters", async (e) => {
+  const f = e.features[0]; const z = await map.getSource("artworks").getClusterExpansionZoom(f.properties.cluster_id);
+  map.easeTo({ center: f.geometry.coordinates, zoom: z });
+});
+for (const id of ["tart_signs", "tart_clusters"]) { map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer")); map.on("mouseleave", id, () => (map.getCanvas().style.cursor = "")); }
+map.on("moveend", renderState);
+
+// Pan pad: the single-pointer alternative to dragging (WCAG 2.5.7)
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.querySelector(".panpad").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const { width, height } = map.getContainer().getBoundingClientRect();
+  if (b.dataset.pan) { const [x, y] = b.dataset.pan.split(",").map(Number); map.panBy([x * width / 3, y * height / 3], { duration: reduce ? 0 : 300 }); }
+  if (b.dataset.zoom) map.easeTo({ zoom: map.getZoom() + Number(b.dataset.zoom), duration: reduce ? 0 : 300 });
+  if (b.hasAttribute("data-home")) { const [x, y, z] = PLACES[params().place]; map.jumpTo({ center: [x, y], zoom: z }); }
+});
+
+function drawLegend(p) {
+  const t = VARIANTS[p.variant][p.theme];
+  for (const cv of document.querySelectorAll(".legend canvas")) {
+    cv.width = cv.height = 22 * PR; cv.style.width = cv.style.height = "22px";
+    const ctx = cv.getContext("2d"); ctx.clearRect(0, 0, cv.width, cv.height);
+    const g = cv.dataset.sign;
+    if (g === "approx") { ctx.drawImage(hatchImage(`hatch|${p.hatch}|${t.markerInk}`), 0, 0, cv.width, cv.height, 0, 0, cv.width, cv.height);
+      drawSign(ctx, "present", 14 * PR, t.markerInk, t.accent, t.paper, true); }
+    else drawSign(ctx, g, 14 * PR, t.markerInk, t.accent, t.paper, false);
+  }
+}
+
+function renderState() {
+  const c = map.getCenter();
+  document.getElementById("state").textContent = JSON.stringify({ ...params(), zoom: +map.getZoom().toFixed(2), center: [+c.lng.toFixed(4), +c.lat.toFixed(4)] }, null, 1);
+}
+
+let prev = null;
+function render() {
+  p = params();
+  const v = VARIANTS[p.variant], t = v[p.theme];
+  document.documentElement.style.setProperty("--paper", t.paper); document.documentElement.style.setProperty("--ink", t.markerInk);
+  document.documentElement.style.setProperty("--accent", t.accent); document.documentElement.style.setProperty("--casing", t.casing);
+  document.body.style.background = t.paper;
+  document.getElementById("switchLabel").textContent = `${p.variant} (${v.name})`;
+  document.getElementById("variantName").innerHTML = `<p class="note">${v.blurb}</p>`;
+  for (const el of document.querySelectorAll("[data-param]")) {
+    const k = el.dataset.param;
+    el.innerHTML = el.dataset.opts.split(",").map((o) => `<button aria-pressed="${p[k] === o}" data-k="${k}" data-v="${o}">${o}</button>`).join("");
+  }
+  document.getElementById("places").innerHTML = Object.keys(PLACES).map((o) => `<button aria-pressed="${p.place === o}" data-k="place" data-v="${o}">${o}</button>`).join("");
+  document.getElementById("contrast").innerHTML = contrastRows(p).map(([n, r, min]) =>
+    `<tr><td>${n}</td><td class="n">${r.toFixed(2)}</td><td class="${r >= min ? "ok" : "bad"}">${r >= min ? "✓" : "✗"} ≥${min}</td></tr>`).join("");
+  const mapEl = document.getElementById("map");
+  mapEl.className = p.filter === "none" ? "" : `f-${p.filter}`;
+  map.setPixelRatio(p.dpi === "1x" ? 1 : devicePixelRatio);
+  if (prev && prev.place !== p.place) { const [x, y, z] = PLACES[p.place]; map.jumpTo({ center: [x, y], zoom: z }); }
+  const styleKeys = ["variant", "theme", "public", "overlay", "districts", "hatch", "approxline", "lang"];
+  if (prev && styleKeys.some((k) => prev[k] !== p[k])) map.setStyle(buildStyle(p), { diff: false });
+  drawLegend(p); renderState();
+  prev = p;
+}
+
+document.getElementById("proto").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-k]"); if (b) setParam(b.dataset.k, b.dataset.v);
+});
+document.getElementById("collapse").addEventListener("click", (e) => {
+  const el = document.getElementById("proto"); el.classList.toggle("collapsed"); e.target.textContent = el.classList.contains("collapsed") ? "show" : "hide";
+});
+const cycle = (d) => setParam("variant", KEYS[(KEYS.indexOf(params().variant) + d + KEYS.length) % KEYS.length]);
+document.getElementById("prev").onclick = () => cycle(-1);
+document.getElementById("next").onclick = () => cycle(1);
+addEventListener("keydown", (e) => {
+  if (e.target.closest("input, textarea, select, [contenteditable]") || e.target.closest(".maplibregl-canvas")) return;
+  if (e.key === "ArrowLeft") cycle(-1); if (e.key === "ArrowRight") cycle(1);
+});
+if (new URLSearchParams(location.search).get("chrome") === "off") document.querySelectorAll(".proto, .switcher").forEach((el) => (el.style.display = "none"));
+render();
+</script>
+</body>
+</html>
