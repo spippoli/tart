@@ -127,6 +127,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) | `notifications.md` | Notifications |
 | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) | `operations-and-portability.md` | Operations and portability |
 | [Spec index and Foundations housekeeping](https://github.com/spippoli/tart/issues/82) | This index, `foundations.md` | Spec index; Foundations |
+| [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | `foundations.md` | Foundations |
 
 ### Open
 
@@ -139,7 +140,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | Spec index; Foundations; Discovery; Notifications; Operations and portability |
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
-| [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) | Foundations |
 | [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | Archive records; Discovery; Contribution and moderation |
 | [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) | Archive records; Contribution and moderation |
 | [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) | Archive records; Rights and legal actions; Operations and portability |
