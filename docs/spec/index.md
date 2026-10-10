@@ -134,6 +134,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) | ADR 0003 (amended), Glossary, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md` | Archive records; Discovery; Contribution and moderation |
 | [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) | ADR 0009 (amended), `foundations.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Rights and legal actions; Notifications; Operations and portability |
 | [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) | Glossary, ADR 0012, ADR 0013, ADR 0020 (amended), `rights-and-legal-actions.md`, `archive-records.md`, `contribution-and-moderation.md`, `notifications.md`, `operations-and-portability.md`, `foundations.md` | Rights and legal actions; Archive records; Contribution and moderation; Notifications; Operations and portability; Foundations |
+| [Search and filter details](https://github.com/spippoli/tart/issues/99) | `discovery.md` | Discovery |
 
 ### Open
 
@@ -151,7 +152,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96) | Contribution and moderation |
 | [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) | Contribution and moderation |
 | [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) | Discovery; Foundations |
-| [Search and filter details](https://github.com/spippoli/tart/issues/99) | Discovery |
 | [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | Operations and portability |
 | [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101) | Operations and portability |
 
