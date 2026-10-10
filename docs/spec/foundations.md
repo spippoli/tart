@@ -25,7 +25,7 @@ The invariants in [`CLAUDE.md`](../../CLAUDE.md), the vocabulary in [`GLOSSARY.m
 
 **Glossary terms used**: **Instance**, **Operator**, **Instance configuration**, **Data licence**, **Licensor**, **UI language**, **Content language**, **User**, **Moderator**, **Submitter**, **Submission**, **Submission status**, **Documentation item**, **Creator credit**, **Rights basis**, **Invitation**, **Expression type**, **Surface type**, **Decision message**, **Area**, **Location**, **Withdrawal**, **Purge**, **Notice**.
 
-**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching).
+**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (key names, file layout, licences, contacts, Notice reasons, terms version, `tart config check --database`).
 
 ## Problem Statement
 
@@ -152,26 +152,119 @@ The map module ([ADR 0004](../adr/0004-mvp-tech-stack.md)) is specified by the D
 | Community archive | Database | Approved **Submissions** only (every Archive record, including **Areas**) |
 | User | Database | The User (profile, preferred UI language, own Submissions); roles by the Operator through the CLI |
 
-**Configuration directory.** Read-only and secret-free ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)): `instance.toml`, separate vocabulary files, the Operator's Markdown texts (About, editorial guidelines, contribution policy, terms of use, privacy policy), the SVG logo (light and dark), the favicon, two finished MapLibre style files at fixed paths (`map/style.light.json` and `map/style.dark.json`) with their fonts, glyphs, sprites, and overlay GeoJSON under `map/`, and a GeoJSON boundary ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37)). The PMTiles extract is not in the directory: `tart tiles update` writes it to a data volume.
+**Configuration directory.** Read-only and secret-free ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)). Every path is fixed by the platform, so no key names a file ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)):
+
+```
+instance.toml
+vocabularies/expression_types.toml
+vocabularies/surface_types.toml
+vocabularies/decision_reasons.toml
+vocabularies/notice_reasons.toml
+texts/about.md
+texts/editorial_guidelines.md
+texts/contribution_policy.md
+texts/terms.md
+texts/privacy.md
+identity/logo.light.svg
+identity/logo.dark.svg
+identity/favicon.svg
+geography/boundary.geojson
+map/style.light.json
+map/style.dark.json
+map/…                      fonts, glyphs, sprites, overlay GeoJSON
+```
+
+The two map style files and their assets follow [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37). The PMTiles extract is not in the directory: `tart tiles update` writes it to a data volume.
+
+**`instance.toml`** groups its keys in tables, so validation errors name a dotted path (`identity.accent.dark`). Values below are illustrative; Rome's are in [Instance configuration](#instance-configuration).
+
+```toml
+config_version = 1
+
+[identity]
+name = "…"                   # Content language
+description = "…"            # Content language
+logo = { light = "identity/logo.light.svg", dark = "identity/logo.dark.svg", alt = "…" }
+favicon = "identity/favicon.svg"
+accent = { light = "#…", dark = "#…" }
+
+[operator]
+name = "…"                   # legal name, not translated
+
+[contacts]
+general = "…"                # optional
+dsa = "…"                    # DSA Art. 11–12; also Reply-To of legal emails
+dsa_languages = ["it", "en"] # ISO 639-1; not tied to the UI languages
+privacy = "…"                # GDPR requests
+
+[languages]
+content = "it"
+ui = ["it", "en"]            # the first one is the default UI language
+
+[geography]
+country = "IT"
+place_name = "…"             # Content language
+time_zone = "Europe/Rome"
+boundary = "geography/boundary.geojson"
+default_view = { center = [12.4964, 41.9028], zoom = 12 }   # [lon, lat]
+
+[map]
+attribution = [{ text = "© OpenStreetMap", url = "https://www.openstreetmap.org/copyright" }]
+
+[community]
+registration = "open"
+min_age = 14
+self_approval = true
+draft_expiry_days = 90
+
+[media]
+max_upload_mb = 25
+public_rendition_max_px = 2048   # long edge
+
+[licenses]
+data = "CC-BY-SA-4.0"
+files = ["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]   # the first one is the default
+data_attribution = "…"       # optional, Content language (Operations and portability)
+
+[terms]
+version = 1
+```
+
+- `identity.logo` and `identity.favicon` hold the fixed paths and are validated against them; only the alt text varies.
+- Contacts are email addresses; the same address may appear under several keys. There is no separate legal contact: legal emails set `Reply-To` to `contacts.dsa`, because statements of reasons, Notice decisions, and contesting are DSA duties.
+- `licenses.data` and every entry of `licenses.files` come from the platform's list of SPDX identifiers; `files` is non-empty and has no duplicates, and its order is the order of the licence choice in the upload form.
+- `terms.version` is an integer the Operator bumps only for a change that needs new acceptance; wording fixes keep the version, and their history is the configuration repository's history. Acceptance is specified by the Contribution and moderation spec.
 
 **Environment variables.** Every secret and all infrastructure wiring: database URL, public base URL, storage choice and S3 credentials, SMTP settings, session key, PMTiles volume path. Caddy receives `max_upload_mb` through the environment as well.
 
 **Loading and validation.**
 - Only FastAPI's image (`api` and `worker`) reads the directory, with `tomllib`, into Pydantic models at startup.
 - Invalid configuration stops the service and reports **every** error, not only the first. Unknown keys are errors.
-- `tart config check` runs the same validation. A JSON Schema exported from the models supports editors.
+- `tart config check` runs the same validation on the files alone, so it runs in the configuration repository's CI without a database. `tart config check --database` adds the checks that need the database (a vocabulary key in use but absent from the files, and a `terms.version` lower than the highest version already accepted), reading the database URL from the environment; the deploy procedure uses it. Startup always runs both. A JSON Schema exported from the models supports editors.
 - No hot reload: a change needs a restart.
 - The map style rules are checked in Python; full MapLibre style-spec conformance is left to `gl-style-validate` in CI, so the `api` image carries no Node. The style itself, its endpoint, and the archive layers are specified by the Discovery spec.
 - `config_version` starts at 1 and is bumped by any platform release that changes the configuration's shape. A mismatch stops the service and points to the release notes. There is no automatic migration.
-- Checks that go beyond the shape: an accent value (light or dark) that fails WCAG AA contrast against its own theme's backgrounds ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)) and map fills ([ADR 0017](../adr/0017-map-cartography-style.md)); a map style that breaks the rules listed in [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) (both files present with the same sources and layer ids, the `metadata.tart:*` keys and insertion layer, no dash or pattern properties, root-relative asset paths to existing files, overlays at most 1 MB, fill and text contrast); a missing vocabulary label for any enabled UI language ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)); an enabled UI language the platform image doesn't contain; an empty map attribution list ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)); a missing terms of use, privacy policy, or DSA contact; a vocabulary key used in the database but absent from the files.
+- Checks that go beyond the shape: an accent value (light or dark) that fails WCAG AA contrast against its own theme's backgrounds ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)) and map fills ([ADR 0017](../adr/0017-map-cartography-style.md)); a map style that breaks the rules listed in [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) (both files present with the same sources and layer ids, the `metadata.tart:*` keys and insertion layer, no dash or pattern properties, root-relative asset paths to existing files, overlays at most 1 MB, fill and text contrast); a missing vocabulary label for any enabled UI language ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)); an enabled UI language the platform image doesn't contain; an empty map attribution list ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)); a missing terms of use, privacy policy, DSA contact, DSA contact language, privacy contact, or Operator name; an empty or duplicated file licence list, or a licence outside the platform's list; a vocabulary with no entry that is not retired; a vocabulary file using the reserved key `duplicate`; a vocabulary key used in the database but absent from the files; a `terms.version` lower than the highest version already accepted.
 
-**Open vocabularies** (Expression type, Surface type, Decision message reasons): each entry has an immutable `key` (what the database stores), one label per enabled UI language, an order, an optional description, and a `retired` flag. Entries are never deleted; a retired entry stays displayed and filterable on existing records but is not selectable in new Submissions. The platform ships the brief's §9 list as a starting vocabulary.
+**Open vocabularies** (Expression type, Surface type, Decision message reasons, Notice reasons): each entry has an immutable `key` (what the database stores), one label per enabled UI language, an optional description, and a `retired` flag. Entries are never deleted; a retired entry stays displayed and filterable on existing records but is not selectable in new Submissions. Each vocabulary keeps at least one entry that is not retired. The platform ships the brief's §9 list for Expression types and the [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) defaults for Notice reasons (`artwork_copyright`, `file_copyright`, `personal_data`, `illegal_content`, `other`) as starting vocabularies; code reasons over none of these keys ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)).
+
+Each vocabulary file is a list of entries; the list order is the display order, so there is no order field:
+
+```toml
+[[entries]]
+key = "mural"
+label = { it = "Murale", en = "Mural" }
+description = { it = "…", en = "…" }   # optional
+retired = false                        # optional, default false
+```
+
+**The "duplicate" Decision message reason** is a platform entry outside `decision_reasons.toml`, because code uses it in the pending-duplicates flow ([#42](https://github.com/spippoli/tart/issues/42)). Its key `duplicate` is reserved: the database stores it like any reason, its labels are platform UI messages, it cannot be retired, it is listed after the configured reasons, and a vocabulary file that uses the key fails validation.
 
 **Closed vocabularies** stay in the platform because code reasons over them: Condition, History event types, Submission status, Attribution certainty, Uncertain date precision and qualifier. Their labels are platform UI messages.
 
 **No custom fields.** Configurability stops at vocabularies; an Instance cannot add fields to the core model.
 
-**Public subset.** The SvelteKit frontend never reads the directory. It gets the public subset of the configuration (identity, languages, geography, map attribution, vocabularies with labels, registration mode, licences, Operator texts) from an API endpoint and caches it.
+**Public subset.** The SvelteKit frontend never reads the directory. It gets the public subset of the configuration (identity, Operator name, contacts, languages, geography, map attribution, vocabularies with labels, registration mode, licences, terms version, Operator texts) from an API endpoint and caches it.
 
 **Operator texts** are Markdown in the Content language. They are not moderated and have no Revisions; their history is the configuration repository's history.
 
@@ -296,7 +389,7 @@ A `tart` command for the actions that have no UI in the MVP. It uses the same co
 
 | Command | Behaviour | Specified in |
 |---|---|---|
-| `tart config check` | Runs the full startup validation and reports every error | This spec |
+| `tart config check [--database]` | Runs the startup validation of the files and reports every error; `--database` adds the checks that need the database | This spec |
 | `tart users grant moderator <email>` | Grants the Moderator role, creating the User if needed | This spec |
 | `tart users revoke moderator <email>` | Removes the Moderator role, effective on the next request | This spec |
 | `tart users list --role moderator` | Lists the Users holding the role | This spec |
@@ -316,7 +409,7 @@ As in [ADR 0004](../adr/0004-mvp-tech-stack.md): a monorepo (`backend/`, `fronte
 
 A good test exercises a module through its external interface and asserts observable behaviour (an HTTP response, a stored object, a rendered page, an error list), never internal calls. The repository has no code yet, so there is no prior art; these seams are the first.
 
-- **Configuration loader**: a directory and an environment in, a validated configuration or a complete error list out (pytest). Fixtures: Rome's configuration as a valid case; one directory per failure (unknown key, wrong `config_version`, missing label, low-contrast accent, empty attribution, missing legal text). The same fixtures run through `tart config check`.
+- **Configuration loader**: a directory and an environment in, a validated configuration or a complete error list out (pytest). Fixtures: Rome's configuration as a valid case; one directory per failure (unknown key, wrong `config_version`, missing label, low-contrast accent, empty attribution, missing legal text, missing contact, reserved key `duplicate`, a vocabulary with every entry retired, empty licence list). The same fixtures run through `tart config check`; the database checks run through `tart config check --database` against a test database.
 - **Authentication and sessions**: through the HTTP API with FastAPI's test client and an email adapter that captures messages. Covers code expiry and attempt limits, registration under each `registration` mode, session revocation on sign-out, and the CSRF rules (missing custom header, foreign `Origin`).
 - **Storage**: one contract test suite run against both adapters (put, streamed get with byte ranges, delete, quarantine vs permanent). How the S3 adapter is exercised in CI is left to implementation.
 - **Media pipeline**: worker jobs fed fixture files (JPEG with GPS EXIF, rotated JPEG, HEIC, AVIF, animated WebP, PNG, GIF, PDF, an image over 100 megapixels, a truncated file, a decompression bomb, a file whose extension lies). Asserts on the stored outputs: no GPS or device identifiers in the original, no metadata in renditions, orientation applied, the rendition cap respected, rejections with error codes.
@@ -374,43 +467,54 @@ A good test exercises a module through its external interface and asserts observ
 **CI**
 39. CI fails on a missing message key, on drift between the OpenAPI schema and the generated client, on a dependency outside the licence tiers of [ADR 0011](../adr/0011-provisional-software-license.md), and on a third-party asset without a manifest entry ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)).
 
+**Configuration keys and contacts** ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85))
+40. `instance.toml` with the tables and keys of [Instance configuration](#1-instance-configuration) loads; a file moved away from its fixed path fails validation.
+41. The default UI language is the first entry of `languages.ui`; the default file licence is the first entry of `licenses.files`, and the upload form lists the licences in that order.
+42. A vocabulary whose every entry is retired, or a vocabulary file containing the key `duplicate`, fails validation; the decision form lists the configured reasons in file order followed by the platform's "duplicate" reason in the UI language.
+43. `tart config check` without `--database` succeeds with no database reachable; with `--database`, it also fails on a vocabulary key in use but absent from the files and on a `terms.version` lower than the highest version already accepted, and startup fails on the same.
+44. A missing `operator.name`, `contacts.dsa`, `contacts.dsa_languages`, or `contacts.privacy` fails validation; `contacts.general` may be absent.
+
 ## Instance configuration
 
-Keys named in the decisions are given as keys; for the other settings the decisions fix the content but not the key name, so the exact names are set by the configuration models and their exported JSON Schema (see Open items). "Not decided" means the decisions give no value for Rome.
+Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85); dotted keys are in `instance.toml`. "Not decided" means the decisions give no value for Rome.
 
-| Setting | Key | Where | Rome |
-|---|---|---|---|
-| Configuration shape version | `config_version` | `instance.toml` | `1` |
-| Archive name (Content language) | — | `instance.toml` | Not decided (see Open items) |
-| Short description (Content language) | — | `instance.toml` | Not decided |
-| Logo, light and dark, with alt text | — | SVG files + `instance.toml` | Not decided |
-| Favicon | — | file | Not decided |
-| Accent colour, light and dark values | — | `instance.toml` | Not decided |
-| General contact | — | `instance.toml` | Not decided |
-| DSA contact (required) | — | `instance.toml` | Not decided |
-| Country (ISO 3166-1) | — | `instance.toml` | `IT` |
-| Place name (Content language) | — | `instance.toml` | Not decided |
-| Boundary polygon | — | GeoJSON file | Not decided |
-| Default map view | — | `instance.toml` | Not decided |
-| Time zone | — | `instance.toml` | `Europe/Rome` |
-| Content language | — | `instance.toml` | `it` |
-| Enabled UI languages | — | `instance.toml` | `it`, `en` |
-| Default UI language | — | `instance.toml` | `it` |
-| Expression types | — | vocabulary file | The brief's §9 starting vocabulary; Rome's labels not decided |
-| Surface types | — | vocabulary file | Not decided (the brief's §9 list covers Expression types only) |
-| Decision message reasons | — | vocabulary file | Not decided |
-| Registration mode | `registration` | `instance.toml` | `open` |
-| Self-review | `self_approval` | `instance.toml` | `true` at launch; `false` once at least two Moderators are active (Operator checklist) |
-| Minimum age (self-declared) | `min_age` | `instance.toml` | `14` |
-| Data licence (SPDX) | `data_license` | `instance.toml` | `CC-BY-SA-4.0` |
-| Licences allowed for files, and default | `contribution_license` (shape open, see Open items) | `instance.toml` | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` |
-| Public image rendition cap | — | `instance.toml` | Not decided |
-| Draft expiry | `draft_expiry_days` | `instance.toml` | `90` (platform default) |
-| Maximum upload size | `max_upload_mb` | `instance.toml` and Caddy's environment | `25` (platform default) |
-| Map styles and assets | `map/style.light.json`, `map/style.dark.json`, `map/` | Style files and assets | The [ADR 0017](../adr/0017-map-cartography-style.md) reference style (Discovery spec) |
-| Map attribution (`{text, url}` list, non-empty) | — | `instance.toml` | `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` |
-| About, editorial guidelines, contribution policy | — | Markdown files | Not written yet |
-| Terms of use, privacy policy (required) | — | Markdown files | Not written yet (drafting is out of scope) |
+| Setting | Key or path | Rome |
+|---|---|---|
+| Configuration shape version | `config_version` | `1` |
+| Archive name (Content language) | `identity.name` | Not decided (see Open items) |
+| Short description (Content language) | `identity.description` | Not decided |
+| Logo, light and dark, with alt text | `identity/logo.light.svg`, `identity/logo.dark.svg`, `identity.logo.alt` | Not decided |
+| Favicon | `identity/favicon.svg` | Not decided |
+| Accent colour, light and dark values | `identity.accent.light`, `identity.accent.dark` | Not decided |
+| Operator name (required) | `operator.name` | Not decided |
+| General contact (optional) | `contacts.general` | Not decided |
+| DSA contact and its languages (required); `Reply-To` of legal emails | `contacts.dsa`, `contacts.dsa_languages` | Not decided |
+| Privacy contact (required) | `contacts.privacy` | Not decided |
+| Content language | `languages.content` | `it` |
+| Enabled UI languages, default first | `languages.ui` | `["it", "en"]` |
+| Country (ISO 3166-1) | `geography.country` | `IT` |
+| Place name (Content language) | `geography.place_name` | Not decided |
+| Boundary polygon | `geography/boundary.geojson` | Not decided |
+| Default map view | `geography.default_view` (`center` as `[lon, lat]`, `zoom`) | Not decided |
+| Time zone | `geography.time_zone` | `Europe/Rome` |
+| Map styles and assets | `map/style.light.json`, `map/style.dark.json`, `map/` | The [ADR 0017](../adr/0017-map-cartography-style.md) reference style (Discovery spec) |
+| Map attribution (`{text, url}` list, non-empty) | `map.attribution` | `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` |
+| Registration mode | `community.registration` | `open` |
+| Minimum age (self-declared) | `community.min_age` | `14` |
+| Self-review | `community.self_approval` | `true` at launch; `false` once at least two Moderators are active (Operator checklist) |
+| Draft expiry | `community.draft_expiry_days` | `90` (platform default) |
+| Maximum upload size | `media.max_upload_mb`, and Caddy's environment | `25` (platform default) |
+| Public image rendition cap (long edge, px) | `media.public_rendition_max_px` | Not decided |
+| Data licence (SPDX) | `licenses.data` | `CC-BY-SA-4.0` |
+| Licences allowed for files, default first | `licenses.files` | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
+| Data dump attribution (optional) | `licenses.data_attribution` | Operations and portability spec |
+| Terms version | `terms.version` | `1` at launch |
+| Expression types | `vocabularies/expression_types.toml` | The brief's §9 starting vocabulary; Rome's labels not decided |
+| Surface types | `vocabularies/surface_types.toml` | Not decided (the brief's §9 list covers Expression types only) |
+| Decision message reasons | `vocabularies/decision_reasons.toml`, plus the platform's `duplicate` | Not decided |
+| Notice reasons | `vocabularies/notice_reasons.toml` | The [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) defaults; Rome's labels not decided |
+| About, editorial guidelines, contribution policy | `texts/about.md`, `texts/editorial_guidelines.md`, `texts/contribution_policy.md` | Not written yet |
+| Terms of use, privacy policy (required) | `texts/terms.md`, `texts/privacy.md` | Not written yet (drafting is out of scope) |
 
 Environment (names set by implementation and documented for Operators): database URL, public base URL, storage choice, S3 endpoint, bucket, and credentials (Rome: Hetzner Object Storage), SMTP settings, session key, PMTiles volume path, and the upload limit for Caddy.
 
@@ -443,17 +547,17 @@ The decisions are silent on these. Each needs a decision (or an owning ticket) b
 
 **Rome values**
 1. **Archive name.** [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) requires the archive name in the Content language (`it`), but the only name on record is the English "Rome Urban Art Archive" (brief §4, spec index). Rome's Italian archive name is not decided. Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
-2. Rome's short description, place name, logo, favicon, accent colour, boundary polygon, default map view, general and DSA contacts, and public image rendition cap are not decided (the spec index lists most of them). Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
-3. Rome's Surface type entries, Decision message reasons, and Italian and English labels for the starting Expression types are not decided. Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
+2. Rome's short description, place name, logo, favicon, accent colour, boundary polygon, default map view, Operator name, general, DSA, and privacy contacts with the DSA contact's languages, and public image rendition cap are not decided (the spec index lists most of them). Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
+3. Rome's Surface type entries, Decision message reasons, and Italian and English labels for the starting Expression types and Notice reasons are not decided. Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
 
 **Configuration shape**
-4. **Key names** for identity, geography, languages, contacts, the rendition cap, and the map are not fixed by any decision; neither is the layout of the vocabulary files. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
-5. **File licence keys.** [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) names a single `contribution_license` key, while [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) requires an allowlist of file licences with a default. The key shape (for example, a list plus a default) is not decided. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
-6. **Privacy contact.** [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) sends account-level GDPR requests to "the Operator's privacy contact", but [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) lists only general and DSA contact points. Whether a separate privacy contact key exists is not decided. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
-7. **Notice reasons.** [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) makes them a configurable list with defaults, but [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) lists only three open vocabularies. Whether Notice reasons are a fourth open vocabulary (keys, labels per UI language, `retired`) is not decided; it is needed by the Rights and legal actions spec. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
-8. **Terms versioning.** Terms are accepted again "when they change" ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)), but terms are a Markdown file with no Revisions. How a new version is declared (an explicit version key, a content hash, a date) is not decided. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
+4. **Key names.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): tables and keys in [Instance configuration](#1-instance-configuration), fixed file paths, vocabulary files as ordered lists of entries.
+5. **File licence keys.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `licenses.data` and `licenses.files`, whose first entry is the default; `contribution_license` is gone.
+6. **Privacy contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `contacts.privacy` is required; legal emails reply to `contacts.dsa`, which comes with `contacts.dsa_languages`.
+7. **Notice reasons.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): a fourth open vocabulary, `vocabularies/notice_reasons.toml`, starting from the ADR 0013 defaults.
+8. **Terms versioning.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): an integer `terms.version`, bumped by the Operator; it may not go below the highest version already accepted.
 9. **The backgrounds the accent is checked against.** UI design tokens are out of scope, so the light and dark background colours used in the startup contrast check are not defined yet. Owner: [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98).
-10. **`tart config check` and the database.** Startup fails when a vocabulary key in use is missing, which needs the database. Whether `tart config check` also connects to the database, or checks the files alone, is not decided. Owner: [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85).
+10. **`tart config check` and the database.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): the files alone by default; `--database` adds the database checks; startup runs both.
 11. **Map style ownership.** Answered by [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37): the Instance ships two finished style files; see [Instance configuration](#1-instance-configuration).
 
 **Authentication and accounts**
