@@ -135,7 +135,7 @@ _Avoid_: Verified, trusted, confidence
 ### People
 
 **Artist**:
-A public creative identity (an individual or a collective) to which Artworks may be attributed, named only by the names it publicly uses as an artist, optionally with an Uncertain date period of activity; never a legal identity.
+A public creative identity (an individual or a collective) to which Artworks may be attributed, named only by the names it publicly uses as an artist, optionally with a period of activity whose start and end are Uncertain dates; never a legal identity.
 _Avoid_: Author, creator, user
 
 **Alias**:
@@ -143,7 +143,7 @@ An alternative public name under which an Artist is known.
 _Avoid_: Tag (ambiguous with the artwork form), AKA
 
 **Crew membership**:
-A relation stating that one Artist is a member of a collective Artist, optionally over an Uncertain date period.
+A relation stating that one Artist, individual or collective, is a member of a collective Artist, optionally over a period whose start and end are Uncertain dates.
 _Avoid_: Group, team
 
 **Attribution**:
