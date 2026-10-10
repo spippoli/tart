@@ -103,6 +103,8 @@
   <div data-param="approxline" data-opts="none,solid"></div>
   <div class="note">Label language (UI)</div>
   <div data-param="lang" data-opts="it,en"></div>
+  <div class="note">Map typeface (OFL)</div>
+  <div data-param="font" data-opts="spectral,oldstandard,goudy,linden,fell,garamond,cinzel+oldstandard,cinzel+goudy"></div>
   <h3>Contrast (WCAG ratio)</h3>
   <table id="contrast"></table>
   <h3>State</h3>
@@ -173,10 +175,23 @@ const VARIANTS = {
 };
 const KEYS = Object.keys(VARIANTS);
 
+// Candidate OFL faces (no Reserved Font Name declared). r = names, i = water/ruins, c = district caps.
+const FONTS = {
+  spectral: { r: "Spectral-Regular", i: "Spectral-Italic", c: "Spectral-Regular" },
+  oldstandard: { r: "OldStandard-Regular", i: "OldStandard-Italic", c: "OldStandard-Regular" },
+  goudy: { r: "SortsMillGoudy-Regular", i: "SortsMillGoudy-Italic", c: "SortsMillGoudy-Regular" },
+  linden: { r: "LindenHill-Regular", i: "LindenHill-Italic", c: "LindenHill-Regular" },
+  fell: { r: "IMFellDWPica-Regular", i: "IMFellDWPica-Italic", c: "IMFellDWPica-Regular" },
+  garamond: { r: "EBGaramond", i: "EBGaramond-Italic", c: "EBGaramond" },
+  "cinzel+oldstandard": { r: "OldStandard-Regular", i: "OldStandard-Italic", c: "Cinzel" },
+  "cinzel+goudy": { r: "SortsMillGoudy-Regular", i: "SortsMillGoudy-Italic", c: "Cinzel" },
+};
+
 const PLACES = {
   "Campo Marzio z14": [12.4745, 41.8990, 14], "Campo Marzio z17": [12.4740, 41.8985, 17],
   "Forum z14": [12.4880, 41.8920, 14], "Forum z17": [12.4865, 41.8925, 17],
   "Prati z14": [12.4640, 41.9070, 14], "Prati z17": [12.4650, 41.9068, 17],
+  "Tiber bend z15.5": [12.4695, 41.8985, 15.5],
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -217,7 +232,7 @@ const areas = { type: "FeatureCollection", features: [
 // URL state
 // ---------------------------------------------------------------------------------------------
 const DEFAULTS = { variant: "A", theme: "light", filter: "none", dpi: "native", public: "off", overlay: "off",
-  districts: "osm", hatch: "6", approxline: "none", lang: "it", place: "Campo Marzio z17" };
+  districts: "osm", hatch: "6", approxline: "none", lang: "it", font: "spectral", place: "Campo Marzio z17" };
 const params = () => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, new URLSearchParams(location.search).get(k) ?? DEFAULTS[k]]));
 function setParam(k, v) {
   const u = new URL(location.href); u.searchParams.set(k, v); history.replaceState(null, "", u); render();
@@ -259,7 +274,7 @@ const hex = (c) => c.replace("#", "%23");
 // ---------------------------------------------------------------------------------------------
 // Style generation: Protomaps base → TART transform → TART overlays
 // ---------------------------------------------------------------------------------------------
-function flavorFrom(t, v) {
+function flavorFrom(t, v, font) {
   const f = { ...namedFlavor("light") };
   for (const k of Object.keys(f)) if (typeof f[k] === "string") f[k] = t.paper;
   Object.assign(f, {
@@ -277,7 +292,7 @@ function flavorFrom(t, v) {
   for (const k of Object.keys(f)) if (k.startsWith("tunnel_") && k.endsWith("_casing")) f[k] = v.streetCasing ? t.block : t.paper;
   f.landcover = Object.fromEntries(Object.keys(f.landcover).map((k) => [k, t.paper]));
   f.pois = Object.fromEntries(Object.keys(f.pois).map((k) => [k, t.labelStreet]));
-  if (v.serif) Object.assign(f, { regular: "Spectral Regular", bold: "Spectral Medium", italic: "Spectral Italic" });
+  if (v.serif) Object.assign(f, { regular: `${font} r`, bold: `${font} r`, italic: `${font} i` });
   return f;
 }
 
@@ -285,15 +300,15 @@ const DROP = /^(pois|roads_shields|roads_oneway|roads_runway|roads_taxiway|landu
 
 function buildStyle(p) {
   const v = VARIANTS[p.variant], t = v[p.theme];
-  const serif = (w) => (v.serif ? [{ r: "Spectral Regular", i: "Spectral Italic", m: "Spectral Medium" }[w]] : [{ r: "Noto Sans Regular", i: "Noto Sans Italic", m: "Noto Sans Medium" }[w]]);
-  let L = pmLayers("pm", flavorFrom(t, v), { lang: p.lang }).filter((l) => !DROP.test(l.id));
+  const serif = (w) => (v.serif ? [`${p.font} ${w}`] : [{ r: "Noto Sans Regular", i: "Noto Sans Italic", c: "Noto Sans Regular" }[w]]);
+  let L = pmLayers("pm", flavorFrom(t, v, p.font), { lang: p.lang }).filter((l) => !DROP.test(l.id));
   L = L.map((l) => {
     if (l.id === "buildings") {
       l.paint = { "fill-color": t.block, "fill-opacity": 1 };
       if (!v.buildings) l.layout = { visibility: "none" };
     }
     if (l.id === "places_subplace") {
-      l.layout["text-font"] = serif("r"); l.layout["text-letter-spacing"] = 0.3; l.layout.visibility = p.districts === "osm" ? "visible" : "none";
+      l.layout["text-font"] = serif("c"); l.layout["text-letter-spacing"] = 0.3; l.layout.visibility = p.districts === "osm" ? "visible" : "none";
       l.layout["text-size"] = ["interpolate", ["linear"], ["zoom"], 12, 11, 15, 14]; l.maxzoom = 16.5;
       l.paint = { "text-color": t.labelDistrict, "text-halo-color": t.paper, "text-halo-width": 1.5 };
     }
@@ -308,7 +323,7 @@ function buildStyle(p) {
     }
     if (l.id === "water_river" || l.id === "water_stream") l.paint["line-color"] = t.water;
     if (l.id === "roads_rail") l.paint = { "line-color": t.ink, "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 17, 2.4] };
-    if (l.type === "symbol" && l.layout && l.layout["text-font"] && !v.serif) l.layout["text-font"] = l.layout["text-font"].map((f) => f.replace("Spectral", "Noto Sans"));
+    if (l.type === "symbol" && l.layout && l.layout["text-font"] && !v.serif) l.layout["text-font"] = l.layout["text-font"].map((f) => f.replace(`${p.font} r`, "Noto Sans Regular").replace(`${p.font} i`, "Noto Sans Italic"));
     return l;
   });
   const idx = (id) => L.findIndex((l) => l.id === id);
@@ -340,7 +355,7 @@ function buildStyle(p) {
     layout: { "text-field": p.lang === "en" ? ["coalesce", ["get", "name:en"], ["get", "name"]] : ["get", "name"], "text-font": serif("i"), "text-size": 12, "text-max-width": 8 },
     paint: { "text-color": t.ruinLine, "text-halo-color": t.paper, "text-halo-width": 1.5 } });
   if (p.districts === "areas") L.push({ id: "tart_areas_label", type: "symbol", source: "areas", minzoom: 12, maxzoom: 16.5,
-    layout: { "text-field": ["upcase", ["get", "name"]], "text-font": serif("r"), "text-letter-spacing": 0.3, "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11, 15, 14] },
+    layout: { "text-field": ["upcase", ["get", "name"]], "text-font": serif("c"), "text-letter-spacing": 0.3, "text-size": ["interpolate", ["linear"], ["zoom"], 12, 11, 15, 14] },
     paint: { "text-color": t.labelDistrict, "text-halo-color": t.paper, "text-halo-width": 1.5 } });
   void firstSymbol;
 
@@ -362,7 +377,7 @@ function buildStyle(p) {
   return {
     version: 8,
     glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
-    ...(v.serif ? { "font-faces": { "Spectral Regular": fontFile("Spectral-Regular"), "Spectral Italic": fontFile("Spectral-Italic"), "Spectral Medium": fontFile("Spectral-Medium") } } : {}),
+    ...(v.serif ? { "font-faces": Object.fromEntries(["r", "i", "c"].map((w) => [`${p.font} ${w}`, fontFile(FONTS[p.font][w])])) } : {}),
     sources: {
       pm: { type: "vector", url: `pmtiles://${BASE}rome.pmtiles`, attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>' },
       rome: { type: "geojson", data: `${BASE}rome-overlay.geojson` },
@@ -476,7 +491,7 @@ function render() {
   mapEl.className = p.filter === "none" ? "" : `f-${p.filter}`;
   map.setPixelRatio(p.dpi === "1x" ? 1 : devicePixelRatio);
   if (prev && prev.place !== p.place) { const [x, y, z] = PLACES[p.place]; map.jumpTo({ center: [x, y], zoom: z }); }
-  const styleKeys = ["variant", "theme", "public", "overlay", "districts", "hatch", "approxline", "lang"];
+  const styleKeys = ["font", "variant", "theme", "public", "overlay", "districts", "hatch", "approxline", "lang"];
   if (prev && styleKeys.some((k) => prev[k] !== p[k])) map.setStyle(buildStyle(p), { diff: false });
   drawLegend(p); renderState();
   prev = p;
