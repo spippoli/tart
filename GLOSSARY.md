@@ -22,6 +22,10 @@ _Avoid_: Settings, preferences, Instance data
 The licence under which an Instance publishes its structured archive data, chosen by the Operator from a fixed list of open licences; it never covers Documentation item files or the depicted Artworks.
 _Avoid_: Archive licence, content licence
 
+**Data dump**:
+An export of the current state of an Instance's public archive data under its Data licence, produced by the Operator and published at the Operator's discretion; it holds no Revisions and no Users.
+_Avoid_: Backup (the private, encrypted copy for restore), export (an individual User's data)
+
 **Licensor**:
 The holder who offers the TART software under its license and holds the TART name and logo; distinct from every Operator.
 _Avoid_: Owner, maintainer (as the legal role)
