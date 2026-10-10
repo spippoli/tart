@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Erasure log, User, Moderator, Submitter, Submission, Submission status, Retraction, Outdated, Decision message, Moderation note, Archive record, Revision, Artwork, Artist, Attribution, Crew membership, Location, Source, Documentation item, Creator credit, Rights basis, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Purge, Notice, UI language, Content language.
 
-**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content).
+**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Redaction by operation and of current values, the Purge command and what it leaves, Creator credit anonymisation, immutable file licences).
 
 **Depends on**: [Foundations](foundations.md) (configuration, sessions, storage and media pipeline, Account page, Operator CLI, email adapter), [Archive records](archive-records.md) (record model, visibility table, `/revisions`, "Report" action), and Contribution and moderation (roles and permission checks, Submission rejection and Decision messages, the review checklist, terms acceptance).
 
@@ -132,6 +132,7 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 | Rights basis | Required. Either *own work*, or *third-party work already under an allowlisted licence*, which also requires the creator and the origin URL |
 
 - Material that fits neither Rights basis is linked (a link Documentation item or a Source), never uploaded.
+- After approval, a file's licence and Rights basis never change: a file under another licence is a new Documentation item, and a falsely declared licence or basis is handled by a Notice and Withdrawal. The Creator credit can be corrected by an ordinary edit Submission (a typo, the creator's preferred name); removing a name for privacy is an anonymisation (Account deletion and Creator credits), not an edit ([#95](https://github.com/spippoli/tart/issues/95)).
 - These fields apply to uploaded files ([Archive records](archive-records.md)); how the editor presents them is in Contribution and moderation ([Submission form flow](https://github.com/spippoli/tart/issues/27)).
 - Every licence notice, wherever a file is shown, states that the licence covers the file only, never the depicted Artwork.
 - Public image renditions are capped at the resolution set in the Instance configuration; the original is never public; GPS and device identifiers are stripped from the stored original and public renditions carry no EXIF (pipeline in [Foundations](foundations.md#3-storage-and-media-pipeline)).
@@ -200,9 +201,12 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 
 ### 4. Redaction
 
-- **Target**: the content of past Revisions of an Archive record, when only a value must go (for example a person's real name in an earlier description). The record itself stays public ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
+- **Target**: selected operations of one or more Revisions of one Archive record, when only a value must go (for example a person's real name in a description). An operation is a field set, or an item (Attribution, History event, link) added, changed, or removed ([ADR 0007](../adr/0007-edit-submissions-as-field-changesets.md)); selecting all of a Revision's operations redacts the whole Revision. The record itself stays public ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md), [#95](https://github.com/spippoli/tart/issues/95)).
+- One Redaction is one measure: one Notice closes with one Redaction however many Revisions carry the value, and a Reinstatement or a Purge acts on it as a unit.
 - **Trigger**: closing a Notice, or a Moderator's own initiative.
-- **Effect**: on `/revisions`, a redacted Revision stays listed but its content is hidden from the public ([Archive records](archive-records.md#visibility)). A Redaction produces no Revision.
+- **Effect on `/revisions`**: each affected Revision stays listed with its Submitter, dates, and the names of the fields or items its operations touched; the content of the redacted operations is hidden from the public ([Archive records](archive-records.md#visibility)). A Redaction produces no Revision.
+- **Current values**: when a redacted operation carries a value that is still current, the public page hides it too. A field shows a neutral, translated placeholder ("removed for legal reasons"); an item (an Attribution, a History event) is omitted, as a withdrawn Artist's Attributions are. The Data dump, which holds what public pages show, omits it as well. The gap is filled by an ordinary edit Submission from anyone, approved under the usual rules; the editor never pre-fills a redacted value and shows the placeholder as the current value. Once a later Revision replaces the value, the page shows the new one; the redacted operation stays hidden.
+- How a Moderator selects the operations in the Moderation area belongs to the Moderator pages for Notices and legal actions (open item 3).
 - Redacted Revisions of a record merged into another stay redacted ([ADR 0018](../adr/0018-merge-as-reconciling-multi-record-submission.md)).
 - After an Artist's Reinstatement, past Revisions that still carry an exposing name are handled by Redaction where needed ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)).
 - Redacting one's own content is always allowed, whatever `self_approval` says.
@@ -216,17 +220,19 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 
 ### 6. Legal action log and Moderation notes
 
-- Withdrawals, Redactions, and Reinstatements are recorded in their own log, not as Revisions ([ADR 0002](../adr/0002-every-change-is-a-submission.md)). Each entry records the target, the measure, the Moderator, the time, the Notice it closes (or own initiative), and the statement of reasons sent.
+- Withdrawals, Redactions, and Reinstatements are recorded in their own log, not as Revisions ([ADR 0002](../adr/0002-every-change-is-a-submission.md)). Each entry records the target, the measure, the Moderator, the time, the Notice it closes (or own initiative), and the statement of reasons sent; each has a legal action id, which the Purge command takes.
+- A Purge adds a content-free entry: the measure (Purge), the purged Withdrawal or Redaction, the legal ground, the reference, the time, and "Operator" as actor (the CLI has no User identity). The purged entry is marked purged ([#95](https://github.com/spippoli/tart/issues/95)).
 - Moderation notes can be written on Notices, Withdrawals, and Redactions. They are immutable, carry author and date, and are visible only to Moderators and the Operator ([#43](https://github.com/spippoli/tart/issues/43)).
 - Moderator identity is visible only to Moderators and the Operator. Statements of reasons, decision notices, and every public page say "a Moderator".
 
 ### 7. Statements of reasons
 
-**When**: for every Withdrawal, Redaction, Reinstatement, and Submission rejection ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). For a rejection, the Decision message is the statement of reasons (Contribution and moderation).
+**When**: for every Withdrawal, Redaction, Reinstatement, Purge, and Submission rejection ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). For a rejection, the Decision message is the statement of reasons (Contribution and moderation). For a Purge, the measure is "Purge" with the purged measure's target, the facts say the loss is permanent, element 3 says whether it followed an authority order or a GDPR erasure request, and the ground is the `--ground` given; the `--reference` is never included, since it may identify the data subject. This also informs the recipient of an authority order and its effect (DSA Art. 9(5)) ([#95](https://github.com/spippoli/tart/issues/95)).
 
 **To whom (affected Submitters)**:
 - for a Documentation item: the Submitter who created it;
 - for a record: its creator and the Submitters of the affected Revisions;
+- for a Purge: the same recipients as the purged Withdrawal or Redaction;
 - for a rejection: the Submission's Submitter.
 
 A recipient whose account was deleted has no address and gets nothing. The person who performed the action gets no email ([#44](https://github.com/spippoli/tart/issues/44)).
@@ -246,9 +252,15 @@ Contesting is done by replying to the email; legal emails set `Reply-To` to the 
 - **Only** the Operator, from the Operator CLI; there is no Purge in any Moderator UI ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
 - **Only** on content already withdrawn or redacted; the command refuses anything public.
 - **Only** when the law requires it: a founded GDPR erasure request or an authority order (DSA Art. 9–10; the Operator answers orders alone, [#46](https://github.com/spippoli/tart/issues/46)).
+- **Command** ([#95](https://github.com/spippoli/tart/issues/95)): `tart purge <legal-action-id> --ground gdpr-erasure|authority-order --reference "<text>" [--yes]`. The target is an existing Withdrawal or Redaction, and the Purge erases exactly what it hides, so there is no second selection language. The ground is required; the reference is free text (an order's protocol number, the date of an erasure request). The command prints a summary of what it will erase and asks for confirmation unless `--yes` is given. It refuses a measure that a Reinstatement has undone or that is already purged.
 - Effect: the targeted content, including stored file objects of a withdrawn Documentation item, is permanently erased from the database and storage. It is the only way content ever leaves the archive.
-- **Erasure log** ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)): the Purge writes a content-free entry (kind, target id, date) to the Erasure log. Backups are never rewritten: `tart backup restore` applies the Erasure log again after restoring any dump, erased media leave the backup within 30 days, and erased data may stay in encrypted backups for up to six months, as the processing inventory states ([Operations and portability](operations-and-portability.md#3-restore-and-the-erasure-log)). What else remains after a Purge is open item 18.
-- The command name and its exact output are not decided (see Open items).
+- **What remains** ([#95](https://github.com/spippoli/tart/issues/95)):
+  - *Purged Withdrawal*: a tombstone row (kind, id, purged) and the same neutral 410 page on the record or Documentation item and its `/revisions` subpage, forever. The id never becomes 404 and is never reused. The content, its Revisions, and its stored objects are gone. References from other records point at the tombstone and behave as towards a withdrawn record.
+  - *Purged Redaction*: each affected Revision stays in the sequence on `/revisions` with its Submitter, dates, and the names of the fields or items touched; the content of the purged operations is erased. The public view is the Redaction's. If a value was still current, the placeholder stays until a later Revision replaces it.
+  - *Copies*: the content is also erased from the Submissions (every version) that carried it. Moderation notes and the Notice explanation are not touched: they are immutable and private, and the Operator documentation tells Moderators never to quote unlawful content in them. Where the law requires more, the Operator acts by hand.
+  - *Logs*: the legal action log entry of the purged measure stays, marked purged; a Reinstatement is no longer possible.
+- **Statement of reasons**: queued to the affected Submitters (Statements of reasons).
+- **Erasure log** ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)): the Purge writes a content-free entry (kind, target id, date) to the Erasure log. Backups are never rewritten: `tart backup restore` applies the Erasure log again after restoring any dump, erased media leave the backup within 30 days, and erased data may stay in encrypted backups for up to six months, as the processing inventory states ([Operations and portability](operations-and-portability.md#3-restore-and-the-erasure-log)). What else remains is listed above.
 
 ### 9. Account deletion
 
@@ -259,8 +271,14 @@ Self-service from the Account page (`/it/account`, `/en/account`, [Foundations](
 3. drafts are deleted, with their private media;
 4. open Submissions (*submitted*, *changes requested*) are retracted;
 5. approved content stays in the archive;
-6. if the User chose so in the deletion flow, Creator credits that carry their name are anonymised;
+6. if the User chose so in the deletion flow, their Creator credits are anonymised (Creator credit anonymisation below);
 7. a content-free entry (kind, target id, date) is written to the **Erasure log** ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)), so that a restore from backup erases the account again. Backups are never rewritten; erased data may stay in encrypted backups for up to six months, as the processing inventory states ([Operations and portability](operations-and-portability.md#3-restore-and-the-erasure-log)).
+
+**Creator credit anonymisation** ([#95](https://github.com/spippoli/tart/issues/95)):
+- **Scope**: the Documentation items the User submitted with the Rights basis *own work*, whatever their credit text says (a display name, a pseudonym, a real name): the credit of one's own work is the User's by warranty. No free-text search for the name elsewhere: it is fragile and would hit namesakes. Third-party files are excluded, since their credit belongs to someone else.
+- **Rendering**: a `credit_anonymised` flag, shown as a translated label ("autore anonimo" / "anonymous creator"). The credit text is erased, also from Revisions and Submissions. The account's pseudonym is never used, since it would link the file back to the profile.
+- **Outside account deletion**: a living User asking to remove their attribution (CC 4.0 §3(a)(3)) writes to `contacts.privacy`, and the Operator runs `tart users anonymise-credits <user>` with the scope above. The creator of a third-party file writes to the same contact, and the Operator runs `tart documentation anonymise-credit <id>` on one item. There is no Moderator UI for either.
+- **Restore**: every anonymisation writes a content-free entry (kind, target id, date) to the Erasure log, so a restore applies it again.
 
 No email is sent about the retractions, since the account no longer has an address ([#44](https://github.com/spippoli/tart/issues/44)). Account-level GDPR requests that are not self-service go to the Operator's privacy contact, `contacts.privacy`, not through Notices. ⚖️ legal review: the lawful basis for keeping deleted Users' contributions.
 
@@ -330,7 +348,7 @@ A good test exercises a module through its external interface and asserts observ
 **Accounts and exports**
 
 23. Deleting an account from the Account page erases email, passkeys, and sessions, deletes drafts and their media, retracts open Submissions, keeps approved content, and shows a stable pseudonym wherever the display name appeared.
-24. Creator credits carrying the User's name are anonymised only if the User chose it during deletion.
+24. The User's Creator credits are anonymised only if the User chose it during deletion.
 25. The Operator CLI produces a data export for a given User.
 
 **Accessibility (WCAG 2.2 AA) and i18n**
@@ -344,6 +362,16 @@ A good test exercises a module through its external interface and asserts observ
 **Self-review** ([Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93))
 
 31. A Notice about a Moderator's own content reaches that Moderator too, and its page says so; with no User holding the Moderator role, a Notice is still stored and acknowledged and stays open.
+
+**Redaction, Purge, and Creator credits** ([Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95))
+
+32. A Redaction hides exactly the selected operations, across one or more Revisions of one record; the affected Revisions stay listed with Submitter, dates, and touched field or item names; a Reinstatement restores them all at once.
+33. A redacted operation whose value is still current is hidden on the public page (a placeholder for a field, omission for an item) and in the Data dump; the edit form never pre-fills it; once a later Revision replaces it, the new value shows.
+34. `tart purge` takes a legal action id and a required ground, prints a summary and asks for confirmation unless `--yes`, and refuses a reinstated or already purged measure.
+35. After a Purge of a Withdrawal, the id answers 410 with the neutral page, on the page and `/revisions`, and is never reused; after a Purge of a Redaction, the Revisions stay listed and the purged content is gone from Revisions and from every version of the Submissions that carried it.
+36. A Purge writes an Erasure log entry and a legal action log entry with no content, marks the purged measure, and queues a statement of reasons to the purged measure's affected Submitters without the reference.
+37. Creator credit anonymisation covers exactly the User's own-work Documentation items, shows a translated "anonymous creator" label, erases the credit text from Revisions and Submissions, writes an Erasure log entry, and is applied again after a restore.
+38. The API refuses any change to an approved file's licence or Rights basis; a Creator credit change goes through an edit Submission.
 
 ## Instance configuration
 
@@ -362,7 +390,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 | Terms version | `terms.version` | Acceptance before submitting (Contribution and moderation) | `1` at launch |
 | Content language, UI languages, time zone | `languages.content`, `languages.ui`, `geography.time_zone` | Labels, email language, date formatting | `it`; `it` (default), `en`; `Europe/Rome` |
 
-**Platform constants, not configuration**: notifier name and email retention (six months after the decision); "no automation" in statements of reasons; Purge only from the CLI. The 7-day decision target is Operator guidance only.
+**Platform constants, not configuration**: notifier name and email retention (six months after the decision); "no automation" in statements of reasons; Purge and Creator credit anonymisation only from the CLI; the Purge grounds (`gdpr-erasure`, `authority-order`); the "removed for legal reasons" placeholder and "anonymous creator" label, from the message catalogues. The 7-day decision target is Operator guidance only.
 
 ## Out of Scope
 
@@ -409,8 +437,8 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 9. **Ground of a measure.** Whether the "ground in the terms or law" of a statement of reasons is picked from the Notice reasons list, from another list, or written freely is not decided.
 
 **Withdrawal and Redaction**
-10. **Removing a current value.** Redaction hides past Revisions only. How a current unlawful value (for example a name in the current description, or an exposing current Attribution) is removed while the record stays public is not decided: presumably an edit Submission followed by a Redaction of earlier Revisions, but who authors that Submission, and how it fits `self_approval = false`, are not stated.
-11. **Redaction granularity.** Whether a Redaction hides a whole Revision's content or only selected fields of it, and whether the current Revision can be redacted, is not decided.
+10. **Removing a current value.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): a Redaction can hide a current value, shown as a placeholder (field) or omitted (item) until a later ordinary edit Submission replaces it. See Redaction.
+11. **Redaction granularity.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): a Redaction selects operations from one or more Revisions of one record, up to whole Revisions, current ones included. See Redaction.
 12. **Withdrawal effects beyond Artists** (carried from [Archive records](archive-records.md#open-items) item 12): whether a Claim whose only citation is withdrawn becomes `reported`, whether a `confirmed` Attribution then stays valid, how a withdrawn Artwork appears in its Location's stratigraphy, a Series, or as a covering-Artwork link, and what a withdrawn Location or Source means for the records that reference it.
 13. **Moderator view of hidden content.** Moderators must see withdrawn and redacted content to decide a Reinstatement, but no decision says where and how it is shown to them.
 14. **Submitter view.** Whether a Submitter sees their own withdrawn content or redacted Revisions (for example on My contributions) is not decided.
@@ -418,15 +446,15 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 16. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): the DSA contact, `contacts.dsa`; there is no separate legal contact key.
 
 **Purge**
-17. **Command and scope.** The CLI command name, how a target is selected (record, Documentation item, Revision, field), whether a Purge requires a recorded legal ground, and whether it is logged are not decided.
-18. **What remains after a Purge.** Partly answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45): a Purge leaves a content-free tombstone (kind, target id, date) in the Erasure log; see Purge. Still not decided: whether the id still answers 410, whether a tombstone remains in the Revision sequence or the legal action log, and how a Purge of redacted Revision content keeps the audit trail consistent.
-19. **Statement of reasons for a Purge.** The decisions list none; whether one is due (the content was already hidden and notified) is not decided.
+17. **Command and scope.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): `tart purge <legal-action-id> --ground … --reference …`, targeting an existing Withdrawal or Redaction, logged in the legal action log and the Erasure log. See Purge.
+18. **What remains after a Purge.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log entry) and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (410 tombstone, Revisions kept without the purged content, Submissions erased, notes untouched). See Purge.
+19. **Statement of reasons for a Purge.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): always sent, to the purged measure's affected Submitters. See Statements of reasons.
 20. **Backups.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)): backups are not rewritten; a Purge and an account deletion write a content-free entry to the Erasure log, which every restore applies again; erased data may stay in encrypted backups for up to six months, and the processing inventory says so. See Purge and Account deletion.
 
 **Accounts and exports**
 21. **Pseudonym format.** The shape of the stable pseudonym (for example based on the user id, as OpenStreetMap does) is not decided.
 22. **Deletion flow details.** Confirmation step (for example re-entering a sign-in code), any grace period, and what happens to a deleting User's Moderator role, their immutable Moderation notes, and the Invitations they issued are not decided.
-23. **Creator credit anonymisation.** What "carry their name" matches (exact display name, any free-text mention), what replaces it, and how a living User or a third party requests anonymisation outside account deletion (CC 4.0 attribution removal, [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)) are not decided; nor whether a file's licence or Creator credit can ever change after approval.
+23. **Creator credit anonymisation.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): the User's own-work items, a translated "anonymous creator" label, Operator CLI commands outside account deletion, an Erasure log entry; licence and Rights basis never change, the credit is corrected by edit Submission. See Account deletion and Files, licences, and data.
 24. **Export content and format.** Which data an export contains (profile, Submissions, uploaded files, Moderation notes about the User, Notice data), its format, and the CLI command name are not decided.
 
 **Files and data**

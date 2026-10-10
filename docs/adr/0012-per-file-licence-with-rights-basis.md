@@ -10,7 +10,7 @@ Every uploaded Documentation item file carries its own licence, chosen by the Su
 
 ## Consequences
 
-- The Creator credit is not the User: it may be a pseudonym, it defaults to the User's display name only for own work, and it can be anonymised on request (CC 4.0 attribution removal).
+- The Creator credit is not the User: it may be a pseudonym, it defaults to the User's display name only for own work, and it can be anonymised on request (CC 4.0 attribution removal). *Amended by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95):* a file's licence and Rights basis never change after approval (a file under another licence is a new Documentation item); its Creator credit can be corrected by an ordinary edit Submission, and anonymisation, run by the Operator, replaces it everywhere with a translated "anonymous creator" label.
 - Italy has no freedom of panorama, so a file's licence never covers the depicted Artwork. Every licence notice says it covers the file only, and public image renditions are capped at a resolution set in the Instance configuration while the original stays private. The lawfulness of publishing photos of in-copyright works needs legal review.
 - The Submitter accepts the Instance's versioned terms, which hold the contributor warranty and licence grant, before their first Submission and again when the terms change; the per-file Rights basis is the specific warranty.
 - Capture date and GPS are read from EXIF only to suggest an Observed date and a map pin in the form. GPS and device identifiers are stripped from the stored original, and public renditions carry no EXIF, because GPS is the photographer's position, not the Artwork's Location.

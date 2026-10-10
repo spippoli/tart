@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge).
 
 ## Problem Statement
 
@@ -124,7 +124,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 |---|---|---|---|---|
 | Notice acknowledgement | A Notice is sent with an email address | The notifier | Mandatory | The Notice reference; a copy of the reason, URL, and explanation; that the decision will follow by email |
 | Notice decision | The Notice is closed | The notifier, if they gave an email | Mandatory | The decision (Withdrawal, Redaction, or no action), a short reason, and redress: email reply, out-of-court settlement, courts |
-| Statement of reasons | A Withdrawal, Redaction, or Reinstatement is performed, or a Submission is rejected | The affected Submitters | Mandatory | See [Statement of reasons](#statement-of-reasons) |
+| Statement of reasons | A Withdrawal, Redaction, Reinstatement, or Purge is performed, or a Submission is rejected | The affected Submitters (for a Purge, those of the purged measure) | Mandatory | See [Statement of reasons](#statement-of-reasons) |
 
 - The rejection email of the Submitter table *is* the statement of reasons for a rejection; it is one email, not two.
 - The affected Submitters are as defined in [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md): for a Documentation item, the Submitter who created it; for a record, its creator and the Submitters of the affected Revisions.
@@ -144,7 +144,7 @@ Under `registration = invite` the Invitation link can also be copied by the issu
 
 ### Statement of reasons
 
-Sent for every Withdrawal, Redaction, Reinstatement, and Submission rejection to every affected Submitter ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). It gives:
+Sent for every Withdrawal, Redaction, Reinstatement, Purge, and Submission rejection to every affected Submitter ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). It gives:
 
 1. the measure taken;
 2. the facts it rests on;
@@ -153,7 +153,7 @@ Sent for every Withdrawal, Redaction, Reinstatement, and Submission rejection to
 5. that no automated means were used (never, in the MVP);
 6. redress, starting with replying to the email.
 
-For a rejection, the Decision message (a configured reason plus free text, [#5](https://github.com/spippoli/tart/issues/5)) supplies the facts and ground. For Withdrawal, Redaction, and Reinstatement, the inputs are captured by the Moderator as specified in Rights and legal actions; this spec renders them.
+For a rejection, the Decision message (a configured reason plus free text, [#5](https://github.com/spippoli/tart/issues/5)) supplies the facts and ground. For Withdrawal, Redaction, and Reinstatement, the inputs are captured by the Moderator as specified in Rights and legal actions; for a Purge, by the Operator CLI's `--ground` (never its `--reference`). This spec renders them.
 
 ### Recipient rules
 
@@ -165,7 +165,7 @@ For a rejection, the Decision message (a configured reason plus free text, [#5](
 
 ### Opt-out
 
-- **Mandatory** (no switch): the sign-in code, the Invitation, all legal emails (rejection, Withdrawal, Redaction, Reinstatement, Notice acknowledgement and decision) and, for Moderators, Notice received.
+- **Mandatory** (no switch): the sign-in code, the Invitation, all legal emails (rejection, Withdrawal, Redaction, Reinstatement, Purge, Notice acknowledgement and decision) and, for Moderators, Notice received.
 - **Optional, for every User**: one Account-page switch, "Updates on my Submissions", on by default, covering Changes requested, Approved, and Outdated.
 - **Optional, for Moderators**: the Submission email mode on the Account page, default *Moderator digest*. The setting is shown only to Moderators.
 - Every optional email links to the Account page in its footer. There is no RFC 8058 one-click unsubscribe, because these are transactional emails.
@@ -232,7 +232,7 @@ A good test drives a module through its external interface and asserts observabl
 **Legal emails**
 11. A Notice with an email address gets an immediate acknowledgement with the Notice reference and a copy of the reason, URL, and explanation; a Notice without one gets none.
 12. Closing a Notice sends the notifier (if they gave an email) the decision, a short reason, and redress (email reply, out-of-court settlement, courts).
-13. A Withdrawal, Redaction, or Reinstatement sends every affected Submitter, as defined in ADR 0013, a statement of reasons with all six elements.
+13. A Withdrawal, Redaction, Reinstatement, or Purge sends every affected Submitter, as defined in ADR 0013 (for a Purge, those of the purged measure), a statement of reasons with all six elements.
 14. No email goes to a Submitter when a Notice about their content arrives; no email goes to a notifier on a later Reinstatement.
 15. Every legal email has `Reply-To` set to `contacts.dsa`.
 16. Legal emails, Notice received, the sign-in code, and the Invitation cannot be turned off from any setting.

@@ -21,7 +21,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Data dump, Licensor, Content language, UI language, User, Moderator, Moderation note, Submission, Submission log, Archive record, Revision, Artwork, Artist, Location, Site, Area, Series, Source, Documentation item, Creator credit, Rights basis, History event, Claim, Attribution, Crew membership, Uncertain date, Merge, Duplicate retirement, Withdrawal, Redaction, Reinstatement, Purge, Erasure log, Notice.
 
-**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (`operator.name`, the shape of `data_attribution`, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator acts on Notices as a Moderator).
+**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (`operator.name`, the shape of `data_attribution`, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator acts on Notices as a Moderator), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Creator credit anonymisations in the Erasure log, Redactions of current values and the Data dump).
 
 **Depends on**: every earlier feature spec, as listed above.
 
@@ -110,7 +110,7 @@ The Operator produces a Data dump with `tart dump`: a zip of the current public 
 |---|---|---|
 | Release pipeline | On a SemVer tag, build and publish the generic `api` and `frontend` images to GHCR | maintainer's CI |
 | Backup | `tart backup run`, `tart backup verify`, `tart backup restore`; the nightly and weekly schedule; reports last success times to Health | `backup` Compose service (profile), Operator CLI |
-| Erasure log | Append a content-free entry (kind, target id, date); replay all entries against a restored database | backend (written by Purge and account deletion, read by restore) |
+| Erasure log | Append a content-free entry (kind, target id, date); replay all entries against a restored database | backend (written by Purge, account deletion, and Creator credit anonymisation, read by restore) |
 | Upgrade | `tart upgrade <version>`: the ordered steps of [Upgrades](#4-upgrades) | Operator CLI |
 | Revision guard | At startup, compare the database's Alembic revision with the code's head; refuse to start on a mismatch | `api`, `worker` |
 | Health | Run the checks; serve `GET /api/health` and the token-protected `GET /api/health/details` | backend (`api`) |
@@ -169,7 +169,7 @@ The small tile manifest in the data volume may be included ([#38](https://github
 ### 3. Restore and the Erasure log
 
 - Backups are never rewritten to honour a Purge or an account deletion ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)).
-- Every Purge and every account deletion writes a content-free entry to the **Erasure log**: kind, target id, date. A Purge therefore leaves this tombstone; the rest of what a Purge leaves behind is specified by [Rights and legal actions](rights-and-legal-actions.md#8-purge).
+- Every Purge, every account deletion, and every Creator credit anonymisation writes a content-free entry to the **Erasure log**: kind, target id, date. A Purge therefore leaves this tombstone; the rest of what a Purge leaves behind is specified by [Rights and legal actions](rights-and-legal-actions.md#8-purge).
 - `tart backup restore` restores the chosen dump, then applies again the Erasure log of the most recent dump. Media erasures leave the backup within 30 days through `--backup-dir`.
 - The processing inventory states that erased data may stay in encrypted backups for up to six months ([Processing inventory](#8-processing-inventory)).
 - **Verify (automatic, weekly).** `tart backup verify` restores the latest dump into a temporary database in the `db` container and checks that:
@@ -246,6 +246,7 @@ A **Data dump** is an Operator-produced export of the current state of the publi
 - **Revisions and User names**: once published, a dump escapes later Redactions and account deletions, so the audit trail stays on the Instance's `/revisions` pages, where Withdrawal and Redaction still work;
 - pending, draft, rejected, and retracted Submissions, the Submission log, and Moderation notes;
 - withdrawn records and Documentation items, and a withdrawn Artist's Attributions and Crew memberships;
+- current values hidden by a Redaction;
 - Purged content;
 - Users, Notices, the legal action log, and the Erasure log.
 
@@ -357,9 +358,9 @@ The platform's processing inventory is specified in [Rights and legal actions](r
 
 | # | Item | Who | Where | Basis |
 |---|---|---|---|---|
-| 23 | **After a Withdrawal or Purge**: replace any published Data dump, and publish only the latest one. | Operator | CLI, external | [#47](https://github.com/spippoli/tart/issues/47) |
+| 23 | **After a Withdrawal, a Redaction of a current value, or a Purge**: replace any published Data dump, and publish only the latest one. | Operator | CLI, external | [#47](https://github.com/spippoli/tart/issues/47) |
 | 24 | **A Notice a Moderator cannot judge**: escalate Moderator → Operator → legal counsel. Whoever decides for the Operator is granted the Moderator role and decides in the Moderation area; there is no other path. Meanwhile, "when in doubt, withdraw", because a Withdrawal is reversible by Reinstatement. | Moderator, Operator | Moderation area | [#46](https://github.com/spippoli/tart/issues/46), [#93](https://github.com/spippoli/tart/issues/93); [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
-| 25 | **Authority order**: the Operator answers alone, with a Purge where the order requires one. | Operator | CLI, external | DSA Art. 9–10 |
+| 25 | **Authority order**: the Operator answers alone, with a Purge where the order requires one (`tart purge <legal-action-id> --ground authority-order`); the Purge's statement of reasons informs the affected Submitters (Art. 9(5)). | Operator | CLI, external | DSA Art. 9–10; [#95](https://github.com/spippoli/tart/issues/95) |
 | 26 | **Threat to life or safety**: inform the police. | Operator | External | DSA Art. 18 |
 | 27 | **GDPR request**: access and portability are produced through the CLI; erasure is self-service account deletion or a Purge; the answer is due within one month. | Operator | CLI | GDPR Art. 12; [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
 | 28 | **Data breach**: assess it; notify the supervisory authority (🇮🇹 Garante) within 72 hours where there is a risk, and the data subjects where the risk is high. | Operator | External | GDPR Art. 33–34 |
@@ -406,7 +407,7 @@ A good test drives a module through its external interface (a CLI command, an HT
 9. With backups configured, a nightly job at the configured time dumps the database into restic, then syncs media through rclone `crypt`, and includes the configuration directory; PMTiles, overlays, Caddy state, and `.env` are not in the backup.
 10. Objects deleted from storage are kept in the media backup under `deleted/YYYY-MM-DD` for 30 days, then removed, for both filesystem and S3 storage.
 11. Database snapshots are kept 7 daily, 4 weekly, 6 monthly by default, overridable in the environment; `prune` and `restic check --read-data-subset` run weekly.
-12. Every Purge and account deletion appends an Erasure log entry with kind, target id, and date, and no content.
+12. Every Purge, account deletion, and Creator credit anonymisation appends an Erasure log entry with kind, target id, and date, and no content.
 13. After `tart backup restore` of any dump, every erasure in the Erasure log of the most recent dump is applied again.
 14. `tart backup verify` runs weekly, restores into a temporary database, checks revision, per-kind counts, and a media sample, drops the temporary database, and raises an alert on failure.
 
