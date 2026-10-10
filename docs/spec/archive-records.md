@@ -22,6 +22,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 | [0013](../adr/0013-hide-not-delete-for-legal-removals.md) | Withdrawal and Redaction hide content; Notices can be sent from every public record and Documentation item page |
 | [0014](../adr/0014-artist-records-hold-only-a-public-identity.md) | Artist content rules; no User–Artist link; no legality data; withdrawn Artist hides its Attributions and Crew memberships |
 | [0015](../adr/0015-condition-and-uncertainty-presentation.md) | Words plus three signs for Condition groups; uncertainty as language; dated Condition; three dates per History event; pending content never public |
+| [0018](../adr/0018-merge-as-reconciling-multi-record-submission.md) | Merged duplicate keeps a readable `/revisions` subpage; Duplicate retirement redirects |
 
 **Glossary terms applied**: Instance, Content language, UI language, Instance configuration, Data licence, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Missing, Condition group, History event, Condition record, Creation event, Timeline, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution, User, Moderator, Submitter, Submission, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Notice.
 
@@ -297,7 +298,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 |---|---|---|---|---|
 | Approved | Shown | Shown | Shown | Shown |
 | Pending change to an approved record | Approved data only, no indication | Unchanged | Notice linking to their pending Submissions, and pending content inline in a dashed, hatched box labelled as under review; it never changes the displayed Condition | "N pending submissions on this record", and pending content inline as for the Submitter |
-| Merged duplicate | 301 to the surviving record | 301 | — | — |
+| Merged duplicate or retired Documentation item | 301 to the surviving record | 200, read-only, with a "merged into" notice (ADR 0018) | — | — |
 | Withdrawn record or Documentation item | 410 with a neutral page stating it was removed for legal, rights, or privacy reasons, and none of its content | 410 | — | — |
 | Redacted Revision | Record shown | Revision listed, its content hidden | — | — |
 
@@ -383,7 +384,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 **Pages and URLs**
 
 16. Each record kind is served at the route in the table above in both `it` and `en`; a wrong, missing, or outdated slug answers 301 to the canonical URL.
-17. A merged duplicate's id answers 301 to the surviving record, for the page and for `/revisions`.
+17. A merged duplicate's or retired Documentation item's id answers 301 to the surviving record, without redirect chains; its `/revisions` subpage answers 200 with its own Revisions and a "merged into" notice (ADR 0018).
 18. A withdrawn record or Documentation item answers 410 with a neutral page that shows none of its content; its `/revisions` subpage answers 410 too.
 19. A record that exists only in a pending Submission answers 404 to anonymous visitors and to signed-in Users who are not its Submitter or a Moderator.
 20. Pending content is never present in public HTML or in API responses to anyone other than the Submitter and Moderators; for them it is shown in a box labelled as under review and does not change the displayed Condition.
