@@ -345,7 +345,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 - **Site, Area, Series**: header (name, and for Site and Area their place), map, list of Artworks with Condition word and sign, Sources, actions, Revisions link.
 - **Source** and **Documentation item**: minimal permalinks, needed for citation, Notices, and Merge redirects. A Source shows its reference and what cites it. A Documentation item shows the file rendition or preview (or text, or link), Observed date, Creator credit, licence with "covers the file only", the Artworks it documents, and, for a disappearance, its Location.
 
-**Indexes** (Artists, Sites, Areas, Series) list records by name with links to their pages. They never rank by popularity or activity.
+**Indexes** (Artists, Sites, Areas, Series) list records by name with links to their pages, alphabetically in the Content language, paginated by 24, with a "Filter by name" field (name plus Aliases for Artists) specified in [Discovery](discovery.md#index-name-filter). They never rank by popularity or activity.
 
 **`/revisions` subpage**: lists the record's Revisions with the Submitter's display name (which may be a pseudonym, with no profile link), the first-submitted and approved dates, and the Revision's content unless redacted ([#14](https://github.com/spippoli/tart/issues/14)).
 
@@ -468,9 +468,9 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 15. **Deliberate position obfuscation.** Handed from [#4](https://github.com/spippoli/tart/issues/4) to [#14](https://github.com/spippoli/tart/issues/14): whether a Location's public position may be deliberately coarsened (fragile or private-property pieces), separate from the approximate flag. The resolution of #14 does not address it.
 16. **Public signal of pending Submissions.** [#15](https://github.com/spippoli/tart/issues/15) decided that the public sees nothing; ADR 0015 still lists as open whether the public sees that a record has Submissions under review. This spec follows #15.
 17. **Timeline dates for Documentation items.** ADR 0015 requires the three dates for History events; whether Documentation items on the Timeline also show submitted and approved dates is not stated.
-18. **Index ordering.** Artist, Site, Area, and Series indexes must not rank by popularity; the actual order (for example alphabetical by name in the Content language's collation) is not decided.
+18. **Index ordering.** Answered by [Search and filters](https://github.com/spippoli/tart/issues/41), as compiled in [Discovery](discovery.md#index-name-filter): alphabetical by name in the Content language, with a "Filter by name" field (name plus Aliases for Artists) and pagination by 24; see Indexes.
 19. **Default Surface type list.** The platform ships the brief's §9 list for Expression types; no default Surface type list has been written.
-20. **Mini-map fallback without WebGL2.** Owned by Discovery ([#39](https://github.com/spippoli/tart/issues/39) and the WebGL2 note in ADR 0004); record pages need at least the text fallback stated here.
+20. **Mini-map fallback without WebGL2.** Answered by [Map behaviour: clustering, geometries, overlays, stratigraphy](https://github.com/spippoli/tart/issues/39), as compiled in [Discovery](discovery.md#mini-map): no server-rendered image; a text box with Location, Areas, Site, the approximate notice, coordinates, and an "Open in a maps app" `geo:` link replaces it.
 
 ### Notes
 

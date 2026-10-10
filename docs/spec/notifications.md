@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), and [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails).
 
 ## Problem Statement
 
@@ -198,7 +198,7 @@ Per [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)
 - **Sender**: the From name is the archive name in the Content language; the From address comes from the SMTP environment settings.
 - **Content**: each email summarises the event and links to its page; it does not copy Submission content or files. The Notice acknowledgement is the one exception: it echoes the notifier's own input.
 - **Reply-To**: the Operator's legal contact on legal emails ([Legal emails](#email-catalogue)).
-- **Delivery**: the `worker` sends with bounded retries and backoff. A final failure is logged for the Operator. Bounce and complaint handling is not in the MVP.
+- **Delivery**: the `worker` sends with bounded retries and backoff. A final failure leaves the email job `failed` and is logged for the Operator, who lists failed jobs with `tart jobs failed` and retries them with `tart jobs retry <id|--all>`. Any permanently failed email in the last 24 hours turns the Email health check to `fail`, which the Operator's external monitor sees on `/api/health` and the `worker` reports to `OPERATOR_ALERT_EMAIL` at most once per check per day ([Operations and portability](operations-and-portability.md#5-monitoring), from [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45)). Bounce and complaint handling is not in the MVP.
 
 ## Testing Decisions
 
@@ -309,7 +309,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 
 **Delivery and abuse**
 13. **Abuse of the Notice form.** The Notice form needs no login and accepts any email address, so it can make the Instance send acknowledgements to arbitrary addresses and flood Moderators with Notice received emails. Rate limiting of Notices is still unticketed ("Performance and limits" in the [spec index](index.md#traceability)).
-14. **Visibility of delivery failures.** A final failure is "logged for the Operator"; whether it also surfaces anywhere else (for example monitoring alerts) belongs to Operations and portability and is not decided.
+14. **Visibility of delivery failures.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45): a permanently failed email turns the Email health check to `fail` (external monitor on `/api/health`, alert email to `OPERATOR_ALERT_EMAIL`), and `tart jobs failed` / `tart jobs retry` list and retry failed jobs; see Form and delivery.
 
 **Interactions with other specs**
 15. **Email address change.** Whether changing the Account email sends a confirmation code to the new address is [Foundations open item 16](foundations.md#open-items); if so, it is a further mandatory email.
