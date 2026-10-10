@@ -9,7 +9,7 @@ Every public Archive record (Artwork, Artist, Location, Site, Area, Series, Sour
 
 ## Consequences
 
-- After a Merge, the duplicate's id answers a 301 to the surviving record (ADR 0002).
+- After a Merge, the duplicate's id answers a 301 to the surviving record (ADR 0002), with redirects flattened so none chains. Its `/revisions` subpage still answers 200 and shows its own Revisions read-only (ADR 0018). A retired Documentation item redirects the same way.
 - A withdrawn record or Documentation item answers 410 with a page that states it was removed for legal, rights, or privacy reasons and shows none of its content. Its Revisions subpage answers 410 too.
 - Each record's Revisions (audit trail) live on a `/revisions` subpage (translated per UI language), never on the Timeline.
 - Path segments are translated per UI language (ADR 0004, ADR 0008), so they are UI strings and may change before launch; ids never change.

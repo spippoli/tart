@@ -11,4 +11,4 @@ An edit Submission stores the Revision it was written against (its Base revision
 
 - Outdated is computed, not a Submission status; the review queue flags Outdated Submissions and warns when pending Submissions overlap.
 - A Submission whose target was merged or withdrawn is Outdated.
-- A Submission may create new related records but may only link existing ones; it never edits a second existing record, and it never references a record that exists only in another pending Submission.
+- A Submission may create new related records but may only link existing ones; it never edits a second existing record, and it never references a record that exists only in another pending Submission. Merge, Duplicate retirement, and Unmerge are the one exception (ADR 0018).
