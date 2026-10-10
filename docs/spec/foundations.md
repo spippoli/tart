@@ -286,7 +286,7 @@ Command names other than the first two are left to the specs that own them.
 
 ### Topology and stack
 
-As in [ADR 0004](../adr/0004-mvp-tech-stack.md): a monorepo (`backend/`, `frontend/`, `deploy/`); services `caddy`, `frontend`, `api`, `worker`, `db` (PostgreSQL + PostGIS from the upstream image, unmodified), and `mailpit` in development only. Alembic migrations run at `api` startup. Reference sizing is 4 GB RAM minimum, 8 GB recommended. Backups, upgrades, and monitoring belong to the Operations and portability spec.
+As in [ADR 0004](../adr/0004-mvp-tech-stack.md): a monorepo (`backend/`, `frontend/`, `deploy/`); services `caddy`, `frontend`, `api`, `worker`, `db` (PostgreSQL + PostGIS from the upstream image, unmodified), and `mailpit` in development only. Alembic migrations run only from `tart upgrade`, in a one-shot container; `api` and `worker` refuse to start when the database revision differs from the code's head ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md), [#45](https://github.com/spippoli/tart/issues/45)). Reference sizing is 4 GB RAM minimum, 8 GB recommended. Backups, upgrades, and monitoring belong to the Operations and portability spec.
 
 ## Testing Decisions
 
