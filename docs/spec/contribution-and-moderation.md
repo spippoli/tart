@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Content language, UI language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Base revision, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Notice, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Condition group, History event, Condition record, Creation event, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (terms version and when acceptance is asked, the reserved `duplicate` reason, key names). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (terms version and when acceptance is asked, the reserved `duplicate` reason, key names), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, self-review scope, role-count warnings). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger.
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, authentication and sessions, media pipeline, i18n shell, Operator CLI), [Archive records](archive-records.md) (record model, the archive write operation, Revisions, pending-content display on record pages), and Discovery (the map module, used by the Location step and the Submission page).
 
@@ -287,7 +287,7 @@ As ADR 0018, with these details from [#42](https://github.com/spippoli/tart/issu
 
 - **Moderator** is the only User role. It covers Submission review (Merge, Duplicate retirement, and Unmerge included), Notice handling, Withdrawal, Redaction, Reinstatement, and issuing and revoking Invitations. A second tier waits for a concrete case.
 - Any signed-in User may author any Submission kind, subject to the terms. A Moderator acting as Submitter appears under their display name like anyone else.
-- The **Operator** is not a User role. From the CLI it grants, revokes, and lists the role and creates Invitations; it runs Purge and is the escalation level for Notices (Moderator → Operator → counsel).
+- The **Operator** is not a User role. From the CLI it grants, revokes, and lists the role and creates Invitations; it runs Purge and is the escalation level for Notices (Moderator → Operator → counsel). The Operator has no decision path of its own, in the CLI or in the UI: escalation says who is involved, and whoever decides for the Operator is granted the role and decides as a Moderator, from an account other than the Submitter's ([#93](https://github.com/spippoli/tart/issues/93)).
 
 | Command | Behaviour |
 |---|---|
@@ -299,10 +299,12 @@ As ADR 0018, with these details from [#42](https://github.com/spippoli/tart/issu
 - On revocation, past decisions, Moderation notes, and issued Invitations stay attributed to the former Moderator, and their pending Invitations stay valid.
 - **No auto-approval**: every Submission kind goes through a Moderator.
 - **Self-review**, key `self_approval` (default `false`):
-  - With `false`, a Moderator may not approve their own Submission, close a Notice about their own content, or reinstate it. "Own content" is a record or Documentation item created by their Submission, or content in a Revision they submitted. Another Moderator decides, or, if there is none, the Operator (open item 1).
+  - With `false`, a Moderator takes no decision on their own Submission: approve, reject, and request changes are all unavailable. Like any Submitter they may retract it and revise it when changes are requested, and they may add Moderation notes, which are not decisions ([#93](https://github.com/spippoli/tart/issues/93)).
+  - With `false`, a Moderator may not reinstate their own content, and may close a Notice about their own content only with a Withdrawal or Redaction of the reported content, never with no action (Rights and legal actions). "Own content" is a record or Documentation item created by their Submission, or content in a Revision they submitted.
+  - Another Moderator decides. When there is none, the Submission or Notice waits until the Operator grants the role to another person or sets `self_approval = true`.
   - Withdrawing or redacting their own content is always allowed.
   - With `true`, a self-approval is recorded as such: Submitter and approving Moderator coincide in the Submission log and the Revision.
-  - Whether rejecting or requesting changes on one's own Submission is restricted is not stated (open item 1).
+  - Startup and `tart config check --database` print a warning, without failing, when no User holds the Moderator role, or when `self_approval = false` and fewer than two Users hold it ([Foundations](foundations.md#1-instance-configuration)).
 
 ### Moderator identity and Moderation notes
 
@@ -317,7 +319,7 @@ As ADR 0018, with these details from [#42](https://github.com/spippoli/tart/issu
 - Flags: Outdated; overlapping pending Submissions on the same record (ADR 0007); pending create Submissions within 25 m of each other ([#42](https://github.com/spippoli/tart/issues/42)).
 - **No claiming or assignment**. The first decision wins. A decision is accepted only if the Submission is still in the state the Moderator saw; otherwise the API answers a stable error code, the page shows a translated message, and it reloads ([#43](https://github.com/spippoli/tart/issues/43)).
 - An empty queue has its own translated empty state (brief §21).
-- With `self_approval = false`, the approve action is unavailable to a Moderator on their own Submissions (the Moderator digest also leaves them out, Notifications spec).
+- With `self_approval = false`, the approve, reject, and request-changes actions are unavailable to a Moderator on their own Submissions (the Moderator digest also leaves them out, Notifications spec).
 
 ### Submission page
 
@@ -328,7 +330,7 @@ As ADR 0018, with these details from [#42](https://github.com/spippoli/tart/issu
 | Actor | `draft` | `submitted` | `changes requested` |
 |---|---|---|---|
 | Submitter | Edit, Submit, Delete draft | Retract | Edit, Resubmit, Retract |
-| Moderator | — | Approve (unless Outdated, or own under `self_approval = false`), Reject, Request changes, add Moderation note | Add Moderation note |
+| Moderator | — | Approve (unless Outdated), Reject, Request changes (none of the three on their own Submission under `self_approval = false`), add Moderation note | Add Moderation note |
 
 - A Moderator's actions on `changes requested` beyond notes are open item 5. A Moderator never edits the Submitter's content (ADR 0002).
 - **Decision message**: required for rejection and for changes requested, none on approval. It is a reason from the Decision message reasons vocabulary plus free text, quoted in the Submitter's emails in its own language with the reason label translated (ADR 0008). On rejection it serves as the Art. 17 statement of reasons (ADR 0013); its full content is specified by Rights and legal actions.
@@ -437,6 +439,7 @@ From [#15](https://github.com/spippoli/tart/issues/15). Path segments are UI str
 41. Axe checks report no violations on each page of this spec, in both UI languages, in the states: empty draft, resumed draft, validation errors, duplicate warning, submitted, changes requested, Outdated, approved, rejected, retracted, empty queue, non-Moderator 403.
 42. A User who has accepted the current `terms.version` sees no acceptance checkbox in Review and submit, only the line naming the accepted version; after the Operator bumps the version and restarts, the next Submission asks again, and Submissions already submitted are unaffected.
 43. The decision form lists the configured Decision message reasons in file order, followed by "duplicate of an existing record", which stores the key `duplicate`.
+44. With `self_approval = false`, approving, rejecting, and requesting changes on one's own Submission are all refused, while retracting it and adding a Moderation note succeed; with `true`, all three decisions succeed.
 
 ## Instance configuration
 
@@ -487,7 +490,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 
 The inputs leave these questions unsettled. Implementers must not fill them by assumption; each needs a decision (a resolution comment or an ADR) before the affected ticket is built.
 
-1. **Operator as decider, and self-review scope.** With `self_approval = false` and no other Moderator, "the Operator" decides ([#43](https://github.com/spippoli/tart/issues/43)), but the Operator is not a User role and no CLI command or UI for approving a Submission or closing a Notice is decided. Also unstated: whether a Moderator may reject or request changes on their own Submission under `false`.
+1. **Operator as decider, and self-review scope.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator has no decision path of its own and decides only through a Moderator account; under `false` a Moderator takes no decision on their own Submission; startup warns when the Moderators are too few for `self_approval`. See [Roles and permissions](#roles-and-permissions).
 2. **ADR 0002 wording on auto-approval.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): no auto-approval; ADR 0002's consequences are amended to match.
 3. **Primary targets and the missing editor kinds.** The primary target list ([#3](https://github.com/spippoli/tart/issues/3)) names Artwork, Artist, Location, Site, Series, and Area, while Sources and Documentation items are editable through Submissions with their own Revisions ([#5](https://github.com/spippoli/tart/issues/5)): whether they can be a primary target is not stated. The steps of new Site, Area (polygon drawing), Series, and Source Submissions, Location geometry edits, Documentation item and Artist edits beyond the generic Edit kind, and the Merge, Duplicate retirement, and Unmerge editors were not prototyped.
 4. **Revising an Outdated Submission.** An Outdated Submission "cannot be approved until revised", but only `changes requested` lets a Submitter edit. Whether a `submitted` Outdated Submission can be edited directly, how the editor rebases it onto the current Revision, and whether that opens a new round are not decided. More generally, whether a Submitter may edit a `submitted` Submission before any decision is not stated.
