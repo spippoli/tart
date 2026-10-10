@@ -65,6 +65,7 @@ Concrete applications:
 
 - **PostGIS (GPL-2.0+)**: the Compose stack uses the upstream `postgis/postgis` image unmodified. TART neither builds nor redistributes an image containing PostGIS, and talks to it only over SQL.
 - **HEIC**: `pi-heif` (decode-only; its binary wheels leave out the GPL x265 encoder) replaces `pillow-heif` (ADR 0004 amended). It still bundles libheif and libde265 (LGPL), and HEVC decoding may be patent-encumbered. If review rules it out, HEIC uploads are dropped and contributors convert to JPEG.
+- **Non-code assets and map data** (fonts, map style design, icons, OpenStreetMap data) follow a separate policy, not these tiers (ADR 0016).
 - **Already excluded**: PyMuPDF (AGPL) and libvips (ADR 0004), Zitadel (ADR 0005), Garage (no self-hosted S3 server in the reference stack).
 
 ## 9. Professional legal review
