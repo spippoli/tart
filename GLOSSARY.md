@@ -150,8 +150,12 @@ _Avoid_: Authorship, credit, signature
 A registered account on an Instance; never implies control over any Artist.
 _Avoid_: Contributor (as an entity), member, account holder
 
+**Invitation**:
+A single-use offer, issued by a Moderator or the Operator to one email address, that lets that person register on an Instance whose registration is by invitation; it expires and can be revoked while unused.
+_Avoid_: Invite code, referral
+
 **Moderator**:
-A role held by a User that permits reviewing Submissions.
+A role held by a User that permits reviewing Submissions, handling Notices, and performing Withdrawals, Redactions, and Reinstatements; it is the only User role.
 _Avoid_: Admin, editor, reviewer
 
 **Submitter**:
@@ -193,7 +197,7 @@ The explanation a Moderator gives the Submitter when rejecting a Submission or r
 _Avoid_: Feedback, comment
 
 **Moderation note**:
-A remark on a Submission visible only to Moderators.
+A remark on a Submission, a Notice, a Withdrawal, or a Redaction, visible only to Moderators and never changed once written.
 _Avoid_: Comment, internal message
 
 **Archive record**:
