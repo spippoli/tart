@@ -205,8 +205,16 @@ A version of one Archive record produced by an approved Submission; a Submission
 _Avoid_: History, edit, change log
 
 **Merge**:
-Folding a duplicate Archive record into another of the same kind, with the duplicate's identifier redirecting to the survivor.
+Folding a duplicate Archive record into another of the same kind, with the duplicate's identifier redirecting to the survivor; it applies to every kind except Documentation items.
 _Avoid_: Delete, dedupe
+
+**Duplicate retirement**:
+Setting a duplicate Documentation item aside in favour of another one, with its identifier redirecting to the kept item and its links and citations moving to it; the two items' content is never reconciled, and the retired item is kept in the archive but no longer shown.
+_Avoid_: Deletion, Merge (reserved for the other record kinds), Withdrawal (reserved for legal reasons)
+
+**Unmerge**:
+Undoing a Merge or a Duplicate retirement through a Submission that brings the folded record back under its own identifier.
+_Avoid_: Split, undo, Reinstatement (reserved for Withdrawal and Redaction)
 
 **Withdrawal**:
 Hiding an Archive record or Documentation item from the public for legal, rights, or privacy reasons; not a physical Condition and never shown on the Timeline.
