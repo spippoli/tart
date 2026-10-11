@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge), and [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (retry policy, digest hour, the Notice received cap, the Suspension and "registration is not open" emails), and [Notice handling details](https://github.com/spippoli/tart/issues/94) (the redress block, the Notice reference and short reason, New Submission content, deleted recipients, email wording as implementation).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge), and [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (retry policy, digest hour, the Notice received cap, the Suspension and "registration is not open" emails), and [Notice handling details](https://github.com/spippoli/tart/issues/94) (the redress block, the Notice reference and short reason, New Submission content, deleted recipients, email wording as implementation), [Rome Instance values](https://github.com/spippoli/tart/issues/86) (Rome's archive name as From name).
 
 ## Problem Statement
 
@@ -291,12 +291,12 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 
 | Setting | Key or path | Use here | Rome |
 |---|---|---|---|
-| Archive name (Content language) | `identity.name` | From name | Not decided ([Foundations open item 1](foundations.md#open-items)) |
+| Archive name (Content language) | `identity.name` | From name | "Archivio dell'arte urbana di Roma" |
 | Content language | `languages.content` | Language of the From name | `it` |
 | Enabled UI languages, default first | `languages.ui` | Email language; fallback when a User's language is disabled; Invitations from the CLI | `it` (default), `en` |
 | Time zone | `geography.time_zone` | Digest hour; dates in emails | `Europe/Rome` |
-| DSA contact | `contacts.dsa` | `Reply-To` of legal emails | Not decided |
-| Decision message reasons, Notice reasons (labels per UI language) | `vocabularies/decision_reasons.toml` plus the platform's `duplicate`, `vocabularies/notice_reasons.toml` | Translated labels quoted in emails | Not decided |
+| DSA contact | `contacts.dsa` | `Reply-To` of legal emails | Launch value ([Foundations](foundations.md#romes-launch-values)) |
+| Decision message reasons, Notice reasons (labels per UI language) | `vocabularies/decision_reasons.toml` plus the platform's `duplicate`, `vocabularies/notice_reasons.toml` | Translated labels quoted in emails | [Rome's Decision message reasons](contribution-and-moderation.md#romes-decision-message-reasons), [Rome's Notice reasons](rights-and-legal-actions.md#romes-notice-reasons) |
 | Self-review | `community.self_approval` | Digest contents | `true` at launch |
 | Registration mode | `community.registration` | Whether Invitation emails occur (`invite` only) | `open` |
 
@@ -339,7 +339,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 
 **Configuration**
 10. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `Reply-To` is the DSA contact, `contacts.dsa`; there is no separate legal contact key.
-11. **Archive name for the From name.** Rome's archive name in the Content language (`it`) is not decided ([Foundations open item 1](foundations.md#open-items)).
+11. **Archive name for the From name.** Answered by [Rome Instance values](https://github.com/spippoli/tart/issues/86): "Archivio dell'arte urbana di Roma".
 12. **Platform constants.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): digest at 08:00 in the Instance time zone; ordinary emails 6 attempts over about 5½ hours; the sign-in code 3 attempts within 2 minutes; see [Moderator digest](#moderator-digest) and [Form and delivery](#form-and-delivery).
 
 **Delivery and abuse**

@@ -25,7 +25,7 @@ The invariants in [`CLAUDE.md`](../../CLAUDE.md), the vocabulary in [`GLOSSARY.m
 
 **Glossary terms used**: **Instance**, **Operator**, **Instance configuration**, **Data licence**, **Licensor**, **UI language**, **Content language**, **User**, **Moderator**, **Submitter**, **Submission**, **Submission status**, **Documentation item**, **Creator credit**, **Rights basis**, **Invitation**, **Expression type**, **Surface type**, **Decision message**, **Area**, **Location**, **Withdrawal**, **Purge**, **Notice**, **Suspension**.
 
-**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (key names, file layout, licences, contacts, Notice reasons, terms version, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (role-count warnings), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Purge and credit anonymisation command names), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (default Surface type list), [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) (UI backgrounds for the accent check, theme selection), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (sign-in and session constants, upload limit scope, rate limits and their counters, spam protection, Suspension).
+**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (key names, file layout, licences, contacts, Notice reasons, terms version, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (role-count warnings), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Purge and credit anonymisation command names), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (default Surface type list), [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) (UI backgrounds for the accent check, theme selection), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (sign-in and session constants, upload limit scope, rate limits and their counters, spam protection, Suspension), [Rome Instance values](https://github.com/spippoli/tart/issues/86) (Rome's identity, geography, contacts, rendition cap, vocabulary pointers, and launch values).
 
 ## Problem Statement
 
@@ -518,26 +518,26 @@ A good test exercises a module through its external interface and asserts observ
 
 ## Instance configuration
 
-Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85); dotted keys are in `instance.toml`. "Not decided" means the decisions give no value for Rome.
+Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85); dotted keys are in `instance.toml`. Rome's values are set by [Rome Instance values](https://github.com/spippoli/tart/issues/86). A **launch value** is a fact about the real Rome Operator, not a design decision: it is supplied at launch under the rules in [Rome's launch values](#romes-launch-values), and the sample configuration uses obviously fictional values (`example.org`).
 
 | Setting | Key or path | Rome |
 |---|---|---|
 | Configuration shape version | `config_version` | `1` |
-| Archive name (Content language) | `identity.name` | Not decided (see Open items) |
-| Short description (Content language) | `identity.description` | Not decided |
-| Logo, light and dark, with alt text | `identity/logo.light.svg`, `identity/logo.dark.svg`, `identity.logo.alt` | Not decided |
-| Favicon | `identity/favicon.svg` | Not decided |
-| Accent colour, light and dark values | `identity.accent.light`, `identity.accent.dark` | Not decided |
-| Operator name (required) | `operator.name` | Not decided |
-| General contact (optional) | `contacts.general` | Not decided |
-| DSA contact and its languages (required); `Reply-To` of legal emails | `contacts.dsa`, `contacts.dsa_languages` | Not decided |
-| Privacy contact (required) | `contacts.privacy` | Not decided |
+| Archive name (Content language) | `identity.name` | "Archivio dell'arte urbana di Roma"; shown as is in every UI language |
+| Short description (Content language) | `identity.description` | "Un archivio collaborativo e moderato dell'arte urbana di Roma: murales, graffiti, stencil, poster, sticker e installazioni, comprese le opere che non ci sono più." |
+| Logo, light and dark, with alt text | `identity/logo.light.svg`, `identity/logo.dark.svg`, `identity.logo.alt` | Files: launch value (see [Rome's launch values](#romes-launch-values)); alt text "Archivio dell'arte urbana di Roma" (the logo links to the homepage, so the alt names the destination) |
+| Favicon | `identity/favicon.svg` | Launch value (see [Rome's launch values](#romes-launch-values)) |
+| Accent colour, light and dark values | `identity.accent.light`, `identity.accent.dark` | Pompeian red: `#7A2E1C` (light), `#F0A08C` (dark) |
+| Operator name (required) | `operator.name` | The legal name of Rome's Operator, an association; launch value (see [Rome's launch values](#romes-launch-values)) |
+| General contact (optional) | `contacts.general` | Set for Rome; launch value (see [Rome's launch values](#romes-launch-values)) |
+| DSA contact and its languages (required); `Reply-To` of legal emails | `contacts.dsa`, `contacts.dsa_languages` | Address: launch value (see [Rome's launch values](#romes-launch-values)); languages `["it", "en"]` |
+| Privacy contact (required) | `contacts.privacy` | Launch value (see [Rome's launch values](#romes-launch-values)) |
 | Content language | `languages.content` | `it` |
 | Enabled UI languages, default first | `languages.ui` | `["it", "en"]` |
 | Country (ISO 3166-1) | `geography.country` | `IT` |
-| Place name (Content language) | `geography.place_name` | Not decided |
-| Boundary polygon | `geography/boundary.geojson` | Not decided |
-| Default map view | `geography.default_view` (`center` as `[lon, lat]`, `zoom`) | Not decided |
+| Place name (Content language) | `geography.place_name` | "Roma" |
+| Boundary polygon | `geography/boundary.geojson` | The outer perimeter of Roma Capitale from OpenStreetMap, **Vatican City included** (its hole filled), simplified to about 20 m without leaving any municipal area outside; committed with its Overpass query, under ODbL like the overlays ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)) |
+| Default map view | `geography.default_view` (`center` as `[lon, lat]`, `zoom`) | `center = [12.4823, 41.8955]` (the historic centre), `zoom = 12` |
 | Time zone | `geography.time_zone` | `Europe/Rome` |
 | Map styles and assets | `map/style.light.json`, `map/style.dark.json`, `map/` | The [ADR 0017](../adr/0017-map-cartography-style.md) reference style (Discovery spec) |
 | Map attribution (`{text, url}` list, non-empty) | `map.attribution` | `© OpenStreetMap` → `https://www.openstreetmap.org/copyright` |
@@ -546,21 +546,29 @@ Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-val
 | Self-review | `community.self_approval` | `true` at launch; `false` once at least two Moderators are active (Operator checklist) |
 | Draft expiry | `community.draft_expiry_days` | `90` (platform default) |
 | Maximum upload size, per file | `media.max_upload_mb`, and Caddy's environment (plus 1 MB) | `25` (platform default) |
-| Public image rendition cap (long edge, px) | `media.public_rendition_max_px` | Not decided |
+| Public image rendition cap (long edge, px) | `media.public_rendition_max_px` | `2048` |
 | Data licence (SPDX) | `licenses.data` | `CC-BY-SA-4.0` |
 | Licences allowed for files, default first | `licenses.files` | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
-| Data dump attribution (optional) | `licenses.data_attribution` | Operations and portability spec |
+| Data dump attribution (optional) | `licenses.data_attribution` | Not set: the default (archive name and Operator name) applies (Operations and portability spec) |
 | Terms version | `terms.version` | `1` at launch |
-| Expression types | `vocabularies/expression_types.toml` | The brief's §9 starting vocabulary; Rome's labels not decided |
-| Surface types | `vocabularies/surface_types.toml` | Platform default list in [Archive records](archive-records.md#instance-configuration); Rome's entries not decided |
-| Decision message reasons | `vocabularies/decision_reasons.toml`, plus the platform's `duplicate` | Not decided |
-| Notice reasons | `vocabularies/notice_reasons.toml` | The [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) defaults; Rome's labels not decided |
+| Expression types | `vocabularies/expression_types.toml` | The brief's §9 list plus `mosaic`: [Rome's Expression types](archive-records.md#romes-expression-types) |
+| Surface types | `vocabularies/surface_types.toml` | The platform default list in [Archive records](archive-records.md#instance-configuration), unchanged |
+| Decision message reasons | `vocabularies/decision_reasons.toml`, plus the platform's `duplicate` | [Rome's Decision message reasons](contribution-and-moderation.md#romes-decision-message-reasons) |
+| Notice reasons | `vocabularies/notice_reasons.toml` | The [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) default keys: [Rome's Notice reasons](rights-and-legal-actions.md#romes-notice-reasons) |
 | About, editorial guidelines, contribution policy | `texts/about.md`, `texts/editorial_guidelines.md`, `texts/contribution_policy.md` | Not written yet |
 | Terms of use, privacy policy (required) | `texts/terms.md`, `texts/privacy.md` | Not written yet (drafting is out of scope) |
 
 Environment (names set by implementation and documented for Operators): database URL, public base URL, storage choice, S3 endpoint, bucket, and credentials (Rome: Hetzner Object Storage), SMTP settings, session key, PMTiles volume path, and the upload limit for Caddy.
 
 **Platform constants, not configuration**: one-time code length (6) and lifetime (10 minutes); wrong attempts per code (5); code requests per email address (one per 60 seconds, 5 per hour, 10 per 24 hours) and per IP (20 per hour); session lifetime (30 days idle, 90 days absolute, idle expiry written at most once a day); the multipart margin at Caddy (1 MB); one file per upload request; Invitation expiry (14 days); the basemap extract buffer (2 km); the closed vocabularies; the authentication method; and "Powered by TART". The rate limits of Submissions, drafts, uploads, and Notices are listed by the Contribution and moderation and Rights and legal actions specs.
+
+### Rome's launch values
+
+Set by [Rome Instance values](https://github.com/spippoli/tart/issues/86). These are facts only the real Rome Operator has, so the spec fixes how they are filled, not their content. Validation already refuses to start without the required ones.
+
+- **Operator**: Rome's Operator is an **association** (existing or newly founded), not an individual, so that liability and continuity do not rest on one person; it acts as DSA provider and GDPR controller. Which association, and its legal name in `operator.name`, are launch values. ⚖️ A lawyer reviews the legal form and statute before launch (Operations and portability, Operator checklist).
+- **Contacts** (`contacts.general`, `contacts.dsa`, `contacts.privacy`, and `OPERATOR_ALERT_EMAIL`): role addresses on the archive's own domain (for example `info@`, `dsa@`, `privacy@`), never personal addresses, each read by at least two people. Rome sets the general contact, so that non-legal questions do not land in the DSA mailbox. DSA and privacy may share an address but stay separate keys.
+- **Logo and favicon**: until a designed logo exists, Rome uses a provisional typographic wordmark, the archive name converted to paths, in the map ink of each theme (`#2A2521` light, `#EAE2D5` dark, [ADR 0017](../adr/0017-map-cartography-style.md)); the favicon is a letter "R" in `#7A2E1C` on `#F3EEE2`. Designing the logo is out of scope.
 
 ## Out of Scope
 
@@ -589,9 +597,9 @@ Not normative.
 The decisions are silent on these. Each needs a decision (or an owning ticket) before the affected implementation ticket starts; none should be filled in by an implementer's guess.
 
 **Rome values**
-1. **Archive name.** [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) requires the archive name in the Content language (`it`), but the only name on record is the English "Rome Urban Art Archive" (brief §4, spec index). Rome's Italian archive name is not decided. Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
-2. Rome's short description, place name, logo, favicon, accent colour, boundary polygon, default map view, Operator name, general, DSA, and privacy contacts with the DSA contact's languages, and public image rendition cap are not decided (the spec index lists most of them). Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
-3. Rome's Surface type entries, Decision message reasons, and Italian and English labels for the starting Expression types and Notice reasons are not decided; the platform default Surface type list, with `it` and `en` labels, is set by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90). Owner: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
+1. **Archive name.** Answered by [Rome Instance values](https://github.com/spippoli/tart/issues/86): "Archivio dell'arte urbana di Roma", in [Instance configuration](#instance-configuration). The English "Rome Urban Art Archive" of the brief describes the project and is not a configured name.
+2. **Identity, geography, contacts, rendition cap.** Answered by [Rome Instance values](https://github.com/spippoli/tart/issues/86): see [Instance configuration](#instance-configuration). The Operator name, contact addresses, and logo files are launch values filled under [Rome's launch values](#romes-launch-values).
+3. **Rome's vocabularies.** Answered by [Rome Instance values](https://github.com/spippoli/tart/issues/86): Expression types in [Archive records](archive-records.md#romes-expression-types), the default Surface types unchanged, Decision message reasons in [Contribution and moderation](contribution-and-moderation.md#romes-decision-message-reasons), Notice reasons in [Rights and legal actions](rights-and-legal-actions.md#romes-notice-reasons).
 
 **Configuration shape**
 4. **Key names.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): tables and keys in [Instance configuration](#1-instance-configuration), fixed file paths, vocabulary files as ordered lists of entries.
