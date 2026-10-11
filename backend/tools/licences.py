@@ -19,7 +19,17 @@ from importlib.metadata import distributions
 from pathlib import Path
 
 PERMISSIVE = frozenset(
-    {"MIT", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "PSF-2.0", "Python-2.0", "Zlib"}
+    {
+        "MIT",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "Apache-2.0",
+        "ISC",
+        "PSF-2.0",
+        "Python-2.0",
+        "Zlib",
+        "BlueOak-1.0.0",
+    }
 )
 WEAK_COPYLEFT = frozenset(
     {

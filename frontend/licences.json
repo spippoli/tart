@@ -20,11 +20,6 @@
 			"licence": "MPL-2.0",
 			"tier": "weak-copyleft",
 			"reason": "Platform-specific native binaries of lightningcss, unmodified, loaded by it at build time."
-		},
-		"minimatch": {
-			"licence": "BlueOak-1.0.0",
-			"tier": "permissive",
-			"reason": "Glob matcher used by ESLint and openapi-typescript at development time. Blue Oak Model License 1.0.0 is permissive but not named in ADR 0011 §8: pending the maintainer's confirmation."
 		}
 	}
 }
