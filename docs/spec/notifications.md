@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge), and [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (retry policy, digest hour, the Notice received cap, the Suspension and "registration is not open" emails).
 
 ## Problem Statement
 
@@ -70,6 +70,8 @@ Domain actions in the Contribution and moderation and the Rights and legal actio
 
 22. As an Operator, I want replies to legal emails to reach my configured DSA contact, so that contested decisions come to me.
 23. As an Operator, I want a final delivery failure logged, so that I can see when people are not being reached.
+24. As a Moderator, I want a burst of Notices to arrive as at most ten emails an hour plus one summary, so that a flood of reports does not bury my inbox while every Notice still reaches the queue.
+25. As a suspended User, I want an email with the reason and how to contest it, so that I am not cut off without an explanation.
 
 ## Implementation Decisions
 
@@ -111,11 +113,13 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 
 | Email | Trigger | Recipient | Opt-out | Content |
 |---|---|---|---|---|
-| Notice received | A Notice is sent | Every Moderator, including one whose own content is reported; never the Operator | Mandatory; always immediate, never in the digest | The Notice reason, the reported URL, a link to the Notice page |
+| Notice received | A Notice is sent | Every Moderator, including one whose own content is reported; never the Operator | Mandatory; immediate up to the hourly cap, never in the digest | The Notice reason, the reported URL, a link to the Notice page |
+| Notices summary | The hourly cap of Notice received was reached for a Moderator in the hour that ends | That Moderator | Mandatory | The number of Notices not emailed one by one, and a link to the Notice queue |
 | New Submission | A Submission is submitted or resubmitted | Every Moderator whose mode is *one email per Submission* | Optional (Submission email mode) | A summary and a link to the Submission page (exact content: Open item 8) |
 | Moderator digest | Daily, see [Moderator digest](#moderator-digest) | Every Moderator whose mode is *digest* | Optional (Submission email mode) | Pending count, the new Submissions (kind, record, link), the oldest one waiting |
 
 - Notice received is always sent and cannot be turned off or moved into the digest, for the Art. 16 timing ([#19](https://github.com/spippoli/tart/issues/19)).
+- **Hourly cap** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)): each Moderator receives at most 10 Notice received emails per clock hour. Past the cap, the later Notices of that hour are not emailed one by one; at the end of the hour that Moderator receives one Notices summary instead. Every Notice is recorded and listed in the queue regardless.
 - The Submission email mode is one of *one email per Submission*, *Moderator digest* (the default), and *no email*.
 
 **Legal emails** ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md), DSA Art. 16–17)
@@ -139,6 +143,8 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 |---|---|---|---|---|
 | Sign-in code | A code is requested | The email address entered | Mandatory | [Foundations](foundations.md) ([ADR 0005](../adr/0005-passwordless-in-app-auth.md)) |
 | Invitation | A Moderator issues an Invitation in the Moderation area, or the Operator runs `tart invites create <email>` | The invited address | Mandatory | Contribution and moderation ([#43](https://github.com/spippoli/tart/issues/43)) |
+| Registration not open | A code is requested, under `invite` or `closed`, for an address that may not register | The email address entered, in the sign-in page's UI language | Mandatory | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)) |
+| Suspension | The Operator runs `tart users suspend` | The suspended User | Mandatory; `Reply-To` is `contacts.dsa`, so a reply contests the Suspension | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)); carries the reason given to the command |
 
 Under `registration = invite` the Invitation link can also be copied by the issuing Moderator ([#43](https://github.com/spippoli/tart/issues/43)); the email is sent regardless.
 
@@ -165,14 +171,14 @@ For a rejection, the Decision message (a configured reason plus free text, [#5](
 
 ### Opt-out
 
-- **Mandatory** (no switch): the sign-in code, the Invitation, all legal emails (rejection, Withdrawal, Redaction, Reinstatement, Purge, Notice acknowledgement and decision) and, for Moderators, Notice received.
+- **Mandatory** (no switch): the sign-in code, the Invitation, Registration not open, Suspension, all legal emails (rejection, Withdrawal, Redaction, Reinstatement, Purge, Notice acknowledgement and decision) and, for Moderators, Notice received and the Notices summary.
 - **Optional, for every User**: one Account-page switch, "Updates on my Submissions", on by default, covering Changes requested, Approved, and Outdated.
 - **Optional, for Moderators**: the Submission email mode on the Account page, default *Moderator digest*. The setting is shown only to Moderators.
 - Every optional email links to the Account page in its footer. There is no RFC 8058 one-click unsubscribe, because these are transactional emails.
 
 ### Moderator digest
 
-- Sent daily, at a platform-constant hour in the Instance time zone.
+- Sent daily at 08:00 in the Instance time zone (`geography.time_zone`), a platform constant ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)).
 - Sent to a Moderator only when something new (a new or resubmitted Submission by another User) has arrived since that Moderator's previous digest; otherwise nothing is sent. The Moderator's own Submissions are never "something new".
 - Lists the pending count, the new Submissions (kind, record, link), and the oldest Submission waiting.
 - The pending count and the oldest Submission waiting cover the Submissions the Moderator may decide: with `self_approval = false` they leave out the Moderator's own, with `true` they include them. The list of new Submissions always leaves them out.
@@ -199,7 +205,11 @@ Per [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)
 - **Sender**: the From name is the archive name in the Content language; the From address comes from the SMTP environment settings.
 - **Content**: each email summarises the event and links to its page; it does not copy Submission content or files. The Notice acknowledgement is the one exception: it echoes the notifier's own input.
 - **Reply-To**: the Operator's DSA contact on legal emails ([Legal emails](#email-catalogue)).
-- **Delivery**: the `worker` sends with bounded retries and backoff. A final failure leaves the email job `failed` and is logged for the Operator, who lists failed jobs with `tart jobs failed` and retries them with `tart jobs retry <id|--all>`. Any permanently failed email in the last 24 hours turns the Email health check to `fail`, which the Operator's external monitor sees on `/api/health` and the `worker` reports to `OPERATOR_ALERT_EMAIL` at most once per check per day ([Operations and portability](operations-and-portability.md#5-monitoring), from [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45)). Bounce and complaint handling is not in the MVP.
+- **Delivery**: the `worker` sends with bounded retries and backoff ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)):
+  - **ordinary emails**: 6 attempts in all, the retries 1, 5, 15, 60, and 240 minutes after the previous attempt, about 5½ hours in total;
+  - **sign-in code**: 3 attempts, at 0, 30 seconds, and 2 minutes, then `failed`: a late code is useless, since it expires after 10 minutes and the User can ask for another. The sign-in page does not report the failure (its answer stays neutral), but the failure counts for the Email health check like any other.
+
+  A final failure leaves the email job `failed` and is logged for the Operator, who lists failed jobs with `tart jobs failed` and retries them with `tart jobs retry <id|--all>`. Any permanently failed email in the last 24 hours turns the Email health check to `fail`, which the Operator's external monitor sees on `/api/health` and the `worker` reports to `OPERATOR_ALERT_EMAIL` at most once per check per day ([Operations and portability](operations-and-portability.md#5-monitoring), from [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45)). Bounce and complaint handling is not in the MVP.
 
 ## Testing Decisions
 
@@ -246,7 +256,7 @@ A good test drives a module through its external interface and asserts observabl
 22. The From name is the archive name in the Content language.
 23. Each email is in the language set by [Language](#language); quoted content keeps its own language, configured labels are translated, and dates use the Instance time zone.
 24. Every email string comes from the backend message catalogue; a missing key fails CI.
-25. A failed send is retried a bounded number of times with backoff, and a final failure is logged.
+25. A failed send is retried 5 times, 1, 5, 15, 60, and 240 minutes after the previous attempt, and a sign-in code twice, 30 seconds and 2 minutes after; a final failure is logged and leaves the job `failed`.
 
 **Account page**
 26. The notification settings on the Account page pass axe with no WCAG 2.2 AA violations in every enabled UI language; each control has a visible, translated label, is keyboard-operable, and does not convey its state by colour alone.
@@ -254,6 +264,13 @@ A good test drives a module through its external interface and asserts observabl
 **Self-review** ([Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93))
 
 27. A Notice about a Moderator's own content sends Notice received to that Moderator as well; no Notice received is ever sent to an Operator address.
+
+**Abuse protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84))
+
+28. Twelve Notices within one clock hour send each Moderator 10 Notice received emails and, at the end of the hour, one Notices summary counting 2; all twelve are in the queue.
+29. A code request under `invite` or `closed` for an address that may not register sends Registration not open, in the sign-in page's UI language, and no code.
+30. `tart users suspend <email> --reason <text>` sends the User a Suspension email carrying the reason, with `Reply-To` set to `contacts.dsa`; `tart users unsuspend` sends nothing.
+31. The Moderator digest is sent at 08:00 in `geography.time_zone`.
 
 ## Instance configuration
 
@@ -272,7 +289,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 
 Environment: the SMTP settings, including the From address ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)).
 
-**Platform constants, not configuration**: the digest hour, the retry count and backoff, and the Invitation expiry (14 days, [#43](https://github.com/spippoli/tart/issues/43)).
+**Platform constants, not configuration**: the digest hour (08:00), the retry schedules (ordinary emails: 6 attempts at 1, 5, 15, 60, and 240 minutes; sign-in code: 3 attempts at 0, 30 seconds, and 2 minutes), the Notice received cap (10 per Moderator per hour, then one summary), and the Invitation expiry (14 days, [#43](https://github.com/spippoli/tart/issues/43)).
 
 ## Out of Scope
 
@@ -310,10 +327,10 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 **Configuration**
 10. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `Reply-To` is the DSA contact, `contacts.dsa`; there is no separate legal contact key.
 11. **Archive name for the From name.** Rome's archive name in the Content language (`it`) is not decided ([Foundations open item 1](foundations.md#open-items)).
-12. **Platform constants.** The digest hour, the retry count, and the backoff schedule are not decided. Whether the sign-in code, which expires after 10 minutes, needs a shorter retry window than other emails is not stated.
+12. **Platform constants.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): digest at 08:00 in the Instance time zone; ordinary emails 6 attempts over about 5½ hours; the sign-in code 3 attempts within 2 minutes; see [Moderator digest](#moderator-digest) and [Form and delivery](#form-and-delivery).
 
 **Delivery and abuse**
-13. **Abuse of the Notice form.** The Notice form needs no login and accepts any email address, so it can make the Instance send acknowledgements to arbitrary addresses and flood Moderators with Notice received emails. Rate limiting of Notices is still unticketed ("Performance and limits" in the [spec index](index.md#traceability)).
+13. **Abuse of the Notice form.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): per-IP and per-notifier-email limits, a honeypot and minimum fill time ([Rights and legal actions](rights-and-legal-actions.md#2-notices)), and an hourly cap of 10 Notice received emails per Moderator with a summary past it; see [Email catalogue](#email-catalogue).
 14. **Visibility of delivery failures.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45): a permanently failed email turns the Email health check to `fail` (external monitor on `/api/health`, alert email to `OPERATOR_ALERT_EMAIL`), and `tart jobs failed` / `tart jobs retry` list and retry failed jobs; see Form and delivery.
 
 **Interactions with other specs**

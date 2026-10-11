@@ -23,9 +23,9 @@ The invariants in [`CLAUDE.md`](../../CLAUDE.md), the vocabulary in [`GLOSSARY.m
 | [0017](../adr/0017-map-cartography-style.md) | The Instance accent is also validated against the map fills; dark theme follows the UI theme |
 | [0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) | Migrations run only from `tart upgrade`; `api` and `worker` refuse a database revision that differs from the code |
 
-**Glossary terms used**: **Instance**, **Operator**, **Instance configuration**, **Data licence**, **Licensor**, **UI language**, **Content language**, **User**, **Moderator**, **Submitter**, **Submission**, **Submission status**, **Documentation item**, **Creator credit**, **Rights basis**, **Invitation**, **Expression type**, **Surface type**, **Decision message**, **Area**, **Location**, **Withdrawal**, **Purge**, **Notice**.
+**Glossary terms used**: **Instance**, **Operator**, **Instance configuration**, **Data licence**, **Licensor**, **UI language**, **Content language**, **User**, **Moderator**, **Submitter**, **Submission**, **Submission status**, **Documentation item**, **Creator credit**, **Rights basis**, **Invitation**, **Expression type**, **Surface type**, **Decision message**, **Area**, **Location**, **Withdrawal**, **Purge**, **Notice**, **Suspension**.
 
-**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (key names, file layout, licences, contacts, Notice reasons, terms version, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (role-count warnings), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Purge and credit anonymisation command names), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (default Surface type list), [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) (UI backgrounds for the accent check, theme selection).
+**Resolution comments incorporated**: [Platform vs instance configuration boundary](https://github.com/spippoli/tart/issues/6), [Tech stack decision](https://github.com/spippoli/tart/issues/13), [i18n strategy: UI vs multilingual content](https://github.com/spippoli/tart/issues/16), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (shell, navigation, sign-in, account, About pages), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (draft expiry), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (pipeline outline), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (EXIF, minimum age, account), [Submission form flow](https://github.com/spippoli/tart/issues/27) (per-file upload fields, server-side drafts), [Map style ownership: Instance theme vs style file](https://github.com/spippoli/tart/issues/37) (map style files, dual accent), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (`tart tiles update`), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (role CLI, `self_approval`, Invitations), [Notifications](https://github.com/spippoli/tart/issues/44) (email language), [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88) (file types, renditions, abandoned uploads, caching), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (key names, file layout, licences, contacts, Notice reasons, terms version, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (role-count warnings), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Purge and credit anonymisation command names), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (default Surface type list), [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) (UI backgrounds for the accent check, theme selection), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (sign-in and session constants, upload limit scope, rate limits and their counters, spam protection, Suspension).
 
 ## Problem Statement
 
@@ -121,6 +121,12 @@ A single platform build, configured per Instance from a secret-free directory of
 62. As a maintainer, I want the TypeScript API client generated from FastAPI's schema with a drift check in CI, so that frontend and backend never disagree silently.
 63. As a maintainer, I want CI to reject dependencies outside the licence tiers, so that the software stays within PolyForm Noncommercial's terms.
 
+**Abuse protection**
+
+64. As an Operator, I want to suspend a User who keeps abusing the Instance, with a stated reason, and to lift the Suspension, so that rate limits are not the only defence under `open` registration.
+65. As a User, I want to sign out of every device at once from my Account page, so that a lost phone or a forgotten session is no risk.
+66. As anyone, I want the sign-in page to answer the same whether or not my address has an account, so that nobody can find out who uses the archive.
+
 ## Implementation Decisions
 
 ### Modules
@@ -132,6 +138,7 @@ Each module has a narrow interface; the provider boundaries (authentication, sto
 | Instance configuration | Load and validate a directory plus environment into one immutable, typed configuration, or a complete list of errors; expose the public subset | backend (`api`, `worker`, CLI) |
 | Authentication | Request a code, verify a code, register and verify a passkey, sign out; behind an authentication interface whose only MVP implementation is the built-in one | backend |
 | Session | Resolve the current User and roles from a request; create and revoke sessions | backend |
+| Rate limits | Check and count an action against a named limit for a key (User, email address, or IP), answering allowed or the time to wait; counters in PostgreSQL | backend |
 | Storage | Put, get (streamed, with byte ranges), and delete objects by key, in a quarantine or a permanent area; two adapters: local filesystem and S3-compatible | backend |
 | Media pipeline | Enqueue processing of a quarantined upload; jobs that validate, sanitise, and derive renditions or previews | `worker` |
 | Email | Send a rendered message; one SMTP adapter | backend (`worker`) |
@@ -271,7 +278,11 @@ retired = false                        # optional, default false
 ### 2. Authentication and sessions
 
 **Sign-in** ([ADR 0005](../adr/0005-passwordless-in-app-auth.md)):
-- The User enters an email and receives a one-time code: 6 digits, valid 10 minutes, with attempt limits and rate limits per email and per IP.
+- The User enters an email and receives a one-time code: 6 digits, valid 10 minutes. A code is invalidated after 5 wrong attempts, and requesting a new code invalidates the previous one.
+- Code requests are rate-limited ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)): per email address, a new code at most every 60 seconds, at most 5 per hour, and at most 10 per 24 hours; per IP, at most 20 per hour. Beyond a limit the API answers `429` with a translatable error code and the time to wait.
+- **Neutral answer.** The page answers the same whether or not the address has a User, in every `registration` mode, so that it never reveals which addresses have accounts. Under `invite` or `closed`, an address that may not register receives, instead of a code, an email saying that registration is not open; a suspended User's address receives nothing. Those emails count against the same limits.
+- **No account lockout.** The limits act on codes and request rates only, never by locking an account, so that nobody can lock someone else out.
+- The code request form carries the honeypot field described under Rate limits and spam protection.
 - Optional passkeys through `py_webauthn`, added and removed on the Account page.
 - No passwords and no social login in the MVP.
 - The page is `/<ui-language>/accedi` (`/en/sign-in`) and offers email code and passkey. Its registration text depends on the `registration` mode.
@@ -289,18 +300,34 @@ retired = false                        # optional, default false
 - Cookie: `HttpOnly; Secure; SameSite=Lax`, on the single origin Caddy serves.
 - During server rendering, SvelteKit forwards the User's cookie when it calls FastAPI over the internal network.
 - CSRF: `SameSite=Lax`, an `Origin` check on state-changing requests, and a required custom header on API calls.
-- Security parameters (code lifetime and attempts, rate limits, session lifetime) are platform constants that configuration cannot weaken ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)).
+- **Lifetime** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)): a session expires after 30 days without a request (idle) and 90 days after sign-in (absolute), whatever comes first; after either, the User signs in again. A request extends the idle expiry, written at most once a day so that browsing does not write to the database on every page. Moderators have the same values: their role is checked on every request anyway.
+- Each sign-in creates a new session ID. The Account page offers **Sign out everywhere**, which revokes every session of the User, the current one included.
+- Security parameters (code lifetime and attempts, rate limits, session lifetime) are platform constants that configuration cannot weaken ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)); their values are listed under [Instance configuration](#instance-configuration).
+
+**Rate limits and spam protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)). The limits of this spec cover sign-in; the Contribution and moderation spec sets the per-User limits on Submissions, drafts, and uploads, and the Rights and legal actions spec the limits on Notices.
+- **Counters** live in PostgreSQL, with fixed or sliding windows as implementation chooses; no Redis or other service is added. The `worker`'s hourly sweep deletes expired counters.
+- **Client IP.** The app takes the client IP only from Caddy, the single trusted proxy; it never reads `X-Forwarded-For` from any other source. IP addresses kept for rate limits are deleted when the longest window ends, 24 hours at most; the processing inventory lists them (Rights and legal actions spec).
+- **Spam protection.** No CAPTCHA, third-party or proof-of-work, in the MVP: a third-party service adds a provider and a personal-data transfer, and most fail WCAG 2.2 AA (success criterion 3.3.8). Public forms that need no session (the code request here, the Notice form in Rights and legal actions) carry a **honeypot** field, hidden from view with an accessible label telling people to leave it empty. A filled honeypot gets a fake success answer, and nothing is stored or sent. There is no content filtering (no disposable-domain blocklist, no link filter): Submissions are pre-moderated.
+- **Public reads** (pages, map, search, media) have no rate limit in the MVP: Caddy's rate limiting needs a third-party plugin and a custom image, and a tight limit would hit legitimate users behind one NAT. An Operator facing abusive crawlers adds a rate limit or a proxy in front ([Operator compliance checklist](operations-and-portability.md#9-operator-compliance-checklist)).
 
 **Authentication interface.** Authentication sits behind an interface so a later Instance can plug in an external OIDC provider; only the built-in implementation ships, and the authentication method is not configurable in the MVP.
 
 **Roles.** Roles live in TART's database whatever the authentication method. In the MVP the only role is Moderator; the Operator is not a User role. The Operator grants, revokes, and lists it through the CLI. Roles are checked on every request, so a revocation takes effect on the next request, open sessions included; past decisions, Moderation notes, and issued Invitations stay attributed to the former Moderator. No role is special-cased in code for bootstrapping. The `self_approval` key (default `false`) decides whether a Moderator may decide on their own Submission; what the role may do, and the self-review rules, are specified by the Contribution and moderation spec ([Moderation roles and permissions](https://github.com/spippoli/tart/issues/43)).
+
+**Suspension** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)). The Operator suspends a User with `tart users suspend <email> --reason <text>` and lifts it with `tart users unsuspend <email>`; there is no Moderator UI in the MVP, as with roles, so a Moderator asks the Operator. A Suspension:
+- revokes every session of the User and refuses their passkeys; a code request for their address sends nothing, under the neutral answer;
+- leaves drafts and open Submissions as they are (a Moderator can still reject them) and leaves approved contributions untouched;
+- is stored on the User with its date and reason, which `tart users unsuspend` clears;
+- sends the User an email with the reason and the way to contest it, by replying to the DSA contact (Notifications spec). Lifting it sends no email.
+
+A suspended Moderator keeps the role on record but cannot act, since they cannot sign in.
 
 **Access rules owned by the shell** ([#15](https://github.com/spippoli/tart/issues/15)):
 - An anonymous user who triggers a contribution action goes to sign-in with `?next=` and returns there afterwards.
 - On `/<ui-language>/moderazione`, an anonymous user is sent to sign-in; a signed-in User without the Moderator role gets an explanatory 403.
 - There are no public User profiles.
 
-**Account** (`/it/account`, `/en/account`): display name (may be a pseudonym; it is what public Revisions pages show, [#14](https://github.com/spippoli/tart/issues/14)), preferred UI language (initially the UI language of the page the User registered from; also used for the User's emails, [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)), passkeys, email, and account deletion. The deletion flow (erasing email and credentials, a stable pseudonym, deleting drafts, retracting open Submissions) is specified by the Rights and legal actions spec ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). My contributions (`/it/account/contributi`) belongs to the Contribution and moderation spec.
+**Account** (`/it/account`, `/en/account`): display name (may be a pseudonym; it is what public Revisions pages show, [#14](https://github.com/spippoli/tart/issues/14)), preferred UI language (initially the UI language of the page the User registered from; also used for the User's emails, [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)), passkeys, email, Sign out everywhere, and account deletion. The deletion flow (erasing email and credentials, a stable pseudonym, deleting drafts, retracting open Submissions) is specified by the Rights and legal actions spec ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). My contributions (`/it/account/contributi`) belongs to the Contribution and moderation spec.
 
 **Email.** A generic SMTP adapter configured through the environment, with Mailpit in development (Compose profile). Emails are rendered by the `worker` from the backend message catalogue in the recipient's preferred UI language, or the Instance's default UI language if that language has been disabled. A sign-in code to an address with no User yet uses the UI language of the sign-in page. The language of every other email is specified by the Notifications spec ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md), [Notifications](https://github.com/spippoli/tart/issues/44)). Reliable delivery is critical: if email is down, nobody without a passkey can sign in ([ADR 0005](../adr/0005-passwordless-in-app-auth.md)).
 
@@ -312,8 +339,8 @@ retired = false                        # optional, default false
 - Uploaded files are immutable once stored ([#5](https://github.com/spippoli/tart/issues/5)).
 
 **Upload path.**
-1. The browser streams a multipart upload to FastAPI through Caddy; uploads never pass through SvelteKit.
-2. Size limits are enforced by both Caddy and the app, from `max_upload_mb`.
+1. The browser streams a multipart upload to FastAPI through Caddy; uploads never pass through SvelteKit. Each request carries one file; the form uploads several files as parallel requests.
+2. Size limits are enforced by both Caddy and the app, from `max_upload_mb`, which applies **per file** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)). Caddy allows `max_upload_mb` plus a fixed 1 MB for multipart overhead; the app checks the exact file size.
 3. FastAPI writes the file to a quarantine area and enqueues a processing job.
 
 **Processing** (in the `worker`, Procrastinate on PostgreSQL, same image as `api`, with its own memory and time limits). Following the outline of [#10](https://github.com/spippoli/tart/issues/10) as adopted by [ADR 0004](../adr/0004-mvp-tech-stack.md):
@@ -394,6 +421,7 @@ A `tart` command for the actions that have no UI in the MVP. It uses the same co
 | `tart users grant moderator <email>` | Grants the Moderator role, creating the User if needed | This spec |
 | `tart users revoke moderator <email>` | Removes the Moderator role, effective on the next request | This spec |
 | `tart users list --role moderator` | Lists the Users holding the role | This spec |
+| `tart users suspend <email> --reason <text>`, `tart users unsuspend <email>` | Suspends a User (sessions revoked, sign-in refused, email with the reason) and lifts the Suspension | This spec |
 | `tart invites create <email>` | Creates an Invitation; the email uses the Instance's default UI language | This spec; Contribution and moderation |
 | `tart tiles update` | Extracts the boundary plus 2 km into a versioned PMTiles file and swaps it in | Discovery |
 | `tart upgrade`, `tart config migrate`, `tart backup run\|verify\|restore`, `tart jobs failed\|retry`, `tart dump` | Upgrades with forward-only migrations, configuration migration, backups, failed worker jobs, and the public Data dump | Operations and portability |
@@ -413,6 +441,7 @@ A good test exercises a module through its external interface and asserts observ
 
 - **Configuration loader**: a directory and an environment in, a validated configuration or a complete error list out (pytest). Fixtures: Rome's configuration as a valid case; one directory per failure (unknown key, wrong `config_version`, missing label, low-contrast accent, empty attribution, missing legal text, missing contact, reserved key `duplicate`, a vocabulary with every entry retired, empty licence list). The same fixtures run through `tart config check`; the database checks run through `tart config check --database` against a test database.
 - **Authentication and sessions**: through the HTTP API with FastAPI's test client and an email adapter that captures messages. Covers code expiry and attempt limits, registration under each `registration` mode, session revocation on sign-out, and the CSRF rules (missing custom header, foreign `Origin`).
+- **Rate limits and Suspension**: through the HTTP API with a controllable clock, so that windows and session lifetimes are tested without waiting. Covers each limit at its threshold and one past it, the neutral answer for registered, unregistered, not-admitted, and suspended addresses (same status and body), the honeypot, idle and absolute session expiry, and the effects of `tart users suspend`.
 - **Storage**: one contract test suite run against both adapters (put, streamed get with byte ranges, delete, quarantine vs permanent). How the S3 adapter is exercised in CI is left to implementation.
 - **Media pipeline**: worker jobs fed fixture files (JPEG with GPS EXIF, rotated JPEG, HEIC, AVIF, animated WebP, PNG, GIF, PDF, an image over 100 megapixels, a truncated file, a decompression bomb, a file whose extension lies). Asserts on the stored outputs: no GPS or device identifiers in the original, no metadata in renditions, orientation applied, the rendition cap respected, rejections with error codes.
 - **Shell**: Playwright with axe over the shell pages in every enabled UI language, at desktop and mobile widths: root redirect order, switcher, disabled-language 404, `lang` on content, keyboard-only navigation of the Menu button and user menu.
@@ -432,7 +461,7 @@ A good test exercises a module through its external interface and asserts observ
 9. Changing a configuration file has no effect until a restart.
 
 **Authentication and sessions**
-10. Requesting a code sends a 6-digit code by email; it is rejected after 10 minutes and after the attempt limit; repeated requests are rate-limited per email and per IP.
+10. Requesting a code sends a 6-digit code by email; it is rejected after 10 minutes and after 5 wrong attempts; repeated requests are rate-limited per email and per IP (see criteria 46–47).
 11. Under `open`, a new email can register after a self-declared minimum-age confirmation; under `closed`, it cannot; under any mode, no manual approval step exists.
 12. A User can add a passkey on the Account page and then sign in with it.
 13. The session cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`; after sign-out, the same session ID is rejected on the next request.
@@ -446,7 +475,7 @@ A good test exercises a module through its external interface and asserts observ
 
 **Storage and media**
 21. With either storage adapter, an uploaded file is stored privately and can be fetched only through the app.
-22. An upload above `max_upload_mb` is refused by Caddy and by the app with a translatable error code.
+22. A file above `max_upload_mb` is refused by Caddy and by the app with a translatable error code; the limit applies per file, one file per request.
 23. A file whose content is not a supported type, or that fails to decode, is rejected regardless of its extension.
 24. After processing, the stored original has no GPS or device identifiers, renditions carry no EXIF, XMP, or IPTC metadata, and EXIF orientation is applied.
 25. No public rendition exceeds the configured resolution cap; the original is never served publicly.
@@ -477,6 +506,16 @@ A good test exercises a module through its external interface and asserts observ
 44. A missing `operator.name`, `contacts.dsa`, `contacts.dsa_languages`, or `contacts.privacy` fails validation; `contacts.general` may be absent.
 45. With no User holding the Moderator role, or with `self_approval = false` and one Moderator, startup and `tart config check --database` print a warning and still succeed ([Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93)).
 
+**Security constants and abuse protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84))
+46. A code is refused after 5 wrong attempts even within its 10 minutes, and a newly requested code invalidates the previous one.
+47. For one address, a second code request within 60 seconds, a sixth within an hour, or an eleventh within 24 hours answers `429` with a translatable error code and the time to wait; from one IP, the twenty-first request within an hour does the same. No limit locks an account.
+48. A code request answers with the same status and body for a registered address, an unregistered one, one that may not register under `invite` or `closed`, and a suspended User's; the not-admitted address receives a "registration is not open" email, the suspended one nothing.
+49. A request with the honeypot filled gets the ordinary success answer, and no code or email is sent.
+50. A session is refused after 30 days without requests and 90 days after sign-in, whichever comes first; a request extends the idle expiry at most once a day. Each sign-in issues a new session ID; Sign out everywhere revokes every session of the User.
+51. A file request is limited to `max_upload_mb` plus 1 MB at Caddy and exactly `max_upload_mb` in the app; a request with two files is refused.
+52. After `tart users suspend <email> --reason <text>`, that User's open sessions are refused on their next request, passkey sign-in fails, a code request sends nothing, and the User receives an email with the reason; drafts, open Submissions, and approved contributions are unchanged. `tart users unsuspend <email>` restores sign-in.
+53. Rate-limit counters are stored in PostgreSQL and no IP address is kept longer than 24 hours; the app ignores `X-Forwarded-For` that did not come from Caddy.
+
 ## Instance configuration
 
 Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-validated-files.md) and [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85); dotted keys are in `instance.toml`. "Not decided" means the decisions give no value for Rome.
@@ -506,7 +545,7 @@ Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-val
 | Minimum age (self-declared) | `community.min_age` | `14` |
 | Self-review | `community.self_approval` | `true` at launch; `false` once at least two Moderators are active (Operator checklist) |
 | Draft expiry | `community.draft_expiry_days` | `90` (platform default) |
-| Maximum upload size | `media.max_upload_mb`, and Caddy's environment | `25` (platform default) |
+| Maximum upload size, per file | `media.max_upload_mb`, and Caddy's environment (plus 1 MB) | `25` (platform default) |
 | Public image rendition cap (long edge, px) | `media.public_rendition_max_px` | Not decided |
 | Data licence (SPDX) | `licenses.data` | `CC-BY-SA-4.0` |
 | Licences allowed for files, default first | `licenses.files` | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
@@ -521,7 +560,7 @@ Keys and paths are fixed by [ADR 0009](../adr/0009-instance-configuration-as-val
 
 Environment (names set by implementation and documented for Operators): database URL, public base URL, storage choice, S3 endpoint, bucket, and credentials (Rome: Hetzner Object Storage), SMTP settings, session key, PMTiles volume path, and the upload limit for Caddy.
 
-**Platform constants, not configuration**: one-time code length (6) and lifetime (10 minutes), code attempt limits, rate limits, session lifetime, Invitation expiry (14 days), the basemap extract buffer (2 km), the closed vocabularies, the authentication method, and "Powered by TART".
+**Platform constants, not configuration**: one-time code length (6) and lifetime (10 minutes); wrong attempts per code (5); code requests per email address (one per 60 seconds, 5 per hour, 10 per 24 hours) and per IP (20 per hour); session lifetime (30 days idle, 90 days absolute, idle expiry written at most once a day); the multipart margin at Caddy (1 MB); one file per upload request; Invitation expiry (14 days); the basemap extract buffer (2 km); the closed vocabularies; the authentication method; and "Powered by TART". The rate limits of Submissions, drafts, uploads, and Notices are listed by the Contribution and moderation and Rights and legal actions specs.
 
 ## Out of Scope
 
@@ -539,6 +578,7 @@ Environment (names set by implementation and documented for Operators): database
 - Backups, upgrades, monitoring, and the public data dump (Operations and portability spec).
 - Account deletion, Purge, and data exports beyond the CLI shell (Rights and legal actions spec).
 - Drafting the terms of use, privacy policy, trademark policy, and CLA.
+- CAPTCHAs, content filtering, and rate limits on public reads; a Moderator UI for Suspension ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)).
 
 ## Further Notes
 
@@ -566,7 +606,7 @@ The decisions are silent on these. Each needs a decision (or an owning ticket) b
 **Authentication and accounts**
 12. **Invite mode.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): Moderators in the UI and the Operator with `tart invites create`; email-bound, single-use, 14 days; see Registration.
 13. **Role revocation.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): `tart users revoke moderator <email>`, effective on the next request; see Roles.
-14. **Platform constant values**: code attempt limit, rate-limit thresholds, and session lifetime (absolute and idle) are not decided. Owner: [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84).
+14. **Platform constant values.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): 5 wrong attempts per code; per address one code per 60 seconds, 5 per hour, 10 per 24 hours; 20 per hour per IP; sessions 30 days idle and 90 days absolute; see Authentication and sessions.
 15. **Registration data**: whether a display name is required at registration (and its default) and whether display names must be unique are not decided. The initial preferred UI language is answered by [Notifications](https://github.com/spippoli/tart/issues/44): the language of the page the User registered from. Owner: [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87).
 16. **Email change**: the Account page lists the email, but the change flow (for example, confirming the new address with a code) is not decided. Owner: [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87).
 17. **Language of a sign-in email to an unregistered address.** Answered by [Notifications](https://github.com/spippoli/tart/issues/44): the sign-in page's UI language.
@@ -574,13 +614,13 @@ The decisions are silent on these. Each needs a decision (or an owning ticket) b
 **Media**
 18. **Accepted file types.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): JPEG, PNG, WebP, AVIF, HEIC, and PDF; no GIF or TIFF; first frame only of animated images. HEIC stays subject to legal review ([ADR 0011 §9](../adr/0011-provisional-software-license.md)); see [Storage and media pipeline](#3-storage-and-media-pipeline).
 19. **Renditions.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): three WebP renditions by long edge (480 px, 1280 px, and the Instance cap), never upscaled; a 100-megapixel limit, enforced as an error; see [Storage and media pipeline](#3-storage-and-media-pipeline).
-20. **Upload limit scope**: whether `max_upload_mb` applies per file or per request is not stated. Owner: [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84).
+20. **Upload limit scope.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): per file, one file per request, Caddy allowing 1 MB more for multipart overhead; see Storage and media pipeline.
 21. **Abandoned uploads.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): deleted 24 hours after upload by an hourly sweep; rejected files at once.
 22. **Caching.** Answered by [Media types, renditions and caching](https://github.com/spippoli/tart/issues/88): `public, max-age=3600` with an ETag for public renditions, `private, no-store` otherwise; no CDN in the reference stack, and an Operator's CDN must honour the headers.
 
 **Shell**
 23. **Theme selection.** Answered by [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98): `prefers-color-scheme` only, switched live, no toggle. See i18n shell, Theme.
-24. **Abuse protection**: rate limiting of Submissions and Notices and spam protection under `open` registration may add to this spec. Owner: [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84).
+24. **Abuse protection.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): counters in PostgreSQL, client IP only from Caddy, a honeypot instead of a CAPTCHA, no limit on public reads, and the Operator's Suspension; per-User and Notice limits are in the Contribution and moderation and Rights and legal actions specs. See Authentication and sessions.
 
 ### Recommendations for implementers
 
