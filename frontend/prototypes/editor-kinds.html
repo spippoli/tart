@@ -1,0 +1,528 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Issue #97: Editor steps not yet prototyped.
+  The Submission kinds the #27 prototype left out, plus the review comparisons.
+  ?screen=site|area|series|source|geometry|docitem|artist|merge|retire|unmerge|cmp-image|cmp-geo
+  ?variant=A|B|C where a screen offers structurally different answers (see the bottom bar).
+  Open by double-clicking. No dependencies, no persistence: the state panel shows the
+  changeset the Submission would store. All records are FICTIONAL. Copy is inline Italian
+  placeholder text: not production code, no i18n.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Editor kinds (#97)</title>
+<style>
+  :root {
+    --paper: #f4f1ea; --paper-2: #ebe6db; --ink: #1d1b18; --ink-2: #5b564d; --rule: #c9c2b4;
+    --gone: #8a3b22; --proposed: #3b4a8a; --err: #8a1f1f;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 var(--sans); padding-bottom: 120px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--proposed); outline-offset: 2px; }
+  .proto-banner { background: var(--ink); color: var(--paper); font: 12px/1.4 var(--mono); padding: 6px 16px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  h1.ed-title { font: 600 28px/1.1 var(--serif); margin: 14px 0 4px; }
+  .sub { color: var(--ink-2); font-size: 13px; margin: 0 0 10px; }
+  .q { border-left: 4px solid var(--proposed); background: #fff8; padding: 8px 12px; font-size: 13px; margin: 10px 0 14px; }
+  .q b { color: var(--proposed); }
+  .steps { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-wrap: wrap; gap: 6px; counter-reset: s; }
+  .steps li button { border: 1.5px solid var(--ink-2); background: var(--paper); padding: 4px 10px; cursor: pointer; font-size: 13px; }
+  .steps li button[aria-current="step"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .steps li button small { display: block; font: 10px var(--mono); opacity: .8; }
+  .panel { border: 1px solid var(--rule); background: #fffdf8; padding: 14px 16px; margin-bottom: 14px; }
+  .panel h2 { font: 600 19px var(--serif); margin: 0 0 10px; }
+  .btn { border: 1.5px solid var(--ink); background: var(--paper); padding: 6px 12px; cursor: pointer; }
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.small { padding: 2px 8px; font-size: 13px; }
+  .btn[aria-pressed="true"] { background: var(--proposed); color: #fff; border-color: var(--proposed); }
+  .field { margin: 0 0 12px; }
+  .field > label, .lbl { display: block; font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .hint { font-size: 13px; color: var(--ink-2); margin: 2px 0 6px; }
+  input[type=text], input[type=url], select, textarea { border: 1.5px solid var(--ink-2); background: #fffdf8; padding: 5px 8px; width: 100%; }
+  textarea { min-height: 60px; }
+  .chk { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
+  .note { font-size: 13px; padding: 8px 10px; background: var(--paper-2); border-left: 3px solid var(--ink-2); margin: 8px 0; }
+  .warn { padding: 10px 12px; border: 2px solid var(--ink); background: #fff; margin: 10px 0; font-size: 14px; }
+  .warn h3 { margin: 0 0 4px; font-size: 15px; }
+  .err { color: var(--err); font-weight: 600; font-size: 13px; }
+  .err::before { content: "Errore: "; }
+  .proposed-tag { display: inline-block; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--proposed); border: 1.5px dashed var(--proposed); padding: 1px 6px; }
+  .current-tag { display: inline-block; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); border: 1.5px solid var(--ink-2); padding: 1px 6px; }
+  .proposed-box { border: 2px dashed var(--proposed); background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(59,74,138,.07) 8px 16px); padding: 8px 10px; }
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.cmp th, table.cmp td { border-bottom: 1px solid var(--rule); padding: 6px; text-align: left; vertical-align: top; }
+  table.cmp th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .two { grid-template-columns: 1fr; } }
+  .map { position: relative; background: #e6e1d5; border: 1px solid var(--rule); overflow: hidden; }
+  .map svg { display: block; width: 100%; height: auto; }
+  .legend { font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0; }
+  .state { position: sticky; top: 10px; font: 11.5px/1.4 var(--mono); background: var(--ink); color: #e8e4da; padding: 10px; white-space: pre-wrap; word-break: break-word; max-height: 80vh; overflow: auto; }
+  .state b { color: #fff; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--ink); color: var(--paper); padding: 8px 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; z-index: 10; }
+  .bar select, .bar button { background: var(--paper); color: var(--ink); border: 0; padding: 4px 8px; }
+  .bar button[aria-pressed="true"] { background: var(--proposed); color: #fff; }
+  .bar .vdesc { opacity: .85; flex: 1 1 300px; }
+  .photo { position: relative; aspect-ratio: 4/3; overflow: hidden; border: 1px solid var(--rule); background: #bbb; }
+  .photo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cap { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .rewrites li { margin: 2px 0; }
+  .strike { text-decoration: line-through; color: var(--ink-2); }
+  .pill { font: 11px var(--mono); border: 1px solid var(--ink-2); padding: 0 5px; margin-left: 4px; }
+</style>
+</head>
+<body>
+<div class="proto-banner">PROTOTYPE · #97 Editor steps not yet prototyped · dati fittizi · non per main</div>
+<div class="wrap layout">
+  <main id="main"></main>
+  <aside><div class="state" id="state" aria-live="polite"></div></aside>
+</div>
+<div class="bar" role="region" aria-label="Controlli prototipo">
+  <label>Schermata <select id="screenSel"></select></label>
+  <span id="variants"></span>
+  <span class="vdesc" id="vdesc"></span>
+</div>
+
+<script>
+// ---------- fictional data ----------
+const LOCS = [
+  { id: 'L-118', title: 'Serranda al civico 12', x: 120, y: 90, site: null, arts: ['Volpe in fuga (fittizio)'] },
+  { id: 'L-119', title: 'Muro del cortile, lato nord', x: 160, y: 120, site: null, arts: ['Senza titolo', 'Coro di gabbiani (fittizio)'] },
+  { id: 'L-120', title: 'Pilone del cavalcavia', x: 210, y: 80, site: 'S-7 Cavalcavia Est (fittizio)', arts: ['Ritratto blu (fittizio)'] },
+  { id: 'L-121', title: 'Cabina elettrica', x: 260, y: 150, site: null, arts: ['Stencil gatto (fittizio)'] },
+];
+const ARTWORKS = ['A-301 Volpe in fuga (fittizio)', 'A-302 Coro di gabbiani (fittizio)', 'A-317 Ritratto blu (fittizio)', 'A-340 Stencil gatto (fittizio)', 'A-355 Mappa sommersa (fittizio)'];
+
+// ---------- state ----------
+const params = new URLSearchParams(location.search);
+let screen = params.get('screen') || 'site';
+let variant = params.get('variant') || 'A';
+let step = 0;
+let S = {};               // per-screen mutable state
+function setURL() { const p = new URLSearchParams({ screen, variant }); history.replaceState(null, '', '?' + p); }
+
+// ---------- helpers ----------
+const h = s => s;
+function stepper(names) {
+  return `<ol class="steps">${names.map((n, i) => `<li><button aria-current="${i === step ? 'step' : 'false'}" onclick="go(${i})">${i + 1}. ${n}<small>${i < step ? 'completo' : i === step ? 'in corso' : 'da completare'}</small></button></li>`).join('')}</ol>`;
+}
+function nav(n) {
+  return `<div style="display:flex;gap:8px;margin-top:10px">${step > 0 ? `<button class="btn" onclick="go(${step - 1})">Indietro</button>` : ''}${step < n - 1 ? `<button class="btn primary" onclick="go(${step + 1})">Avanti</button>` : `<button class="btn primary" onclick="alert('Invio simulato')">Invia ai Moderatori</button>`}</div>`;
+}
+function review(previewHTML) {
+  return `<div class="panel"><h2>Revisione e invio</h2>
+    <p><span class="proposed-tag">Proposto · non pubblico fino all'approvazione</span></p>
+    <div class="proposed-box">${previewHTML}</div>
+    <div class="field" style="margin-top:12px"><label for="note">Nota per i Moderatori (facoltativa, mai pubblica)</label><textarea id="note"></textarea></div>
+    <p class="hint">Hai accettato i termini (versione 3).</p></div>`;
+}
+function sourcesStep() {
+  return `<div class="panel"><h2>Fonti</h2>
+    <p class="hint">Fonti a livello di record. Cerca una Fonte esistente o creane una nuova (stessa scheda della schermata "Nuova Fonte").</p>
+    <input type="text" placeholder="Cerca per titolo, autore o URL…" oninput="S.srcq=this.value;showState()">
+    <p class="hint">Nessuna Fonte collegata.</p></div>`;
+}
+function nameField(kind) {
+  const v = S.name || '';
+  const dup = v.toLowerCase().replace(/[^a-z]/g, '').startsWith('cavalcav');
+  return `<div class="field"><label for="nm">Nome</label><input id="nm" type="text" value="${v}" oninput="S.name=this.value;render(true)">
+    ${dup ? `<div class="warn" role="status"><h3>Esiste già un${kind === 'Area' ? "'" : 'o'} ${kind} con un nome simile</h3>«Cavalcavia Est (fittizio)», somiglianza 94. <button class="btn small">Usa questo</button> <button class="btn small">Continua, è un altro</button></div>` : '<p class="hint">Prova a scrivere «Cavalcavia est» per vedere l\'avviso di nome simile.</p>'}</div>
+    <div class="field"><label for="ds">Descrizione (facoltativa)</label><textarea id="ds" oninput="S.desc=this.value;showState()">${S.desc || ''}</textarea></div>`;
+}
+function baseMap(inner, w = 400, hh = 240) {
+  return `<div class="map"><svg viewBox="0 0 ${w} ${hh}" role="img" aria-label="Mappa schematica fittizia">
+    <path d="M0 60 L400 40 M0 180 L400 200 M90 0 L110 240 M300 0 L280 240" stroke="#fff" stroke-width="8" fill="none"/>
+    <path d="M0 120 C120 100 260 150 400 130" stroke="#b9cfe0" stroke-width="14" fill="none"/>
+    ${inner}</svg></div>`;
+}
+const hatch = `<defs><pattern id="hp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#3b4a8a" stroke-width="2" opacity=".5"/></pattern><pattern id="hc" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#5b564d" stroke-width="1.5" opacity=".45"/></pattern></defs>`;
+function locDots(sel = []) {
+  return LOCS.map(l => `<g><circle cx="${l.x}" cy="${l.y}" r="${sel.includes(l.id) ? 9 : 6}" fill="${sel.includes(l.id) ? '#3b4a8a' : '#1d1b18'}" stroke="#fff" stroke-width="2"/><text x="${l.x + 10}" y="${l.y - 8}" font-size="10" font-family="monospace">${l.id}</text></g>`).join('');
+}
+function photo(seed, changed) {
+  // a fake "photo" of a wall with a piece; `changed` adds a tag overlapping it
+  return `<div class="photo"><svg viewBox="0 0 400 300" aria-hidden="true">
+    <rect width="400" height="300" fill="#c9b9a3"/><rect y="230" width="400" height="70" fill="#8d8579"/>
+    <g opacity=".25">${[0,1,2,3,4,5].map(i => `<line x1="0" y1="${40 * i + 10}" x2="400" y2="${40 * i + 10}" stroke="#6d5f4d"/>`).join('')}</g>
+    <path d="M${90 + seed} 190 C140 60 260 60 ${310 - seed} 190 Z" fill="#c65a2e"/><circle cx="${200 + seed}" cy="120" r="26" fill="#2c5e86"/>
+    <path d="M120 200 L280 200" stroke="#f3e2b5" stroke-width="10"/>
+    ${changed ? '<path d="M150 90 q20 -30 40 0 t40 0 t40 0" stroke="#111" stroke-width="7" fill="none"/><text x="160" y="160" font-size="34" font-family="sans-serif" font-weight="900" fill="#111">ZRK</text>' : ''}
+  </svg></div>`;
+}
+
+// ---------- screens ----------
+const SCREENS = {};
+
+SCREENS.site = {
+  title: 'Nuovo Sito',
+  q: 'Un Sito nuovo può raccogliere Luoghi esistenti? L\'appartenenza è il campo Sito del Luogo, quindi aggiungerli modifica altri record esistenti (ADR 0007).',
+  variants: {
+    A: 'Il Sito porta con sé i Luoghi: un passo «Luoghi» sceglie Luoghi esistenti senza Sito; all\'approvazione ognuno riceve una Revisione attribuita al Contributo (eccezione all\'ADR 0007, come il Merge).',
+    B: 'Il Sito nasce vuoto: nome, descrizione, Fonti. Ogni Luogo vi entra con la propria modifica (campo Sito), una Submission per Luogo.',
+    C: 'Il Sito nasce solo dentro la modifica di un Luogo («Crea nuovo Sito» nel campo Sito), con quel Luogo come primo membro; gli altri entrano con le loro modifiche.',
+  },
+  render() {
+    if (variant === 'C') {
+      return `${stepper(['Cosa cambia', 'Fonti a supporto', 'Revisione e invio'])}
+      ${step === 0 ? `<div class="panel"><h2>Modifica del Luogo L-119 «Muro del cortile, lato nord»</h2>
+        <table class="cmp"><tr><th>Campo</th><th>Attuale</th><th>Proposto</th></tr>
+        <tr><td>Sito</td><td>—</td><td><div class="proposed-box">Nuovo Sito: <b>${S.name || '…'}</b></div></td></tr></table>
+        <div class="panel" style="margin-top:10px"><h2>Nuovo Sito (creato in linea)</h2>${nameField('Sito')}</div></div>`
+      : step === 1 ? sourcesStep() : review(`<b>${S.name || 'Sito senza nome'}</b> · 1 Luogo: L-119`)}${nav(3)}`;
+    }
+    const names = variant === 'A' ? ['Nome e descrizione', 'Luoghi', 'Fonti', 'Revisione e invio'] : ['Nome e descrizione', 'Fonti', 'Revisione e invio'];
+    const sel = S.locs || [];
+    let body;
+    if (step === 0) body = `<div class="panel"><h2>Nome e descrizione</h2>${nameField('Sito')}</div>`;
+    else if (variant === 'A' && step === 1) body = `<div class="panel"><h2>Luoghi del Sito</h2>
+      <p class="hint">Scegli Luoghi esistenti, sulla mappa o dalla lista. Un Luogo che ha già un Sito non si può aggiungere qui: si sposta con una modifica di quel Luogo.</p>
+      ${baseMap(locDots(sel))}
+      ${LOCS.map(l => `<div class="chk"><input type="checkbox" id="c${l.id}" ${sel.includes(l.id) ? 'checked' : ''} ${l.site ? 'disabled' : ''} onchange="toggle('locs','${l.id}')"><label for="c${l.id}">${l.id} · ${l.title} · ${l.arts.length} Opere${l.site ? ` <i>(già nel Sito ${l.site})</i>` : ''}</label></div>`).join('')}
+      ${sel.length ? `<div class="note">All'approvazione: ${sel.length} Luoghi ricevono una Revisione «Sito impostato» attribuita a questo Contributo. Se uno di loro cambia Sito nel frattempo, il Contributo diventa Outdated.</div>` : ''}</div>`;
+    else if ((variant === 'A' && step === 2) || (variant === 'B' && step === 1)) body = sourcesStep();
+    else body = review(`<b>${S.name || 'Sito senza nome'}</b><br>${variant === 'A' ? (sel.length ? sel.length + ' Luoghi: ' + sel.join(', ') : 'Nessun Luogo') : 'Nessun Luogo. Dopo l\'approvazione, ogni Luogo entra con una propria modifica.'}`);
+    return stepper(names) + body + nav(names.length);
+  },
+  changeset() {
+    if (variant === 'C') return { kind: 'Location edit', primary_target: 'Location L-119', base_revision: 'L-119@r4', ops: [{ op: 'set', field: 'site', value: 'new:Site' }], creates: [{ Site: { name: S.name || '', description: S.desc || '' } }] };
+    const cs = { kind: 'Site create', primary_target: 'new Site', creates: [{ Site: { name: S.name || '', description: S.desc || '' } }] };
+    if (variant === 'A') cs.also_edits = (S.locs || []).map(id => ({ record: id, base_revision: id + '@r?', op: 'set site = new:Site' }));
+    return cs;
+  },
+};
+
+SCREENS.area = {
+  title: 'Nuova Area (disegno del poligono)',
+  q: 'Come si disegna un\'Area: con lo stesso strumento del Luogo (solo poligono), e cosa si mostra mentre si disegna?',
+  variants: {
+    A: 'Stesso strumento del passo Luogo, forzato su Poligono (clic, modalità mirino, Annulla vertice). Lettura in testo: Luoghi che vi ricadono, Aree esistenti sovrapposte.',
+    B: 'Come A, ma si parte da un\'Area esistente o dal confine dell\'Istanza come sagoma da ritoccare ("Parti da…").',
+  },
+  render() {
+    const names = ['Nome e descrizione', 'Poligono', 'Fonti', 'Revisione e invio'];
+    let body;
+    const pts = S.pts || [];
+    if (step === 0) body = `<div class="panel"><h2>Nome e descrizione</h2>${nameField('Area')}</div>`;
+    else if (step === 1) {
+      const poly = pts.map(p => p.join(',')).join(' ');
+      const inside = pts.length >= 3 ? LOCS.filter(l => pip([l.x, l.y], pts)).map(l => l.id) : [];
+      S.inside = inside;
+      body = `<div class="panel"><h2>Poligono</h2>
+        ${variant === 'B' ? `<div class="field"><label for="from">Parti da</label><select id="from" onchange="startFrom(this.value)"><option value="">Foglio vuoto</option><option value="pigneto">Area «Pigneto (fittizio)»</option></select><p class="hint">Copia la sagoma come punto di partenza; l'Area nuova è un record a sé.</p></div>` : ''}
+        <p class="hint">Clic sulla mappa per aggiungere un vertice. Minimo 3. Poligono semplice, dentro il confine dell'Istanza.</p>
+        <div onclick="addPt(event)" style="cursor:crosshair">${baseMap(hatch + `<polygon points="60,30 190,25 200,110 70,130" fill="url(#hc)" stroke="#5b564d" stroke-dasharray="3 3"/><text x="64" y="44" font-size="10">Pigneto (esistente)</text>` + locDots(inside) + (pts.length ? `<polygon points="${poly}" fill="url(#hp)" stroke="#3b4a8a" stroke-width="2" stroke-dasharray="6 4"/>` + pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#3b4a8a"/>`).join('') : ''))}</div>
+        <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap"><button class="btn small" onclick="S.pts=(S.pts||[]).slice(0,-1);render()">Annulla ultimo vertice</button><button class="btn small" onclick="S.pts=[];render()">Ricomincia</button><button class="btn small">Modalità mirino</button></div>
+        <div class="note" role="status">${pts.length < 3 ? `Vertici: ${pts.length}. Servono almeno 3 vertici.` : `Vertici: ${pts.length}. Ricadono nell'Area <b>${inside.length}</b> Luoghi${inside.length ? ' (' + inside.join(', ') + ')' : ''}. Si sovrappone a: Pigneto (fittizio). Le Aree possono sovrapporsi.`}</div>
+        <p class="hint">Senza WebGL2: «Disegnare un'Area richiede la mappa». Non c'è un campo coordinate per i poligoni.</p></div>`;
+    } else if (step === 2) body = sourcesStep();
+    else body = review(`<b>${S.name || 'Area senza nome'}</b> · poligono di ${pts.length} vertici · ${(S.inside || []).length} Luoghi vi ricadono`);
+    return stepper(names) + body + nav(4);
+  },
+  changeset() { return { kind: 'Area create', primary_target: 'new Area', creates: [{ Area: { name: S.name || '', description: S.desc || '', geometry: { type: 'Polygon', vertices: (S.pts || []).length } } }], computed_not_stored: { locations_within: S.inside || [] } }; },
+};
+
+SCREENS.series = {
+  title: 'Nuova Serie',
+  q: 'Chi possiede l\'appartenenza a una Serie? Se la possiede la Serie, una Serie nuova può collegare Opere esistenti senza modificarle.',
+  variants: {
+    A: 'L\'appartenenza è della Serie: il passo «Opere» collega Opere esistenti (collegamento, non modifica). Una modifica della Serie aggiunge o toglie Opere.',
+    B: 'L\'appartenenza è dell\'Opera (come il Sito per il Luogo): la Serie nasce vuota e ogni Opera vi entra con la propria modifica.',
+  },
+  render() {
+    const names = variant === 'A' ? ['Nome e descrizione', 'Opere', 'Fonti', 'Revisione e invio'] : ['Nome e descrizione', 'Fonti', 'Revisione e invio'];
+    const sel = S.arts || [];
+    let body;
+    if (step === 0) body = `<div class="panel"><h2>Nome e descrizione</h2>${nameField('Serie')}<p class="hint">Una committenza documentata (festival, progetto comunale) si racconta qui con una Fonte (ADR 0014).</p></div>`;
+    else if (variant === 'A' && step === 1) body = `<div class="panel"><h2>Opere della Serie</h2><p class="hint">Ovunque si trovino. Un'Opera può stare in più Serie.</p>
+      <input type="text" placeholder="Cerca Opere per titolo, Artista, Area…">
+      ${ARTWORKS.map(a => `<div class="chk"><input type="checkbox" id="s${a.slice(0, 5)}" ${sel.includes(a) ? 'checked' : ''} onchange="toggle('arts','${a}')"><label for="s${a.slice(0, 5)}">${a}</label></div>`).join('')}</div>`;
+    else if ((variant === 'A' && step === 2) || (variant === 'B' && step === 1)) body = sourcesStep();
+    else body = review(`<b>${S.name || 'Serie senza nome'}</b><br>${variant === 'A' ? sel.length + ' Opere' : 'Nessuna Opera: ognuna entra con una propria modifica'}`);
+    return stepper(names) + body + nav(names.length);
+  },
+  changeset() { return { kind: 'Series create', primary_target: 'new Series', creates: [{ Series: { name: S.name || '', description: S.desc || '', ...(variant === 'A' ? { links: (S.arts || []).map(a => a.slice(0, 5)) } : {}) } }], edits_other_records: false }; },
+};
+
+SCREENS.source = {
+  title: 'Nuova Fonte / modifica di una Fonte',
+  q: 'Fonti ed Elementi di documentazione possono essere il primary target di una Submission? Una Fonte si crea anche da sola, o solo dentro altri contributi?',
+  variants: {
+    A: 'Fonte come primary target: creazione autonoma (dalla pagina della Fonte o «Nuova Fonte») e modifica autonoma. Anche dentro i selettori, come record collegato.',
+    B: 'Fonte creata solo in linea, dentro un altro contributo; si modifica come primary target (correggere un titolo o un URL non tocca nessun altro record).',
+  },
+  render() {
+    const editing = S.mode === 'edit';
+    const names = editing ? ['Cosa cambia', 'Revisione e invio'] : ['La Fonte', 'Revisione e invio'];
+    const tog = `<p><button class="btn small" aria-pressed="${!editing}" onclick="S.mode='new';step=0;render()" ${variant === 'B' ? 'disabled title="Non disponibile in B: si crea in linea"' : ''}>Nuova Fonte</button> <button class="btn small" aria-pressed="${editing}" onclick="S.mode='edit';step=0;render()">Modifica Fonte esistente</button></p>`;
+    let body;
+    if (step === 0 && !editing) body = `<div class="panel"><h2>La Fonte</h2>${variant === 'B' ? '<div class="note">In B questa scheda compare solo dentro un selettore «Crea nuova Fonte» di un altro contributo.</div>' : ''}
+      <div class="field"><label>Titolo (obbligatorio)</label><input type="text" value="Muri che parlano (fittizio)"></div>
+      <div class="two"><div class="field"><label>Autore</label><input type="text"></div><div class="field"><label>Pubblicazione</label><input type="text" placeholder="Periodico, editore, sito, canale"></div></div>
+      <div class="two"><div class="field"><label>Data (incerta)</label><input type="text" value="c. 2019"></div><div class="field"><label>Lingua</label><input type="text" value="it"></div></div>
+      <div class="field"><label>URL</label><input type="url" value="https://example.org/muri-che-parlano" oninput="S.url=this.value;render(true)"></div>
+      ${(S.url || 'x').includes('example.org/muri') ? '<div class="warn" role="status"><h3>Esiste già una Fonte con questo URL</h3>«Muri che parlano», example.org (URL normalizzato identico). <button class="btn small">Usa questa</button> <button class="btn small">Continua</button></div>' : ''}
+      <div class="field"><label>Nota</label><input type="text" placeholder="Pagine, contesto, copia archiviata"></div>
+      <p class="hint">Anteprima della citazione: Autore, <i>Titolo</i>, Pubblicazione, Data. URL</p></div>`;
+    else if (step === 0) body = `<div class="panel"><h2>Modifica della Fonte F-88</h2>
+      <table class="cmp"><tr><th>Campo</th><th>Attuale</th><th>Proposto</th></tr>
+      <tr><td>Titolo</td><td>Muri che parlno (fittizio)</td><td><div class="proposed-box">Muri che parlano (fittizio)</div></td></tr>
+      <tr><td>URL</td><td>http://example.org/muri</td><td><div class="proposed-box">https://example.org/muri-che-parlano</div></td></tr>
+      <tr><td>Autore</td><td>—</td><td><button class="btn small">Modifica</button></td></tr></table>
+      <div class="note">Citata da 4 record (2 Opere, 1 Attribuzione, 1 Evento). La modifica li raggiunge tutti senza toccarli: la citazione punta alla Fonte.</div></div>`;
+    else body = review(editing ? 'Fonte F-88: Titolo, URL corretti' : '<i>Muri che parlano</i> (fittizio), c. 2019. https://example.org/muri-che-parlano');
+    return tog + stepper(names) + body + nav(2);
+  },
+  changeset() { return S.mode === 'edit' ? { kind: 'Source edit', primary_target: 'Source F-88', base_revision: 'F-88@r2', ops: [{ op: 'set', field: 'title' }, { op: 'set', field: 'url' }] } : { kind: 'Source create', primary_target: variant === 'A' ? 'new Source' : '(not allowed: created inline only)', creates: [{ Source: { title: 'Muri che parlano (fittizio)' } }] }; },
+};
+
+SCREENS.geometry = {
+  title: 'Modifica della geometria di un Luogo',
+  q: 'Come si modifica un Luogo che porta più Opere, e cosa vede chi propone? Il Luogo è una superficie fisica condivisa (ADR 0003).',
+  variants: {
+    A: 'Editor «Cosa cambia» come le altre modifiche: per la Geometria, «Modifica» apre lo strumento di disegno con la geometria attuale come sagoma grigia e i vertici modificabili.',
+    B: 'Come A, ma con un passo dedicato «Geometria» per primo, perché è il motivo principale per modificare un Luogo; gli altri campi nel passo successivo.',
+  },
+  render() {
+    const names = variant === 'A' ? ['Cosa cambia', 'Fonti a supporto', 'Revisione e invio'] : ['Geometria', 'Altri campi', 'Fonti a supporto', 'Revisione e invio'];
+    const geoPanel = `<p class="hint">La sagoma grigia è la geometria attuale; quella tratteggiata blu è la proposta. Clic su un vertice per selezionarlo, clic altrove per spostarlo.</p>
+      <div onclick="moveV(event)" style="cursor:crosshair">${baseMap(hatch + `<polyline points="100,150 180,140 250,150" fill="none" stroke="#5b564d" stroke-width="6" opacity=".5"/>` + `<polyline points="${S.g.map(p => p.join(',')).join(' ')}" fill="none" stroke="#3b4a8a" stroke-width="4" stroke-dasharray="8 5"/>` + S.g.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="${S.sel === i ? 7 : 5}" fill="${S.sel === i ? '#fff' : '#3b4a8a'}" stroke="#3b4a8a" stroke-width="2"/>`).join('') + `<circle cx="290" cy="158" r="6" fill="#1d1b18" stroke="#fff" stroke-width="2"/><text x="296" y="150" font-size="10" font-family="monospace">L-121</text>`)}</div>
+      <div class="note" role="status">Linea, 3 vertici. Spostamento massimo rispetto all'attuale: ${maxShift()} m. ${S.g[2][0] > 270 ? '<b>Avviso:</b> ora a meno di 25 m da L-121 «Cabina elettrica». Se è la stessa superficie, proponi un Merge invece di questa modifica. <button class="btn small">Proponi Merge</button>' : ''}</div>`;
+    const others = `<table class="cmp"><tr><th>Campo</th><th>Attuale</th><th></th></tr>
+      ${variant === 'A' ? `<tr><td>Geometria</td><td>Linea, 3 vertici</td><td><button class="btn small" aria-pressed="${S.open}" onclick="S.open=!S.open;render()">Modifica</button></td></tr>${S.open ? `<tr><td colspan="3">${geoPanel}</td></tr>` : ''}` : ''}
+      <tr><td>Approssimato</td><td>Esatto</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Tipo di superficie</td><td>Muro</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Sito</td><td>—</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Descrizione del luogo</td><td>Muro lungo la ferrovia, lato via</td><td><button class="btn small">Modifica</button></td></tr></table>`;
+    const warnArts = `<div class="warn"><h3>Questo Luogo porta 3 Opere</h3>La modifica vale per tutte: Senza titolo, Coro di gabbiani, Mappa sommersa (fittizie). Se un'Opera è su un'altra superficie, correggi il Luogo di quell'Opera (modifica dell'Opera), non questa geometria.</div>`;
+    let body;
+    if (variant === 'A') body = step === 0 ? `<div class="panel"><h2>Cosa cambia · Luogo L-119</h2>${warnArts}${others}</div>` : step === 1 ? sourcesStep() : review('Geometria del Luogo L-119: linea ridisegnata (vedi confronto)');
+    else body = step === 0 ? `<div class="panel"><h2>Geometria · Luogo L-119</h2>${warnArts}${geoPanel}</div>` : step === 1 ? `<div class="panel"><h2>Altri campi</h2>${others}</div>` : step === 2 ? sourcesStep() : review('Geometria del Luogo L-119: linea ridisegnata');
+    return stepper(names) + body + nav(names.length);
+  },
+  changeset() { return { kind: 'Location edit', primary_target: 'Location L-119', base_revision: 'L-119@r4', labels: ['changes geometry'], ops: [{ op: 'set', field: 'geometry', value: { type: 'LineString', coordinates: S.g } }], affects_artworks: 3, history_event: 'none (a correction, not a physical change)' }; },
+  init() { S.g = [[100, 150], [180, 140], [250, 150]]; S.open = variant === 'B'; },
+};
+
+SCREENS.docitem = {
+  title: 'Modifica di un Elemento di documentazione',
+  q: 'Quali campi di un Elemento di documentazione si possono correggere? Il file è immutabile; licenza, base dei diritti e credito toccano i diritti.',
+  variants: {
+    A: 'Correggibili: Data osservata, Opere collegate, Luogo (scomparsa), testo alternativo, lingua, testo/URL dei link. Licenza, base dei diritti, credito e URL d\'origine bloccati: un errore lì si risolve con un nuovo Elemento e una Duplicate retirement, o una Segnalazione.',
+    B: 'Tutto correggibile tranne il file; per licenza e base dei diritti un avviso dice che la correzione non revoca la licenza già concessa, e la revisione la controlla.',
+  },
+  render() {
+    const locked = variant === 'A';
+    const row = (f, cur, lock) => `<tr><td>${f}</td><td>${cur}</td><td>${lock ? '<span class="hint">Non modificabile</span>' : '<button class="btn small" onclick="S.touched=(S.touched||[]).concat(\'' + f + '\');render()">Modifica</button>'}</td></tr>`;
+    const names = ['Cosa cambia', 'Fonti a supporto', 'Revisione e invio'];
+    let body;
+    if (step === 0) body = `<div class="panel"><h2>Cosa cambia · Elemento D-5521 (immagine)</h2>
+      <div class="two"><div>${photo(0, false)}<p class="cap">File: non modificabile. Sostituire un file significa aggiungere un nuovo Elemento.</p></div>
+      <div><table class="cmp"><tr><th>Campo</th><th>Attuale</th><th></th></tr>
+      ${row('Data osservata', 'mar 2021', false)}${row('Opere', 'A-301', false)}${row('Testo alternativo', 'foto', false)}
+      ${row('Creator credit', 'M. Rossi (fittizio)', locked)}${row('Base dei diritti', 'Opera propria', locked)}${row('Licenza', 'CC BY 4.0', locked)}</table>
+      ${!locked ? '<div class="note">Una licenza concessa non si revoca: cambiarla corregge un errore di inserimento, non ritira il permesso. Il Moderatore lo verifica con la voce 2 della checklist.</div>' : '<div class="note">Credito, base dei diritti o licenza sbagliati: carica l\'Elemento corretto e proponi una Duplicate retirement di questo, oppure invia una Segnalazione se il file non doveva esserci.</div>'}</div></div>
+      ${(S.touched || []).length ? `<p>Campi modificati: ${S.touched.join(', ')}</p>` : ''}</div>`;
+    else if (step === 1) body = sourcesStep();
+    else body = review('Elemento D-5521: ' + ((S.touched || []).join(', ') || 'nessuna modifica'));
+    return stepper(names) + body + nav(3);
+  },
+  changeset() { return { kind: 'Documentation item edit', primary_target: 'Documentation item D-5521', base_revision: 'D-5521@r1', ops: (S.touched || []).map(f => ({ op: 'set', field: f })), file: 'immutable' }; },
+};
+
+SCREENS.artist = {
+  title: 'Modifica di un Artista',
+  q: 'La modifica di un Artista è il generico «Cosa cambia», con gli elementi (Alias, Appartenenze a crew, Aree di attività) a livello di elemento, come le Attribuzioni?',
+  variants: { A: 'Generico «Cosa cambia» con promemoria delle regole di contenuto (ADR 0014) accanto a nome, Alias e biografia; Alias, crew e Aree come elementi aggiungi/cambia/rimuovi.' },
+  render() {
+    const names = ['Cosa cambia', 'Fonti a supporto', 'Revisione e invio'];
+    let body;
+    if (step === 0) body = `<div class="panel"><h2>Cosa cambia · Artista R-42 «Gabbia (fittizio)»</h2>
+      <div class="note">Solo l'identità pubblica d'artista: mai nome anagrafico (salvo che sia il nome d'arte), età, residenza, aspetto, accuse di reato.</div>
+      <table class="cmp"><tr><th>Campo</th><th>Attuale</th><th></th></tr>
+      <tr><td>Nome</td><td>Gabbia</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Tipo</td><td>Individuale</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Biografia</td><td>Attivo nel quadrante est…</td><td><button class="btn small">Modifica</button></td></tr>
+      <tr><td>Periodo di attività</td><td>c. 2012 – </td><td><button class="btn small">Modifica</button></td></tr></table>
+      <h3 style="font-size:15px">Alias</h3><ul><li>GBB <button class="btn small">Cambia</button> <button class="btn small">Rimuovi</button></li>${S.alias ? `<li class="proposed-box">${S.alias} <span class="proposed-tag">aggiunto</span></li>` : ''}</ul>
+      <button class="btn small" onclick="S.alias='G4BB';render()">+ Aggiungi Alias</button>
+      <h3 style="font-size:15px">Appartenenze a crew</h3><ul><li>Collettivo Nord (fittizio), 2014–2018 <button class="btn small">Cambia</button> <button class="btn small">Rimuovi</button></li></ul><button class="btn small">+ Aggiungi appartenenza</button>
+      <p class="hint">Una crew che conterrebbe se stessa, direttamente o in catena, è rifiutata all'invio.</p>
+      <h3 style="font-size:15px">Aree di attività</h3><ul><li>Pigneto (fittizio) <button class="btn small">Rimuovi</button></li></ul><button class="btn small">+ Aggiungi Area</button>
+      <p class="hint">Rimuovere un Alias usato da un'Attribuzione è rifiutato: prima si cambia l'Attribuzione (modifica di quell'Opera).</p></div>`;
+    else if (step === 1) body = sourcesStep();
+    else body = review('Artista R-42: ' + (S.alias ? 'Alias aggiunto' : 'nessuna modifica'));
+    return stepper(names) + body + nav(3);
+  },
+  changeset() { return { kind: 'Artist edit', primary_target: 'Artist R-42', base_revision: 'R-42@r6', ops: S.alias ? [{ op: 'add', item: 'alias', value: S.alias }] : [] }; },
+};
+
+SCREENS.merge = {
+  title: 'Merge',
+  q: 'Come si costruisce un Merge «X in Y» con il suo changeset sugli elementi, e come vede il Moderatore i riferimenti da riscrivere?',
+  variants: {
+    A: 'Stepper: Quali record (X e Y, con «Inverti») → Riconcilia (campi: valori di Y salvo scelta; elementi: lista unita con caselle per scartare) → Riferimenti da riscrivere (sola lettura) → Revisione.',
+    B: 'Un\'unica pagina a due colonne X | Y con il risultato unito sotto; ogni campo e ogni elemento ha «tieni da X / tieni da Y / scarta».',
+  },
+  render() {
+    const X = S.swap ? 'A-317 Ritratto blu (fittizio)' : 'A-355 Mappa sommersa (fittizio)';
+    const Y = S.swap ? 'A-355 Mappa sommersa (fittizio)' : 'A-317 Ritratto blu (fittizio)';
+    const items = [
+      ['ev1', 'Evento «created», 2016 (da X)', 'X'], ['ev2', 'Evento «created», c. 2015 (da Y)', 'Y'],
+      ['at1', 'Attribuzione: Gabbia, probable (da X)', 'X'], ['at2', 'Attribuzione: Gabbia, confirmed (da Y)', 'Y'],
+      ['d1', '3 Elementi di documentazione (da X)', 'X'], ['d2', '5 Elementi di documentazione (da Y)', 'Y'],
+    ];
+    const drop = S.drop || [];
+    const itemsHTML = items.map(([k, t]) => `<div class="chk"><input type="checkbox" id="k${k}" ${drop.includes(k) ? '' : 'checked'} onchange="toggle('drop','${k}')"><label for="k${k}" class="${drop.includes(k) ? 'strike' : ''}">${t}</label></div>`).join('');
+    const clash = !drop.includes('ev1') && !drop.includes('ev2');
+    const refs = `<ul class="rewrites"><li>Serie «Fiume (fittizio)»: l'appartenenza di X passa a Y</li><li>2 citazioni di Fonti su X → Y</li><li>Evento «covered» su A-301 che indica X come Opera che copre → Y</li></ul><p class="hint">Ognuno riceve una Revisione attribuita a questo Merge. X risponderà 301 verso Y; la sua pagina /revisions resta leggibile.</p>`;
+    const pick = `<div class="two"><div class="panel"><span class="current-tag">X · confluisce</span><p><b>${X}</b></p></div><div class="panel"><span class="current-tag">Y · resta</span><p><b>${Y}</b></p></div></div>
+      <button class="btn small" onclick="S.swap=!S.swap;render()">Inverti X e Y</button> <p class="hint">Aperto da «Segnala come duplicato di…» sulla pagina di X; Y si cerca tra i record dello stesso tipo, i vicini entro 25 m per primi.</p>`;
+    const fields = `<table class="cmp"><tr><th>Campo</th><th>X</th><th>Y</th><th>Risultato</th></tr>
+      <tr><td>Titolo</td><td>Mappa sommersa</td><td>Ritratto blu</td><td><select onchange="S.title=this.value;showState()"><option>Y</option><option>X</option></select></td></tr>
+      <tr><td>Descrizione</td><td>—</td><td>Volto su fondo blu…</td><td>Y</td></tr>
+      <tr><td>Luogo</td><td>L-120</td><td>L-120</td><td>stesso</td></tr></table>`;
+    if (variant === 'B') return `<div class="panel"><h2>Merge</h2>${pick}${fields}<h3 style="font-size:15px">Elementi uniti</h3>${itemsHTML}${clash ? '<p class="err">Il risultato avrebbe due eventi «created»: scartane uno.</p>' : ''}<h3 style="font-size:15px">Riferimenti da riscrivere</h3>${refs}</div>${review('Merge di X in Y')}`;
+    const names = ['Quali record', 'Riconcilia', 'Riferimenti', 'Revisione e invio'];
+    const body = step === 0 ? `<div class="panel"><h2>Quali record</h2>${pick}</div>`
+      : step === 1 ? `<div class="panel"><h2>Riconcilia</h2><p class="hint">I campi restano quelli di Y salvo scelta diversa. Gli elementi di X e Y si sommano: togli quelli sbagliati.</p>${fields}<h3 style="font-size:15px">Elementi</h3>${itemsHTML}${clash ? '<p class="err">Il risultato avrebbe due eventi «created»: scartane uno (validazione all\'invio).</p>' : ''}</div>`
+      : step === 2 ? `<div class="panel"><h2>Riferimenti da riscrivere</h2>${refs}</div>` : review(`<b>${X}</b> confluisce in <b>${Y}</b>; ${drop.length} elementi scartati`);
+    return stepper(names) + body + nav(4);
+  },
+  changeset() { return { kind: 'Merge', X: S.swap ? 'A-317' : 'A-355', Y: S.swap ? 'A-355' : 'A-317', base_revisions: ['X@r3', 'Y@r7'], field_ops: S.title === 'X' ? [{ op: 'set', field: 'title', from: 'X' }] : [], item_ops: (S.drop || []).map(k => ({ op: 'remove', item: k })), rewrites_on_approval: 3 }; },
+};
+
+SCREENS.retire = {
+  title: 'Duplicate retirement',
+  q: 'Come si sceglie quale Elemento tenere, e cosa vede chi propone?',
+  variants: { A: 'Due colonne: l\'Elemento da ritirare e quello da tenere, con le immagini affiancate e la lista dei collegamenti e citazioni che si spostano. Rifiutato se le Opere stanno su Luoghi diversi.' },
+  render() {
+    const diff = !!S.diff;
+    const names = ['Quali Elementi', 'Revisione e invio'];
+    const body = step === 0 ? `<div class="panel"><h2>Quali Elementi</h2>
+      <div class="two"><div><span class="current-tag">Da ritirare · D-5530</span>${photo(4, false)}<p class="cap">feb 2021 · M. Rossi (fittizio) · CC BY 4.0</p></div>
+      <div><span class="current-tag">Da tenere · D-5521</span>${photo(0, false)}<p class="cap">mar 2021 · M. Rossi (fittizio) · CC BY 4.0</p></div></div>
+      <div class="chk"><input type="checkbox" id="dl" ${diff ? 'checked' : ''} onchange="S.diff=this.checked;render()"><label for="dl">Simula: D-5521 documenta un'Opera su un altro Luogo</label></div>
+      ${diff ? '<p class="err">I due Elementi documentano Opere su Luoghi diversi: non si possono unire (ADR 0003).</p>' : `<h3 style="font-size:15px">Si spostano su D-5521</h3><ul class="rewrites"><li>Collegamento all'Opera A-301</li><li>Citazione nell'evento «damaged» (2022) di A-301: il livello di Evidence resta «documented»</li></ul>
+      <p class="hint">File, licenza, credito e campi non si riconciliano: D-5530 resta leggibile nelle sue /revisions.</p>`}</div>`
+      : review('D-5530 ritirato a favore di D-5521');
+    return stepper(names) + body + nav(2);
+  },
+  changeset() { return { kind: 'Duplicate retirement', X: 'D-5530', Y: 'D-5521', base_revisions: ['D-5530@r1', 'D-5521@r2'], moves: ['artwork link A-301', 'citation in event E-9'], valid: !S.diff }; },
+};
+
+SCREENS.unmerge = {
+  title: 'Unmerge',
+  q: 'Da dove parte un Unmerge e cosa pre-compila?',
+  variants: { A: 'Parte dall\'avviso «confluito in Y» sulla pagina /revisions di X, o dalla Revisione di Merge di Y. Pre-compila: gli elementi di Y venuti da X da togliere, e i record che riferivano X prima del Merge da far tornare a X (modificabili).' },
+  render() {
+    const keep = S.keep || [];
+    const rows = [['r1', 'Serie «Fiume (fittizio)» → torna a X'], ['r2', '2 citazioni di Fonti → tornano a X'], ['r3', 'Evento «covered» su A-301 → torna a X']];
+    const names = ['Cosa si separa', 'Riferimenti', 'Revisione e invio'];
+    const body = step === 0 ? `<div class="panel"><h2>Cosa si separa</h2><div class="note">A-355 «Mappa sommersa (fittizio)» è confluito in A-317 il 3 mag 2026. Torna con il suo id dalla sua ultima Revisione prima del Merge.</div>
+      <h3 style="font-size:15px">Elementi da togliere da A-317</h3>
+      <div class="chk"><input type="checkbox" checked id="u1"><label for="u1">Evento «created», 2016 (era di X)</label></div>
+      <div class="chk"><input type="checkbox" checked id="u2"><label for="u2">3 Elementi di documentazione (erano di X)</label></div>
+      <div class="chk"><input type="checkbox" id="u3"><label for="u3">Evento «damaged», 2025 (aggiunto dopo il Merge: decidi tu)</label></div></div>`
+      : step === 1 ? `<div class="panel"><h2>Riferimenti</h2><p class="hint">Proposti, modificabili: togli la spunta a quelli che devono restare su Y.</p>${rows.map(([k, t]) => `<div class="chk"><input type="checkbox" id="${k}" ${keep.includes(k) ? '' : 'checked'} onchange="toggle('keep','${k}')"><label for="${k}">${t}</label></div>`).join('')}</div>`
+      : review('A-355 separato da A-317');
+    return stepper(names) + body + nav(3);
+  },
+  changeset() { return { kind: 'Unmerge', X: 'A-355', Y: 'A-317', restore_from: 'A-355@r3', remove_from_Y: ['created 2016', '3 documentation items'], repoint: ['r1', 'r2', 'r3'].filter(k => !(S.keep || []).includes(k)) }; },
+};
+
+SCREENS['cmp-image'] = {
+  title: 'Revisione: confronto immagini',
+  q: 'Come confronta il Moderatore un file nuovo con l\'immagine più recente dell\'Opera (o due Elementi in una Duplicate retirement)?',
+  variants: {
+    A: 'Affiancate: attuale a sinistra, proposta a destra, stessa dimensione, didascalie con data osservata. Funziona con tastiera e lettori di schermo senza adattamenti.',
+    B: 'Cursore a tendina (swipe): una sopra l\'altra con un cursore che rivela la proposta. Più preciso per i dettagli, ma serve un controllo accessibile (slider con frecce).',
+    C: 'Alternanza: un pulsante «Attuale / Proposta» scambia l\'immagine sullo stesso riquadro; affiancate sotto 600 px.',
+  },
+  render() {
+    const pos = S.pos ?? 50;
+    let cmp;
+    if (variant === 'A') cmp = `<div class="two"><div><span class="current-tag">Attuale · D-5521</span>${photo(0, false)}<p class="cap">Data osservata: mar 2021</p></div><div><span class="proposed-tag">Proposta · nuovo file</span>${photo(0, true)}<p class="cap">Data osservata: set 2026</p></div></div>`;
+    else if (variant === 'B') cmp = `<div style="position:relative">${photo(0, false)}<div style="position:absolute;inset:0;clip-path:inset(0 0 0 ${pos}%)">${photo(0, true)}</div><div style="position:absolute;top:0;bottom:0;left:${pos}%;border-left:3px solid #fff"></div></div>
+      <label class="lbl" for="sw" style="margin-top:6px">Mostra la proposta da ${100 - pos}% (frecce per spostare)</label><input id="sw" type="range" min="0" max="100" value="${pos}" oninput="S.pos=+this.value;render(true)" style="width:100%">
+      <p class="cap">Sinistra: attuale (mar 2021). Destra: proposta (set 2026).</p>`;
+    else cmp = `<p><button class="btn small" aria-pressed="${!S.showNew}" onclick="S.showNew=false;render()">Attuale (mar 2021)</button> <button class="btn small" aria-pressed="${!!S.showNew}" onclick="S.showNew=true;render()">Proposta (set 2026)</button></p>${photo(0, !!S.showNew)}<p class="cap" aria-live="polite">Stai vedendo: ${S.showNew ? 'proposta' : 'attuale'}</p>`;
+    return `<div class="panel"><h2>Contributo #4410 · Aggiungi documentazione · A-301</h2>
+      <p class="hint">Label calcolate: aggiunge documentazione, aggiunge Evento (modified).</p>${cmp}
+      <table class="cmp" style="margin-top:10px"><tr><th></th><th>Attuale</th><th>Proposto</th></tr><tr><td>Testo alternativo</td><td>Volpe arancione su muro di mattoni</td><td>Volpe arancione con una tag nera sopra</td></tr><tr><td>Licenza</td><td>CC BY 4.0</td><td>CC BY-SA 4.0</td></tr></table></div>`;
+  },
+  changeset() { return { view: 'Submission page (Moderator)', comparison: variant, against: 'most recent image Documentation item of the Artwork' }; },
+};
+
+SCREENS['cmp-geo'] = {
+  title: 'Revisione: confronto geometrie',
+  q: 'Come confronta il Moderatore la geometria attuale con quella proposta (modifica di un Luogo, nuova Area, correzione del Luogo di un\'Opera)?',
+  variants: {
+    A: 'Una mappa, sovrapposte: attuale grigia piena, proposta blu tratteggiata e retinata, legenda in parole, più un riepilogo testuale (spostamento in metri, vertici, Luoghi che entrano/escono da un\'Area).',
+    B: 'Due mini-mappe affiancate e sincronizzate, attuale | proposta, con lo stesso riepilogo testuale.',
+    C: 'Una mappa con interruttori «Attuale / Proposta / Entrambe» e il riepilogo testuale.',
+  },
+  render() {
+    const cur = `<polygon points="70,40 220,30 230,150 80,170" fill="url(#hc)" stroke="#5b564d" stroke-width="3"/>`;
+    const prop = `<polygon points="70,40 260,35 280,170 80,170" fill="url(#hp)" stroke="#3b4a8a" stroke-width="3" stroke-dasharray="8 5"/>`;
+    const show = S.show || 'both';
+    let maps;
+    if (variant === 'A') maps = baseMap(hatch + cur + prop + locDots(['L-121']));
+    else if (variant === 'B') maps = `<div class="two"><div><span class="current-tag">Attuale</span>${baseMap(hatch + cur + locDots())}</div><div><span class="proposed-tag">Proposta</span>${baseMap(hatch + prop + locDots(['L-121']))}</div></div>`;
+    else maps = `<p>${['current', 'proposed', 'both'].map(k => `<button class="btn small" aria-pressed="${show === k}" onclick="S.show='${k}';render()">${{ current: 'Attuale', proposed: 'Proposta', both: 'Entrambe' }[k]}</button>`).join(' ')}</p>${baseMap(hatch + (show !== 'proposed' ? cur : '') + (show !== 'current' ? prop : '') + locDots(['L-121']))}`;
+    return `<div class="panel"><h2>Contributo #4415 · Modifica Area «Pigneto (fittizio)»</h2>${maps}
+      <div class="legend"><span><svg width="28" height="12"><rect width="28" height="12" fill="url(#hc)" stroke="#5b564d" stroke-width="3"/></svg> Attuale (linea piena)</span><span><svg width="28" height="12"><rect width="28" height="12" fill="none" stroke="#3b4a8a" stroke-width="3" stroke-dasharray="6 4"/></svg> Proposta (linea tratteggiata)</span></div>
+      <div class="note"><b>Riepilogo:</b> 4 vertici → 4 vertici; 2 vertici spostati, il più lontano di 48 m verso est. Superficie +18%. Luoghi che entrano nell'Area: L-121 «Cabina elettrica». Luoghi che escono: nessuno.</div></div>`;
+  },
+  changeset() { return { view: 'Submission page (Moderator)', comparison: variant, summary: { moved_vertices: 2, max_shift_m: 48, area_change: '+18%', locations_entering: ['L-121'], locations_leaving: [] } }; },
+};
+
+// ---------- behaviour ----------
+function go(i) { step = i; render(); }
+function toggle(k, v) { const a = S[k] || []; S[k] = a.includes(v) ? a.filter(x => x !== v) : a.concat(v); render(); }
+function svgPt(e) { const svg = e.currentTarget.querySelector('svg'); const r = svg.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * 400 / r.width), Math.round((e.clientY - r.top) * 240 / r.height)]; }
+function addPt(e) { S.pts = (S.pts || []).concat([svgPt(e)]); render(); }
+function startFrom(v) { S.pts = v ? [[70, 40], [220, 30], [230, 150], [80, 170]] : []; render(); }
+function moveV(e) {
+  const p = svgPt(e);
+  const near = S.g.findIndex(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 12);
+  if (near >= 0) S.sel = near; else if (S.sel != null) { S.g[S.sel] = p; S.sel = null; }
+  render();
+}
+function maxShift() { const o = [[100, 150], [180, 140], [250, 150]]; return Math.round(Math.max(...S.g.map((p, i) => Math.hypot(p[0] - o[i][0], p[1] - o[i][1]))) * 1.5); }
+function pip([x, y], poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+
+function showState() {
+  const sc = SCREENS[screen];
+  document.getElementById('state').innerHTML = `<b>screen</b> ${screen}  <b>variant</b> ${variant}  <b>step</b> ${step + 1}\n\n<b>changeset (what the Submission stores)</b>\n` + JSON.stringify(sc.changeset(), null, 2).replace(/</g, '&lt;');
+}
+function render(keepFocus) {
+  const sc = SCREENS[screen];
+  const active = document.activeElement && document.activeElement.id;
+  const caret = document.activeElement && document.activeElement.selectionStart;
+  document.getElementById('main').innerHTML = `<h1 class="ed-title">${sc.title}</h1><p class="sub">Editor del Contributo · bozza salvata automaticamente · 10:42 · <button class="btn small">Esci e continua dopo</button></p>
+    <div class="q"><b>Domanda:</b> ${sc.q}<br><b>Variante ${variant}:</b> ${sc.variants ? (sc.variants[variant] || '') : ''}</div>${sc.render()}`;
+  document.getElementById('vdesc').textContent = sc.variants ? sc.variants[variant] || '' : '';
+  document.getElementById('variants').innerHTML = Object.keys(sc.variants || {}).map(v => `<button aria-pressed="${v === variant}" onclick="setVariant('${v}')">${v}</button>`).join(' ');
+  if (keepFocus && active) { const el = document.getElementById(active); if (el) { el.focus(); try { el.setSelectionRange(caret, caret); } catch (_) {} } }
+  showState(); setURL();
+}
+function setVariant(v) { variant = v; step = 0; S = {}; (SCREENS[screen].init || (() => {}))(); render(); }
+function setScreen(s) { screen = s; variant = 'A'; step = 0; S = {}; (SCREENS[screen].init || (() => {}))(); render(); }
+
+const sel = document.getElementById('screenSel');
+sel.innerHTML = Object.entries(SCREENS).map(([k, v]) => `<option value="${k}" ${k === screen ? 'selected' : ''}>${v.title}</option>`).join('');
+sel.onchange = () => setScreen(sel.value);
+if (!SCREENS[screen].variants[variant]) variant = 'A';
+(SCREENS[screen].init || (() => {}))();
+render();
+</script>
+</body>
+</html>
