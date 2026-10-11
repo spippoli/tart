@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from importlib.metadata import version
 
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
@@ -17,6 +18,8 @@ async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     app = FastAPI(
         title="TART API",
+        # The release writes its version into pyproject.toml (ADR 0021); 0.0.0 from source.
+        version=version("tart"),
         openapi_url="/api/openapi.json",
         docs_url=None,
         redoc_url=None,

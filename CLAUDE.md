@@ -31,7 +31,7 @@ When they disagree, the earlier one wins:
 
 ## Commands
 
-Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below; on a pull request it skips the `backend`, `frontend`, and `images` jobs when none of their files changed.
+Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below; on a pull request it skips the `backend`, `frontend`, `images`, and `release` jobs when none of their files changed.
 
 Backend (run in `backend/`):
 
@@ -77,7 +77,16 @@ pnpm test                  # tests of the commitlint configuration
 pnpm exec commitlint --from origin/main --to HEAD --verbose   # lint your branch's commits
 ```
 
-Full stack (run in `deploy/`; copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` first):
+Release tooling (run in `release/`; semantic-release and its plugins, ADR 0021):
+
+```sh
+pnpm install
+pnpm test                  # bump rules and notes over throwaway Git repositories, workflow and Compose checks
+```
+
+Releases are cut only by starting the `Release` workflow (`.github/workflows/release.yml`) on `main`; never tag or push images by hand.
+
+Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db

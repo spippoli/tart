@@ -1,0 +1,20 @@
+{
+	"$comment": "Reviewed packages whose licence is not in ADR 0011's permissive tier; checked by licences.test.js with frontend/scripts/licences.ts. These are CI tools that are never distributed with TART (ADR 0021). Each entry records the exact licence, so a licence change upstream needs a new review.",
+	"reviewed": {
+		"npm": {
+			"licence": "Artistic-2.0",
+			"tier": "permissive",
+			"reason": "Installed only because semantic-release depends on @semantic-release/npm; the npm plugin is not configured, so npm never runs, and it is never distributed. Admitted for CI-only tools by ADR 0011 §8."
+		},
+		"spdx-exceptions": {
+			"licence": "CC-BY-3.0",
+			"tier": "permissive",
+			"reason": "A data list of SPDX licence exceptions, read by semantic-release's tooling in CI; never distributed. Admitted for CI-only tools by ADR 0011 §8."
+		},
+		"spdx-license-ids": {
+			"licence": "CC0-1.0",
+			"tier": "asset",
+			"reason": "A public-domain data list of SPDX licence ids, read by semantic-release's tooling in CI; never distributed."
+		}
+	}
+}
