@@ -1,0 +1,30 @@
+{
+	"$comment": "Reviewed packages whose licence is not in ADR 0011's permissive tier; checked by scripts/licences.ts. Each entry records the exact licence, so a licence change upstream needs a new review.",
+	"reviewed": {
+		"axe-core": {
+			"licence": "MPL-2.0",
+			"tier": "weak-copyleft",
+			"reason": "Accessibility test engine, unmodified; runs only in the Playwright tests and is never bundled into the frontend."
+		},
+		"@axe-core/playwright": {
+			"licence": "MPL-2.0",
+			"tier": "weak-copyleft",
+			"reason": "Playwright binding of axe-core, unmodified; test-only, never bundled."
+		},
+		"lightningcss": {
+			"licence": "MPL-2.0",
+			"tier": "weak-copyleft",
+			"reason": "CSS transformer that Vite runs at build time, unmodified; its code is not bundled into the frontend."
+		},
+		"lightningcss-*": {
+			"licence": "MPL-2.0",
+			"tier": "weak-copyleft",
+			"reason": "Platform-specific native binaries of lightningcss, unmodified, loaded by it at build time."
+		},
+		"minimatch": {
+			"licence": "BlueOak-1.0.0",
+			"tier": "permissive",
+			"reason": "Glob matcher used by ESLint and openapi-typescript at development time. Blue Oak Model License 1.0.0 is permissive but not named in ADR 0011 §8: pending the maintainer's confirmation."
+		}
+	}
+}

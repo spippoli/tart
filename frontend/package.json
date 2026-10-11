@@ -15,6 +15,7 @@
 		"test:unit": "vitest run",
 		"test:e2e": "playwright test",
 		"api:generate": "node scripts/api-schema.ts",
+		"check:licences": "node scripts/licences.ts",
 		"test": "pnpm test:unit && pnpm test:e2e"
 	},
 	"devDependencies": {
