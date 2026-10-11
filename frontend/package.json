@@ -1,7 +1,7 @@
 {
 	"name": "tart-frontend",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.0.0",
 	"license": "PolyForm-Noncommercial-1.0.0",
 	"type": "module",
 	"scripts": {
@@ -14,11 +14,16 @@
 		"format": "prettier --write .",
 		"test:unit": "vitest run",
 		"test:e2e": "playwright test",
+		"api:generate": "node scripts/api-schema.ts",
+		"check:licences": "node scripts/licences.ts",
+		"check:assets": "node scripts/assets.ts",
 		"test": "pnpm test:unit && pnpm test:e2e"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.13.0",
 		"@eslint/js": "10.0.1",
+		"@inlang/paraglide-js": "2.25.4",
+		"@inlang/plugin-message-format": "4.4.4",
 		"@playwright/test": "1.64.0",
 		"@sveltejs/adapter-node": "6.0.0",
 		"@sveltejs/kit": "3.0.1",
@@ -28,6 +33,8 @@
 		"eslint-config-prettier": "10.1.8",
 		"eslint-plugin-svelte": "3.23.1",
 		"globals": "17.13.0",
+		"openapi-fetch": "0.17.0",
+		"openapi-typescript": "7.13.0",
 		"prettier": "3.9.10",
 		"prettier-plugin-svelte": "4.1.1",
 		"svelte": "5.57.2",

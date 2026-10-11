@@ -1,6 +1,15 @@
-# Reference topology (ADR 0004). Start with `docker compose up --build`;
-# add `--profile dev` for Mailpit.
+# Production stack (ADR 0004, ADR 0021): the released images only, pinned to
+# TART_VERSION from .env. Development adds compose.dev.yaml, which builds the
+# images from source. `api` and `worker` refuse to start until the database is
+# at the code's migration head: run `docker compose run --rm api tart migrate`.
 name: tart
+
+# The `api` image also runs `worker` and the Operator CLI.
+x-api-image: &api-image ghcr.io/spippoli/tart-api:${TART_VERSION:?set TART_VERSION}
+
+# `api`, `worker`, and the one-shot `tart migrate` reach the database through it.
+x-database-url: &database-url
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
 
 services:
   caddy:
@@ -20,24 +29,24 @@ services:
       - api
 
   frontend:
-    build: ../frontend
+    image: ghcr.io/spippoli/tart-frontend:${TART_VERSION:?set TART_VERSION}
     restart: unless-stopped
     environment:
       ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
 
   api:
-    build: ../backend
-    image: tart-backend
+    image: *api-image
     restart: unless-stopped
+    environment: *database-url
     depends_on:
       db:
         condition: service_healthy
 
   worker:
-    build: ../backend
-    image: tart-backend
+    image: *api-image
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
+    environment: *database-url
     depends_on:
       db:
         condition: service_healthy
@@ -56,12 +65,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  mailpit:
-    image: axllent/mailpit:v1.31.5
-    profiles: [dev]
-    ports:
-      - "8025:8025"
 
 volumes:
   caddy-data:

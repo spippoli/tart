@@ -26,11 +26,12 @@ When they disagree, the earlier one wins:
 - **The spec is the scope.** Build what the ticket's sections and criteria require, and nothing past the spec's Out of Scope. If the spec is wrong, ambiguous, or silent on something that matters, stop and propose a spec change as its own PR (with an ADR when the decision is hard to reverse) instead of deciding it in code. Recommendations for implementers and open items marked as implementation detail in a spec's Further Notes are yours to decide.
 - **Commits are release inputs** ([ADR 0021](docs/adr/0021-release-automation-and-versioning.md)). semantic-release computes each version from Conventional Commits, and commitlint checks every commit of a pull request. Mark a commit breaking (`!` or a `BREAKING CHANGE:` footer) **only when an Operator must act on upgrade** (a `config_version` bump, a manual step, a PostgreSQL major upgrade), and write the footer in English as the step the Operator performs: it is copied into the release notes' "Operator actions" section. An incompatible change between `frontend` and `api` is not breaking; both ship under one version. Base-image and dependency updates use `build(deps)`.
 - **Releases** are cut by hand, by starting the release workflow on `main` when an implementation wave is complete. Versions stay at `0.x` until the first Instance launches.
+- **Attribution on GitHub**: wherever Claude Code adds its attribution line on GitHub (pull request descriptions included), it reads `🤡 Generated with [Claude Code](https://claude.com/claude-code)`: the clown emoji, not the robot.
 - **Keep the docs in step**: a new domain term goes into `GLOSSARY.md`; a new command goes into Commands below.
 
 ## Commands
 
-Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below; on a pull request it skips the `backend`, `frontend`, and `images` jobs when none of their files changed.
+Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below; on a pull request it skips the `backend`, `frontend`, `images`, and `release` jobs when none of their files changed.
 
 Backend (run in `backend/`):
 
@@ -41,7 +42,13 @@ uv run ruff format .       # format (CI runs `--check`)
 uv run pytest              # all tests
 uv run pytest tests/test_health.py   # one file
 uv run uvicorn tart.api.app:create_app --factory --reload   # dev server on :8000
+uv run tart migrate        # apply migrations to the database at DATABASE_URL
+uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
+uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
+uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
 ```
+
+The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup.
 
 Frontend (run in `frontend/`):
 
@@ -54,13 +61,36 @@ pnpm check                 # svelte-check (type checking)
 pnpm test:unit             # vitest
 pnpm exec playwright install chromium   # once, before e2e
 pnpm test:e2e              # Playwright with axe, against a production build
-pnpm build
+pnpm build                 # fails on a message key missing from any catalogue in messages/
+pnpm api:generate          # regenerate src/lib/api/schema.d.ts from openapi.json
+pnpm check:licences        # dependency licence allow-list (reviews in licences.json)
+pnpm check:assets          # third-party asset manifest (third-party-assets.json)
 ```
 
-Full stack (run in `deploy/`; copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` first):
+The message catalogues are `frontend/messages/{it,en}.json` (Paraglide) and `backend/src/tart/messages/{it,en}.json` (emails). The unit tests of both sides run the missing-key, OpenAPI drift, licence, and asset manifest checks, so CI fails on any of them.
+
+Commit messages (run in `commitlint/`; CI checks every commit of a pull request):
+
+```sh
+pnpm install
+pnpm test                  # tests of the commitlint configuration
+pnpm exec commitlint --from origin/main --to HEAD --verbose   # lint your branch's commits
+```
+
+Release tooling (run in `release/`; semantic-release and its plugins, ADR 0021):
+
+```sh
+pnpm install
+pnpm test                  # bump rules and notes over throwaway Git repositories, workflow and Compose checks
+```
+
+Releases are cut only by starting the `Release` workflow (`.github/workflows/release.yml`) on `main`; never tag or push images by hand.
+
+Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db
+docker compose run --rm api tart migrate   # first start and after pulling migrations
 docker compose --profile dev up --build   # also Mailpit, UI on :8025
 docker compose down                    # add -v to drop the volumes
 ```

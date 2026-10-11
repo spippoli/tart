@@ -10,7 +10,7 @@ TART has one version for the whole platform: a `vX.Y.Z` tag on the repository, t
   - `feat` gives a minor;
   - `!` or `BREAKING CHANGE:` gives a major, and is used only for Operator action: a `config_version` bump, a manual step, a PostgreSQL major upgrade.
   - An internal incompatibility, such as a change to the HTTP API between `frontend` and `api`, is not breaking: both halves always ship together under one version.
-- **Before the launch**: versions stay at `0.x`. A one-time `v0.0.0` tag on the first commit of the pipeline makes the first release `0.1.0`. While the major is `0`, a breaking commit gives a minor. The maintainer cuts `1.0.0` deliberately at the first Instance's launch, with a breaking commit whose footer points to the Operator documentation.
+- **Before the launch**: versions stay at `0.x`. A one-time `v0.0.0` tag on the last commit of `main` before the release pipeline was merged (`ee603b0`, after the first implementation wave) makes the first release `0.1.0`, whose notes cover everything merged since. While the major is `0`, a breaking commit gives a minor. The maintainer cuts `1.0.0` deliberately at the first Instance's launch, with a breaking commit whose footer points to the Operator documentation.
 - **Versions in project files**: the files in the repository stay at `0.0.0`. The release job writes the version into both project files in its own workspace, without committing, and builds the images from that workspace. `main` never receives a bot commit, so no branch-protection bypass is needed and there is no `CHANGELOG.md`. The GitHub Releases are the changelog.
 - **Order of steps**:
   1. `semantic-release --dry-run` computes the next version;
