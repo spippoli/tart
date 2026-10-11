@@ -1,3 +1,4 @@
 {
+  "decision_reason_duplicate": "Duplicato di un record esistente",
   "email_subject": "[{archive_name}] {event}"
 }

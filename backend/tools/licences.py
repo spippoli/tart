@@ -51,6 +51,12 @@ CLASSIFIERS = {
     "License :: OSI Approved :: zlib/libpng License": "Zlib",
 }
 
+# Free-text `License` fields that name one licence, for packages with no SPDX
+# expression and no classifier to fall back on.
+LICENCE_NAMES = {
+    "Apache License 2.0": "Apache-2.0",
+}
+
 POLICY = Path(__file__).parents[1] / "licences.toml"
 PROJECT = "tart"
 
@@ -74,8 +80,9 @@ class Dependency:
         classifiers: Iterable[str],
     ) -> Dependency:
         licence = expression
-        if licence is None and licence_field and _is_expression(licence_field):
-            licence = licence_field.strip()
+        if licence is None and licence_field:
+            text = licence_field.strip()
+            licence = text if _is_expression(text) else LICENCE_NAMES.get(text)
         if licence is None:
             ids = sorted({CLASSIFIERS[c] for c in classifiers if c in CLASSIFIERS})
             licence = " AND ".join(ids) or None
@@ -90,10 +97,17 @@ class Reviewed:
 
 
 def _is_expression(text: str) -> bool:
-    return all(
-        token in ("(", ")", "AND", "OR", "WITH") or _SPDX_ID.fullmatch(token)
-        for token in text.replace("(", " ( ").replace(")", " ) ").split()
-    )
+    tokens = text.replace("(", " ( ").replace(")", " ) ").split()
+    if not all(
+        token in ("(", ")", "AND", "OR", "WITH") or _SPDX_ID.fullmatch(token) for token in tokens
+    ):
+        return False
+    # Free text such as "Apache 2.0" is made of id-like words but does not parse.
+    try:
+        satisfies(text, lambda _: True)
+    except ValueError, IndexError:
+        return False
+    return True
 
 
 def satisfies(expression: str, allowed: Callable[[str], bool]) -> bool:

@@ -1,0 +1,8 @@
+# Failure fixture: a vocabulary file using the reserved key duplicate.
+[[entries]]
+key = "evidence"
+label = { it = "Prove insufficienti", en = "Insufficient evidence" }
+
+[[entries]]
+key = "duplicate"
+label = { it = "Doppione", en = "Duplicate" }

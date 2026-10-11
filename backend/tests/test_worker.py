@@ -13,6 +13,8 @@ def _waiting_for_signal(pid: int) -> bool:
 
 
 def test_worker_exits_cleanly_on_sigterm(database: str) -> None:
+    # Also Foundations criterion 1: with a valid configuration and a complete environment
+    # (conftest), the worker starts and waits.
     run_cli(["migrate"])
     worker = subprocess.Popen([sys.executable, "-m", "tart.worker"])
     deadline = time.monotonic() + 10

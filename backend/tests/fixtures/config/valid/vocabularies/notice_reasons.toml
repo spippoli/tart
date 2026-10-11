@@ -1,0 +1,7 @@
+[[entries]]
+key = "artwork_copyright"
+label = { it = "Diritto d'autore sull'opera", en = "Copyright in the artwork" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro", en = "Other" }
