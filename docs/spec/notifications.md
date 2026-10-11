@@ -147,6 +147,10 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 | Invitation | A Moderator issues an Invitation in the Moderation area, or the Operator runs `tart invites create <email>` | The invited address | Mandatory | Contribution and moderation ([#43](https://github.com/spippoli/tart/issues/43)) |
 | Registration not open | A code is requested, under `invite` or `closed`, for an address that may not register | The email address entered, in the sign-in page's UI language | Mandatory | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)) |
 | Suspension | The Operator runs `tart users suspend` | The suspended User | Mandatory; `Reply-To` is `contacts.dsa`, so a reply contests the Suspension | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)); carries the reason given to the command and the redress block |
+| New address code | A User asks to change their email address | The new address | Mandatory | [Foundations](foundations.md#2-authentication-and-sessions) ([#87](https://github.com/spippoli/tart/issues/87)); a one-time code with the sign-in code's rules |
+| Address already in use | A User asks to change their email to an address that already has a User | That address | Mandatory; sent instead of the code, so the page's answer stays neutral | [Foundations](foundations.md#2-authentication-and-sessions) ([#87](https://github.com/spippoli/tart/issues/87)) |
+| Email changed | An email change is confirmed | The old address | Mandatory | [Foundations](foundations.md#2-authentication-and-sessions) ([#87](https://github.com/spippoli/tart/issues/87)); the new address masked, and how to contest by writing to `contacts.privacy` |
+| Deletion code | A User starts account deletion | The account's address | Mandatory | [Rights and legal actions](rights-and-legal-actions.md#9-account-deletion) ([#87](https://github.com/spippoli/tart/issues/87)); a one-time code with the sign-in code's rules. No email follows the deletion |
 
 Under `registration = invite` the Invitation link can also be copied by the issuing Moderator ([#43](https://github.com/spippoli/tart/issues/43)); the email is sent regardless.
 
@@ -167,7 +171,7 @@ For a rejection, the Decision message (a configured reason plus free text, [#5](
 
 ### Recipient rules
 
-- **Performer rule.** No email goes to the person who performed the action. For example, a Moderator approving their own Submission under `self_approval = true` gets no Approved email; a Moderator submitting a Submission gets no New Submission email for it.
+- **Performer rule.** No email goes to the person who performed the action. Account and access emails a User triggers for their own account (sign-in code, New address code, Address already in use, Email changed, Deletion code) are the exception, since they are the action's proof or its safeguard. For example, a Moderator approving their own Submission under `self_approval = true` gets no Approved email; a Moderator submitting a Submission gets no New Submission email for it.
 - **Moderator anonymity.** Emails never name the Moderator; they say "a Moderator" ([#43](https://github.com/spippoli/tart/issues/43)).
 - **No address, no email.** A User whose account was deleted has no email address ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)); nothing is sent to them. A statement of reasons due to such a User is recorded as not sent in the legal action log, and its Submission log entry is still written; nothing else is done, since DSA Art. 17(2) applies the duty only where contact details are known ([Notice handling details](https://github.com/spippoli/tart/issues/94)). ⚖️ legal review.
 - **Digest and self-approval.** A Moderator's digest counts the Submissions that Moderator may decide: with `self_approval = false` it leaves out their own, with `true` it counts them. Their own Submissions are never listed as new, by the performer rule ([#93](https://github.com/spippoli/tart/issues/93)).
@@ -194,7 +198,7 @@ Per [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)
 
 | Recipient | Email language |
 |---|---|
-| Registered User | Their preferred UI language; initially the UI language of the page they registered from. If the Instance has disabled it, the Instance's default UI language |
+| Registered User | Their preferred UI language; initially the UI language of the page they registered from. If the Instance has disabled it, the Instance's default UI language. This includes the emails of an email change, to the new and the old address |
 | Notifier | The UI language of the Notice form, stored with the Notice |
 | Unregistered address receiving a sign-in code | The UI language of the sign-in page |
 | Invitee | The issuing Moderator's UI language, or the Instance default when issued from `tart invites create` |
@@ -254,7 +258,7 @@ A good test drives a module through its external interface and asserts observabl
 16. Legal emails, Notice received, the sign-in code, and the Invitation cannot be turned off from any setting.
 
 **All emails**
-17. No email goes to the person who performed the action.
+17. No email goes to the person who performed the action, except the account and access emails a User triggers for their own account.
 18. No email names a Moderator.
 19. Every email has a plain-text and an HTML part; the HTML loads no remote resource and contains no tracking pixel or tracked link.
 20. No email copies Submission content or files, except the Notice acknowledgement echoing the notifier's own input.
@@ -283,7 +287,11 @@ A good test drives a module through its external interface and asserts observabl
 32. A New Submission email gives the derived kind, the record's current name or "new" plus the kind, whether it is new or resubmitted, the link, and the pending count, and never the Submitter's name, the note to Moderators, or a proposed name.
 33. Every legal email, the Suspension email included, ends with the same redress block, naming an email reply and the courts and not out-of-court settlement.
 34. A statement of reasons due to a deleted account sends nothing and is recorded as not sent.
-35. Every subject reads `[<archive name>] <event>` with no Submission content or person's name; every statement of reasons gives the six elements in order, each under a heading.
+35. Every subject reads `[<archive name>] <event>`
+
+**Account emails** ([Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87))
+
+36. An email change sends New address code to the new address and, once confirmed, Email changed to the old one, both in the User's preferred UI language; a change to an address in use sends Address already in use and no code; account deletion sends a Deletion code and nothing after the deletion.
 
 ## Instance configuration
 
@@ -347,7 +355,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 14. **Visibility of delivery failures.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45): a permanently failed email turns the Email health check to `fail` (external monitor on `/api/health`, alert email to `OPERATOR_ALERT_EMAIL`), and `tart jobs failed` / `tart jobs retry` list and retry failed jobs; see Form and delivery.
 
 **Interactions with other specs**
-15. **Email address change.** Whether changing the Account email sends a confirmation code to the new address is [Foundations open item 16](foundations.md#open-items); if so, it is a further mandatory email.
+15. **Email address change.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): New address code, Address already in use, and Email changed, all mandatory, plus a Deletion code for account deletion; see [Email catalogue](#email-catalogue).
 16. **Notice page route.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): `/it/moderazione/segnalazioni/{id}` (`/en/moderation/notices/{id}`); see [Rights and legal actions](rights-and-legal-actions.md#2-notices).
 
 ### Notes

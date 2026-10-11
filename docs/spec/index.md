@@ -148,14 +148,11 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Notice handling details](https://github.com/spippoli/tart/issues/94) | `rights-and-legal-actions.md`, `notifications.md`, `contribution-and-moderation.md`, `archive-records.md`, `operations-and-portability.md`, `GLOSSARY.md` | Rights and legal actions; Notifications |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | `index.md`, `foundations.md`, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Spec index; Foundations; Discovery; Notifications; Operations and portability |
 | [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | ADR 0020 (amended), `operations-and-portability.md`, `index.md` | Operations and portability |
+| [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Glossary, `foundations.md`, `rights-and-legal-actions.md`, `notifications.md`, `contribution-and-moderation.md`, `index.md` | Foundations; Rights and legal actions; Notifications |
 
 ### Open
 
-These tickets settle the open items listed in the feature specs' Further Notes.
-
-| Ticket | Feeds |
-|---|---|
-| [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
+None: every decision ticket on the map is closed, and every open item in the feature specs' Further Notes is answered or ruled implementation detail.
 
 When a ticket closes, its resolution comment ends with a `Feeds:` line; move it from Open to Closed here in the PR that amends the spec it feeds.
 
