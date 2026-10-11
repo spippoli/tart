@@ -1,0 +1,23 @@
+# Development from source, layered over the production file:
+#     docker compose -f compose.yaml -f compose.dev.yaml up --build
+# or set COMPOSE_FILE=compose.yaml:compose.dev.yaml in .env. The images are
+# built locally under the production names, with TART_VERSION as a local tag
+# (`dev`, say), and never pulled. `--profile dev` adds Mailpit.
+services:
+  frontend:
+    build: ../frontend
+    pull_policy: build
+
+  api:
+    build: ../backend
+    pull_policy: build
+
+  worker:
+    build: ../backend
+    pull_policy: build
+
+  mailpit:
+    image: axllent/mailpit:v1.31.5
+    profiles: [dev]
+    ports:
+      - "8025:8025"
