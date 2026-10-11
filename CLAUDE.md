@@ -30,7 +30,7 @@ When they disagree, the earlier one wins:
 
 ## Commands
 
-Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below on every pull request.
+Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below; on a pull request it skips the `backend`, `frontend`, and `images` jobs when none of their files changed.
 
 Backend (run in `backend/`):
 
