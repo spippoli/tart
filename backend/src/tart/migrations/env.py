@@ -6,6 +6,7 @@ from alembic import context
 from geoalchemy2 import alembic_helpers
 from sqlalchemy import Connection
 
+import tart.archive_persistence.tables  # noqa: F401  (registers the archive's tables)
 from tart.db import Base, create_engine
 
 
