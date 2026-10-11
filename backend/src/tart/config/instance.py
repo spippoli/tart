@@ -92,6 +92,20 @@ class Logo(Table):
     alt: Text
 
 
+def accent_problem(value: str, theme: str) -> str | None:
+    """Why `value` cannot be the accent of `theme` ("light" or "dark"), or `None`."""
+    if not HEX_COLOUR.match(value):
+        return f"{value!r} is not a #RRGGBB colour"
+    background = LIGHT_BACKGROUND if theme == "light" else DARK_BACKGROUND
+    ratio = contrast_ratio(value, background)
+    if ratio < ACCENT_MIN_CONTRAST:
+        return (
+            f"{value} has a contrast of {ratio:.2f}:1 against the {theme} theme's "
+            f"background {background}; it needs at least {ACCENT_MIN_CONTRAST:g}:1"
+        )
+    return None
+
+
 class Accent(Table):
     light: StrictStr
     dark: StrictStr
@@ -99,16 +113,9 @@ class Accent(Table):
     @field_validator("light", "dark")
     @classmethod
     def _contrasts_with_its_theme(cls, value: str, info: ValidationInfo) -> str:
-        if not HEX_COLOUR.match(value):
-            raise ValueError(f"{value!r} is not a #RRGGBB colour")
-        theme = info.field_name
-        background = LIGHT_BACKGROUND if theme == "light" else DARK_BACKGROUND
-        ratio = contrast_ratio(value, background)
-        if ratio < ACCENT_MIN_CONTRAST:
-            raise ValueError(
-                f"{value} has a contrast of {ratio:.2f}:1 against the {theme} theme's "
-                f"background {background}; it needs at least {ACCENT_MIN_CONTRAST:g}:1"
-            )
+        problem = accent_problem(value, str(info.field_name))
+        if problem is not None:
+            raise ValueError(problem)
         return value
 
 

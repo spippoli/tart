@@ -17,17 +17,14 @@ from xml.etree import ElementTree
 
 from pydantic import BaseModel, ValidationError
 
-from tart.colour import HEX_COLOUR, contrast_ratio
 from tart.config.environment import Environment
 from tart.config.instance import (
-    ACCENT_MIN_CONTRAST,
     BOUNDARY,
-    DARK_BACKGROUND,
     FAVICON,
-    LIGHT_BACKGROUND,
     LOGO_DARK,
     LOGO_LIGHT,
     InstanceFile,
+    accent_problem,
 )
 from tart.config.vocabularies import VOCABULARIES, Entry, VocabularyFile, duplicate_entry
 from tart.map.style import THEMES, read_styles
@@ -216,12 +213,8 @@ def _accents(raw: dict[str, Any] | None) -> dict[str, str | None]:
     accents: dict[str, str | None] = {}
     for theme in THEMES:
         value = accent.get(theme)
-        valid = isinstance(value, str) and HEX_COLOUR.match(value) is not None
-        background = LIGHT_BACKGROUND if theme == "light" else DARK_BACKGROUND
-        if valid and contrast_ratio(value, background) >= ACCENT_MIN_CONTRAST:
-            accents[theme] = value.upper()
-        else:
-            accents[theme] = None
+        valid = isinstance(value, str) and accent_problem(value, theme) is None
+        accents[theme] = value.upper() if valid else None
     return accents
 
 
