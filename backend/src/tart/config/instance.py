@@ -23,7 +23,7 @@ from pydantic import (
     field_validator,
 )
 
-from tart.config.contrast import HEX_COLOUR, contrast_ratio
+from tart.colour import HEX_COLOUR, contrast_ratio
 from tart.messages import UI_LANGUAGES
 
 CONFIG_VERSION = 1
