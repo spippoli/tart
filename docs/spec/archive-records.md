@@ -182,7 +182,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Location | Exactly one Location. It changes only to correct wrong data, never for a physical move |
 | Attributions | Zero or more (see Attribution) |
 | History events | Zero or more; the Artwork's physical history |
-| Documentation items | Linked many-to-many; a new Artwork has at least one (Contribution and moderation validates this) |
+| Documentation items | Linked many-to-many; the link is held by the Documentation item (its Artworks field), so linking or unlinking one changes the Documentation item, never the Artwork. A new Artwork has at least one (Contribution and moderation validates this) |
 | Series | Zero or more Series |
 | Sources | Record-level citations: background references that never change an Evidence level (ADR 0006) |
 
@@ -229,13 +229,14 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 | Biography | Optional free text |
 | Period of activity | Optional period (see Uncertain date) |
 | Areas of activity | Zero or more Areas |
-| Crew memberships | This Artist, individual or collective, as a member of a collective Artist, each with an optional period |
+| Crew memberships | This Artist, individual or collective, as a member of a collective Artist, each with an optional period; the same Artist may hold several memberships in the same collective, one per period, when their periods do not overlap |
 | Sources | Record-level citations; the artist's own public channels are linked only as Sources |
 
 - Content rules (ADR 0014), enforced by Moderators at review and repeated in the editorial guidelines: free text never states a legal identity, age or date of birth, residence, physical appearance, or any allegation of an offence. An Artist has no image of the person, and no field for one.
 - There is no link of any kind between a User and an Artist, not even a verified or read-only claim (ADR 0014).
 - Artists are local to the Instance (ADR 0001).
 - Crew memberships may nest (a crew inside a larger collective) but never form a cycle: no collective is a member of itself, directly or through a chain. Pages show direct memberships only, never the transitive closure.
+- Several Crew memberships of the same Artist in the same collective (it left and rejoined) must not overlap. Two periods overlap unless one ends before the other starts, comparing chronological keys; a missing start or end, or one with an `unknown` date, is open, so a period without an end overlaps everything from its start on, equal keys overlap, and a membership without a period overlaps every other membership in that collective.
 - When an Artist is withdrawn, its Attributions and Crew memberships are hidden with it, and its Artworks show no Attribution, exactly as Artworks without Attributions do; Reinstatement restores them (ADR 0014).
 
 ### Attribution
@@ -277,7 +278,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
 |---|---|
 | Medium | `image`, `pdf`, `text`, or `link`. Video and audio are out of scope |
 | Observed date | Uncertain date; required |
-| Artworks | One or more |
+| Artworks | One or more. The item holds the link: linking or unlinking an Artwork produces a Revision of the Documentation item only, never of the Artwork |
 | Location | Set only for documentation of a disappearance |
 | File | For `image` and `pdf`: an immutable stored file; replacing a file means a new Documentation item ([#5](https://github.com/spippoli/tart/issues/5)) |
 | Licence | For uploaded files: one licence from the Instance allowlist (ADR 0012) |
@@ -509,6 +510,10 @@ A Revision's content is shown as a **change list**, never as a snapshot of the w
 56. A withdrawn Location answers 410; its Artworks stay public with the "Location removed for legal reasons" placeholder, no mini-map, Site, or Area, and are absent from the map and from Area and Site pages.
 57. A Moderator opening a withdrawn record sees its content under the Withdrawn banner with a link to the legal action log entry and a Reinstate action, and sees redacted operations marked inline; withdrawn content is absent from the map, lists, and search in a Moderator session too.
 58. A Submitter whose content was withdrawn or redacted gets 410 on the public page and sees their submitted content, with the notice, on the Submission page; after a Purge that content is gone from the Submission page.
+
+**Links and memberships**
+59. Linking or unlinking a Documentation item and an Artwork produces a Revision of the Documentation item only, never of the Artwork.
+60. An Artist may hold several Crew memberships in the same collective when their periods do not overlap; a membership whose period overlaps another one in the same collective, including an open-ended one or one without a period, is rejected.
 
 ## Instance configuration
 
