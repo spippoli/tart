@@ -2,6 +2,7 @@
 	"name": "tart-frontend",
 	"private": true,
 	"version": "0.0.1",
+	"license": "PolyForm-Noncommercial-1.0.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -37,7 +38,6 @@
 		"vitest": "4.1.11"
 	},
 	"imports": {
-		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
 	},
 	"packageManager": "pnpm@11.8.0",
