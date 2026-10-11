@@ -6,7 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TART is a collaborative platform for documenting and preserving the history of urban art. The first deployment is Rome, but the software is meant to be reused by independent local communities ("Rome Urban Art Archive — Powered by TART").
 
-The repository is at the design stage: there is no source code, build system, or test suite yet. The MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`. `README.md` contains the full design brief and is the source of truth for product requirements. Read the relevant sections before making product, architecture, or licensing decisions. When a stack is introduced, add its build/lint/test commands to this file.
+The design phase is complete and the repository is entering implementation. There is no source code yet; the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
+
+## Sources of truth
+
+When they disagree, the earlier one wins:
+
+1. This file: language rules, architectural invariants, implementation principles.
+2. The ADRs in `docs/adr/`: hard-to-reverse decisions.
+3. `GLOSSARY.md`: vocabulary. A term in **bold** in a spec carries exactly its glossary meaning.
+4. The feature specs in `docs/spec/`, starting from `docs/spec/index.md`: normative behaviour, numbered acceptance criteria, testing decisions, and the Instance configuration keys with Rome's values.
+5. `README.md`: the original design brief. It is background; where a spec or ADR narrows it, the decision wins.
+
+## Implementation workflow
+
+- **Work comes from implementation tickets**: GitHub issues labelled `ready-for-agent` (or `ready-for-human`), each a sub-issue of one of the seven spec tracking issues. Each ticket names the spec sections it covers, the acceptance criteria it must satisfy, and the tickets that block it.
+- **Take a ticket** only when every issue in its "Blocked by" list is closed and it has no assignee. Assign it to yourself before any work; the assignee is the claim. Work one ticket per session.
+- **One ticket, one branch, one PR**, with `Closes #N`. Every numbered acceptance criterion listed in the ticket gets a test, following the spec's Testing Decisions; UI work also passes axe with no WCAG 2.2 AA violations in `it` and `en`.
+- **The spec is the scope.** Build what the ticket's sections and criteria require, and nothing past the spec's Out of Scope. If the spec is wrong, ambiguous, or silent on something that matters, stop and propose a spec change as its own PR (with an ADR when the decision is hard to reverse) instead of deciding it in code. Recommendations for implementers and open items marked as implementation detail in a spec's Further Notes are yours to decide.
+- **Keep the docs in step**: a new domain term goes into `GLOSSARY.md`; a new command goes into Commands below.
+
+## Commands
+
+None yet. The ticket "Monorepo scaffold and development stack" adds the build, lint, and test commands for `backend/`, `frontend/`, and `deploy/` here.
 
 ## Language rules (mandatory)
 
