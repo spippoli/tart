@@ -76,7 +76,7 @@ Rome is the reference Instance. Its configuration is a secret-free directory of 
 | Hosting | Docker Compose on a Hetzner CX33 with Hetzner Object Storage through the S3 adapter, both in Nuremberg (`nbg1`); budget at most €20/month excluding VAT and off-site backups | [ADR 0004](../adr/0004-mvp-tech-stack.md) |
 | Authentication | Built-in passwordless (email code + passkeys); not configurable | [ADR 0005](../adr/0005-passwordless-in-app-auth.md) |
 | Terms | `terms.version = 1` at launch | [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) |
-| Backups | On at launch: nightly `pg_dump` in restic and encrypted `rclone sync` of media to a Hetzner Storage Box in Helsinki, at 03:30 Europe/Rome, verified on Sundays; Healthchecks.io as dead-man's switch | [ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) |
+| Backups | On at launch: nightly `pg_dump` in restic and encrypted `rclone sync` of media to a Hetzner Storage Box in Helsinki, at 03:30 Europe/Rome, verified on Sundays; Healthchecks.io as dead-man's switch; the Storage Box provider is a processor under Hetzner's data processing agreement | [ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) |
 
 The exact values are in each feature spec's **Instance configuration** section; [Rome Instance values](https://github.com/spippoli/tart/issues/86) set them. **Launch values** (the Operator's legal name, contact addresses, logo files, the dead-man's switch URL) are facts about the real Operator, filled at launch under the rules in [Foundations](foundations.md#romes-launch-values); the archive texts and the terms and privacy policy are still to be written.
 
@@ -147,6 +147,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) | `foundations.md`, `contribution-and-moderation.md`, `notifications.md`, `rights-and-legal-actions.md`, `operations-and-portability.md` | Foundations; Contribution and moderation; Notifications |
 | [Notice handling details](https://github.com/spippoli/tart/issues/94) | `rights-and-legal-actions.md`, `notifications.md`, `contribution-and-moderation.md`, `archive-records.md`, `operations-and-portability.md`, `GLOSSARY.md` | Rights and legal actions; Notifications |
 | [Rome Instance values](https://github.com/spippoli/tart/issues/86) | `index.md`, `foundations.md`, `archive-records.md`, `discovery.md`, `contribution-and-moderation.md`, `rights-and-legal-actions.md`, `notifications.md`, `operations-and-portability.md` | Spec index; Foundations; Discovery; Notifications; Operations and portability |
+| [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | ADR 0020 (amended), `operations-and-portability.md`, `index.md` | Operations and portability |
 
 ### Open
 
@@ -155,7 +156,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | Ticket | Feeds |
 |---|---|
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
-| [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | Operations and portability |
 
 When a ticket closes, its resolution comment ends with a `Feeds:` line; move it from Open to Closed here in the PR that amends the spec it feeds.
 
