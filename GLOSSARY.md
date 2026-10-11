@@ -181,8 +181,12 @@ The Submission status in which a Moderator has sent a Submission back to its Sub
 _Avoid_: Pending, on hold
 
 **Retraction**:
-The Submitter cancelling their own Submission before a decision is made.
+The ending of a Submission before a decision, by its Submitter, or by the system when changes requested go unanswered or the Submission is converted into another.
 _Avoid_: Withdrawal (reserved for legal hiding), cancellation, deletion
+
+**Round**:
+One submission of a Submission's changeset for review; each resubmission or revision before a decision opens a new, numbered round.
+_Avoid_: Version, iteration
 
 **Base revision**:
 The Revision of an existing Archive record that an edit Submission was written against.
