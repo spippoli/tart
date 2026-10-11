@@ -95,7 +95,7 @@ A single platform build, configured per Instance from a secret-free directory of
 45. As a new contributor, I want my sign-in code email in the language of the page I signed in from, so that I can read it before I have any preference.
 46. As an invited person, I want to register with the ordinary email code at the invited address, so that accepting an Invitation needs no extra step.
 47. As a new contributor, I want to declare that I meet the minimum age, so that I can register lawfully.
-48. As a User, I want to set my display name, which may be a pseudonym, so that I choose how I'm credited publicly.
+48. As a User, I want to set my display name, which may be a pseudonym, when I register and change it later, so that I choose how I'm credited publicly.
 49. As a User, I want to set my preferred UI language, so that the interface and my emails use it.
 50. As a User, I want to manage my passkeys and email address and delete my account from one Account page, so that I control my data.
 51. As a User, I want signing out to end my session immediately, so that a shared device is safe.
@@ -126,6 +126,7 @@ A single platform build, configured per Instance from a secret-free directory of
 64. As an Operator, I want to suspend a User who keeps abusing the Instance, with a stated reason, and to lift the Suspension, so that rate limits are not the only defence under `open` registration.
 65. As a User, I want to sign out of every device at once from my Account page, so that a lost phone or a forgotten session is no risk.
 66. As anyone, I want the sign-in page to answer the same whether or not my address has an account, so that nobody can find out who uses the archive.
+67. As a User changing my email address, I want my old address told about the change, so that a stolen session cannot take my account unnoticed.
 
 ## Implementation Decisions
 
@@ -293,6 +294,8 @@ retired = false                        # optional, default false
 - `closed`: no self-registration. The Operator can still create a User through `tart users grant` ([ADR 0009](../adr/0009-instance-configuration-as-validated-files.md)).
 - There is no manual account approval in any mode.
 - The minimum age is `min_age` from the configuration and is self-declared at registration ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)).
+- **Registration step** ([#87](https://github.com/spippoli/tart/issues/87)). After the first valid code for an address without a User, one step asks for the age declaration and the **display name**, both required; the display name has no default. Then the User is created and signed in.
+- **Display name rules**: 1 to 40 characters after trimming surrounding whitespace, no control characters. Display names are **not unique**: Moderators tell Users apart by the User number ([Contribution and moderation](contribution-and-moderation.md#moderator-identity-and-moderation-notes)), and impersonation is handled by Suspension. A display name may not equal the deleted-account pseudonym label of any enabled UI language, with any number ([Rights and legal actions](rights-and-legal-actions.md#9-account-deletion)). The User changes it on the Account page at any time; `/revisions` always shows the current display name, past Revisions included.
 - Acceptance of the Instance's versioned terms happens before the first Submission, not at registration ([ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md)); it is specified by the Contribution and moderation spec.
 
 **Sessions.**
@@ -328,6 +331,15 @@ A suspended Moderator keeps the role on record but cannot act, since they cannot
 - There are no public User profiles.
 
 **Account** (`/it/account`, `/en/account`): display name (may be a pseudonym; it is what public Revisions pages show, [#14](https://github.com/spippoli/tart/issues/14)), preferred UI language (initially the UI language of the page the User registered from; also used for the User's emails, [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)), passkeys, email, Sign out everywhere, and account deletion. The deletion flow (erasing email and credentials, a stable pseudonym, deleting drafts, retracting open Submissions) is specified by the Rights and legal actions spec ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)). My contributions (`/it/account/contributi`) belongs to the Contribution and moderation spec.
+
+**Email change** ([#87](https://github.com/spippoli/tart/issues/87)):
+1. On the Account page the User enters the new address. The current session is enough; no proof of control of the old address is asked.
+2. A one-time code goes to the new address, with the sign-in code's rules: 6 digits, 10 minutes, 5 wrong attempts, the same per-address and per-IP limits.
+3. When the code is entered, the address changes at once.
+4. The old address receives an **Email changed** notice, which cannot be turned off. It shows the new address masked (`d***@g***.com`) and says how to contest the change, by writing to `contacts.privacy`.
+- **Address in use.** If the new address already belongs to another User, the page answers exactly as for a free address, and the new address receives an **Address already in use** email instead of a code. The change never reveals which addresses have accounts.
+- Sessions and passkeys are unchanged; a User worried about intrusion uses Sign out everywhere.
+- The emails are listed in the [Notifications](notifications.md#email-catalogue) spec.
 
 **Email.** A generic SMTP adapter configured through the environment, with Mailpit in development (Compose profile). Emails are rendered by the `worker` from the backend message catalogue in the recipient's preferred UI language, or the Instance's default UI language if that language has been disabled. A sign-in code to an address with no User yet uses the UI language of the sign-in page. The language of every other email is specified by the Notifications spec ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md), [Notifications](https://github.com/spippoli/tart/issues/44)). Reliable delivery is critical: if email is down, nobody without a passkey can sign in ([ADR 0005](../adr/0005-passwordless-in-app-auth.md)).
 
@@ -427,9 +439,9 @@ A `tart` command for the actions that have no UI in the MVP. It uses the same co
 | `tart upgrade`, `tart config migrate`, `tart backup run\|verify\|restore`, `tart jobs failed\|retry`, `tart dump` | Upgrades with forward-only migrations, configuration migration, backups, failed worker jobs, and the public Data dump | Operations and portability |
 | `tart purge <legal-action-id> --ground … --reference …` | Permanently erases what a Withdrawal or Redaction hides, only when the law requires it | Rights and legal actions |
 | `tart users anonymise-credits <user>`, `tart documentation anonymise-credit <id>` | Anonymises Creator credits on request | Rights and legal actions |
-| User data export | Produces the Art. 15 and Art. 20 exports on request | Rights and legal actions |
+| `tart users export <email\|#number> --output <path>`, `tart notices export --email <email> --output <path>` | Produce the Art. 15 and Art. 20 export of a User, and the access export of a notifier's Notices | Rights and legal actions |
 
-The export command name is left to the Rights and legal actions spec. `tart tiles update` runs the go-pmtiles binary bundled in the `api` image ([Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38)).
+`tart tiles update` runs the go-pmtiles binary bundled in the `api` image ([Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38)).
 
 ### Topology and stack
 
@@ -515,6 +527,13 @@ A good test exercises a module through its external interface and asserts observ
 51. A file request is limited to `max_upload_mb` plus 1 MB at Caddy and exactly `max_upload_mb` in the app; a request with two files is refused.
 52. After `tart users suspend <email> --reason <text>`, that User's open sessions are refused on their next request, passkey sign-in fails, a code request sends nothing, and the User receives an email with the reason; drafts, open Submissions, and approved contributions are unchanged. `tart users unsuspend <email>` restores sign-in.
 53. Rate-limit counters are stored in PostgreSQL and no IP address is kept longer than 24 hours; the app ignores `X-Forwarded-For` that did not come from Caddy.
+
+**Accounts** ([Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87))
+
+54. Registration cannot finish without the age declaration and a display name of 1 to 40 characters after trimming; two Users may hold the same display name; a display name equal to the deleted-account label of an enabled UI language, with any number, is refused with a translatable error.
+55. Changing the display name changes it on every `/revisions` entry of that User, past ones included.
+56. An email change takes effect only after the code sent to the new address is entered; the old address then receives Email changed with the new address masked; sessions and passkeys are unchanged.
+57. An email change to an address that already has a User answers exactly as for a free address and sends Address already in use, with no code, to that address.
 
 ## Instance configuration
 
@@ -615,8 +634,8 @@ The decisions are silent on these. Each needs a decision (or an owning ticket) b
 12. **Invite mode.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): Moderators in the UI and the Operator with `tart invites create`; email-bound, single-use, 14 days; see Registration.
 13. **Role revocation.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): `tart users revoke moderator <email>`, effective on the next request; see Roles.
 14. **Platform constant values.** Answered by [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84): 5 wrong attempts per code; per address one code per 60 seconds, 5 per hour, 10 per 24 hours; 20 per hour per IP; sessions 30 days idle and 90 days absolute; see Authentication and sessions.
-15. **Registration data**: whether a display name is required at registration (and its default) and whether display names must be unique are not decided. The initial preferred UI language is answered by [Notifications](https://github.com/spippoli/tart/issues/44): the language of the page the User registered from. Owner: [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87).
-16. **Email change**: the Account page lists the email, but the change flow (for example, confirming the new address with a code) is not decided. Owner: [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87).
+15. **Registration data.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): the display name is required at registration, with no default, 1 to 40 characters, and not unique. The initial preferred UI language is answered by [Notifications](https://github.com/spippoli/tart/issues/44): the language of the page the User registered from. See Authentication and sessions, Registration.
+16. **Email change.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): a code to the new address, an immediate change, and a mandatory notice to the old address; an address in use gets a neutral answer. See Authentication and sessions, Email change.
 17. **Language of a sign-in email to an unregistered address.** Answered by [Notifications](https://github.com/spippoli/tart/issues/44): the sign-in page's UI language.
 
 **Media**

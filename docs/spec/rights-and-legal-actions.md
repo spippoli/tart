@@ -99,6 +99,7 @@ Anyone can send a Notice from any public record or Documentation item page, with
 36. As a notifier, I want a reference on screen and in the email, so that I can quote my report when I write to the DSA contact.
 37. As a Moderator, I want Notices in their own list, apart from the Submission queue, with the other open Notices on the same content shown, so that I can decide them together and in time.
 38. As a Moderator, I want to write the facts once and pick the ground from the Notice reasons list, so that the Submitters and the notifier receive the same explanation, each in their own language.
+39. As a User deleting my account, I want to confirm with a code sent to my address, so that nobody using my open session can delete it.
 
 ## Implementation Decisions
 
@@ -316,10 +317,20 @@ Contesting is done by replying to the email; legal emails set `Reply-To` to the 
 
 ### 9. Account deletion
 
-Self-service from the Account page (`/it/account`, `/en/account`, [Foundations](foundations.md#2-authentication-and-sessions)). In one operation ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)):
+Self-service from the Account page (`/it/account`, `/en/account`, [Foundations](foundations.md#2-authentication-and-sessions)).
+
+**Flow** ([#87](https://github.com/spippoli/tart/issues/87)):
+1. A **Delete account** page explains what is erased, what stays under the pseudonym, and that erased data may stay in encrypted backups for up to six months.
+2. It offers the optional **Anonymise my Creator credits** checkbox (Creator credit anonymisation below).
+3. It sends a confirmation code to the account's address, with the sign-in code's rules, so that an unattended or stolen session cannot delete the account. There is no passkey alternative.
+4. Entering the code deletes the account at once and irreversibly. There is no grace period. The session ends on a confirmation page, and no final email is sent, since the address is already erased. A User who changes their mind registers again; the old contributions stay under the pseudonym and are never linked back.
+
+If the User holds the Moderator role and is the last Moderator, or `self_approval = false` and fewer than two would remain, the page warns before the code step. The warning never blocks the deletion.
+
+In one operation ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)):
 
 1. the email, passkeys, and sessions are erased;
-2. the display name is replaced by a stable pseudonym, which is what `/revisions` and every other public mention shows from then on;
+2. the display name is erased and replaced by the stable **Pseudonym**, which is what `/revisions` and every other mention shows from then on;
 3. drafts are deleted, with their private media;
 4. open Submissions (*submitted*, *changes requested*) are retracted;
 5. approved content stays in the archive;
@@ -332,11 +343,29 @@ Self-service from the Account page (`/it/account`, `/en/account`, [Foundations](
 - **Outside account deletion**: a living User asking to remove their attribution (CC 4.0 §3(a)(3)) writes to `contacts.privacy`, and the Operator runs `tart users anonymise-credits <user>` with the scope above. The creator of a third-party file writes to the same contact, and the Operator runs `tart documentation anonymise-credit <id>` on one item. There is no Moderator UI for either.
 - **Restore**: every anonymisation writes a content-free entry (kind, target id, date) to the Erasure log, so a restore applies it again.
 
+**Pseudonym** ([#87](https://github.com/spippoli/tart/issues/87)): a translated label with the User number, "Utente eliminato 142" / "Deleted user 142", rendered in the reader's UI language. No text is stored: the User keeps the User number and a `deleted_at` date. It is stable, so a deleted User's Revisions stay grouped, as with OpenStreetMap's `user_<id>`; the public never learns anything from the number, which only Moderators otherwise see. No display name may equal this label ([Foundations](foundations.md#2-authentication-and-sessions)).
+
+**A deleting Moderator** ([#87](https://github.com/spippoli/tart/issues/87)):
+- The Moderator role is revoked with the account.
+- Past decisions, legal actions, and their log entries stay attributed to the User, shown to Moderators as the Pseudonym; the public never sees Moderator names anyway.
+- Moderation notes the User wrote stay unchanged, being immutable, with the Pseudonym as author. Moderation notes *about* a deleting User also stay, since they concern Submissions that remain in the archive. ⚖️ legal review.
+- Pending Invitations the User issued stay valid: they are the Instance's, and a remaining Moderator can revoke them. The Invitations list shows the Pseudonym as issuer.
+
 No email is sent about the retractions, since the account no longer has an address ([#44](https://github.com/spippoli/tart/issues/44)). Account-level GDPR requests that are not self-service go to the Operator's privacy contact, `contacts.privacy`, not through Notices. ⚖️ legal review: the lawful basis for keeping deleted Users' contributions.
 
 ### 10. Data exports
 
 - Access (GDPR Art. 15) and portability (Art. 20) exports are produced by the Operator through the CLI on request; there is no self-service export ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
+- **Command** ([#87](https://github.com/spippoli/tart/issues/87)): `tart users export <email|#number> --output <path>` writes one file that answers both articles. The Operator sends it through a channel of their choice; the app never serves it.
+- **Format**: `user-export-<User number>-<UTC timestamp>.zip`, holding a `README` in English and in the User's preferred UI language (the files and the data categories), JSON files, and a `files/` folder.
+- **Content**:
+  1. `account.json`: email, display name, User number, preferred UI language, registration and last sign-in dates, accepted terms version and date, the age declaration, any Suspension with its reason, email preferences, open sessions (date and user agent), and passkeys (name and date, never key material).
+  2. `submissions.ndjson`: every Submission of the User in every status, with its Submission log, Decision messages, and statements of reasons, never a Moderator's identity.
+  3. `files/`: the originals still stored, of drafts included; published files as stored, without EXIF GPS.
+  4. `moderation-notes.ndjson`: the Moderation notes about the User's Submissions, without their author.
+  5. `invitations.json`: the Invitation the User registered with, if any, and those they issued as a Moderator.
+- **Left out**: Notices, which are never linked to accounts; IP addresses kept for rate limits (24 hours at most); logs (14 days at most), which the Operator weighs case by case; decisions taken as a Moderator, which are archive data.
+- **Notices**: a notifier's access request is answered with `tart notices export --email <email> --output <path>`, a zip of the Notices that carry that address and have not yet been erased (six months after the decision), without Moderator identities.
 - The answer is due within one month (GDPR Art. 12; Operator guidance, [#46](https://github.com/spippoli/tart/issues/46)).
 - Moderation notes are personal data that may fall under an access request; the Operator documentation warns Moderators to keep them factual ([#43](https://github.com/spippoli/tart/issues/43)).
 
@@ -357,8 +386,8 @@ A good test exercises a module through its external interface and asserts observ
 - **Notice handling (unit and integration)**: target resolution of a record path, a Documentation item path, a Revision anchor, and an unresolvable URL; reference format and uniqueness; one measure closing several Notices, each with its own decision; *already removed* with no legal action and no statement; a closed Notice refusing any further decision; a signed-in report storing no User id; a statement to a deleted account recorded as not sent.
 - **Retention job**: with a controlled clock, the notifier's name and email are erased six months after the decision and the rest of the Notice is kept.
 - **Notice limits**: with a controlled clock, each per-IP and per-email limit at its threshold and one past it, the honeypot, and the minimum fill time.
-- **Account deletion (integration)**: email, passkeys, and sessions gone; pseudonym on `/revisions`; drafts and their media deleted; open Submissions retracted; approved records unchanged; Creator credits anonymised only when chosen.
-- **CLI**: Purge erases database content and stored objects of a withdrawn Documentation item and refuses public content; the export command produces an export for a User.
+- **Account deletion (integration)**: confirmation code required; email, passkeys, and sessions gone; pseudonym on `/revisions` in each UI language; drafts and their media deleted; open Submissions retracted; approved records unchanged; Creator credits anonymised only when chosen; a deleting Moderator's role revoked, notes and pending Invitations kept, the last-Moderator warning shown.
+- **CLI**: Purge erases database content and stored objects of a withdrawn Documentation item and refuses public content; `tart users export` produces the zip with every listed file and nothing excluded; `tart notices export` finds Notices by address.
 - **Legal message port**: a capturing adapter asserts which messages are queued, to whom, in which UI language, and that no message goes to the actor or to a deleted account.
 - **Pages (Playwright with axe)**: the report form signed out and signed in, in both UI languages, with validation errors and the confirmation; the 410 page; the Notice list and page, the measure form (Withdrawal confirmation and Redaction operation selection), and the legal action pages; account deletion. Keyboard-only completion of the report form and of the deletion flow.
 - Prior art: none in the repository yet; the seams of [Foundations](foundations.md#testing-decisions) and [Archive records](archive-records.md#testing-decisions) are reused.
@@ -403,7 +432,14 @@ A good test exercises a module through its external interface and asserts observ
 
 23. Deleting an account from the Account page erases email, passkeys, and sessions, deletes drafts and their media, retracts open Submissions, keeps approved content, and shows a stable pseudonym wherever the display name appeared.
 24. The User's Creator credits are anonymised only if the User chose it during deletion.
-25. The Operator CLI produces a data export for a given User.
+25. `tart users export` writes one zip with a README in English and the User's language, `account.json`, `submissions.ndjson`, `moderation-notes.ndjson`, `invitations.json`, and `files/`; no file contains a Moderator's identity, key material, or an IP address.
+
+**Account lifecycle** ([Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87))
+
+52. An account is deleted only after the confirmation code sent to its address is entered; without it nothing changes. Deletion is immediate, ends the session, and sends no email.
+53. A deleted User appears as "Utente eliminato <number>" / "Deleted user <number>" in the reader's UI language on `/revisions`, Submission and Moderation pages; the database stores no label text.
+54. Deleting a Moderator's account revokes the role, keeps their decisions, Moderation notes, and pending Invitations, now shown with the Pseudonym, and warns before the code step when the deletion would leave no Moderator, or fewer than two under `self_approval = false`.
+55. `tart notices export --email` returns the not-yet-erased Notices carrying that address, and none whose notifier data has been erased.
 
 **Accessibility (WCAG 2.2 AA) and i18n**
 
@@ -506,10 +542,11 @@ These do not change the behaviour specified above, but the Operator must not tre
 4. Whether pseudonymous Attributions of unauthorised works are Art. 10 GDPR data ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)).
 5. Whether Art. 17 applies to Submission rejections and who counts as an "affected recipient" for records built by many Submitters ([#19](https://github.com/spippoli/tart/issues/19)); the MVP takes the safe path of [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md).
 6. Whether one intake channel can serve both DSA notices and GDPR requests ([#19](https://github.com/spippoli/tart/issues/19)); the MVP sends account-level GDPR requests to the privacy contact.
-7. How much moderation history is disclosable in an access request ([#8](https://github.com/spippoli/tart/issues/8)).
+7. How much moderation history is disclosable in an access request ([#8](https://github.com/spippoli/tart/issues/8)); the export includes Moderation notes about the User without their author ([#87](https://github.com/spippoli/tart/issues/87)).
 8. Who holds the database right in a volunteer archive, and licence compatibility for cross-Instance aggregation and between ODbL data and the Instance's Data licence ([#8](https://github.com/spippoli/tart/issues/8), [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)).
 9. Leaving out-of-court settlement out of the redress block, on the reading that DSA Art. 21 does not bind small Instances ([Notice handling details](https://github.com/spippoli/tart/issues/94)).
 10. Reading DSA Art. 17(2) as releasing the duty towards a recipient whose account was deleted ([Notice handling details](https://github.com/spippoli/tart/issues/94)).
+11. Keeping Moderation notes about a deleted User, pseudonymised, rather than erasing them ([#87](https://github.com/spippoli/tart/issues/87)).
 
 ### Open items
 
@@ -542,10 +579,10 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 20. **Backups.** Answered by [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)): backups are not rewritten; a Purge and an account deletion write a content-free entry to the Erasure log, which every restore applies again; erased data may stay in encrypted backups for up to six months, and the processing inventory says so. See Purge and Account deletion.
 
 **Accounts and exports**
-21. **Pseudonym format.** The shape of the stable pseudonym (for example based on the user id, as OpenStreetMap does) is not decided.
-22. **Deletion flow details.** Confirmation step (for example re-entering a sign-in code), any grace period, and what happens to a deleting User's Moderator role, their immutable Moderation notes, and the Invitations they issued are not decided.
+21. **Pseudonym format.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): a translated "Deleted user <User number>" label rendered at display time, with nothing stored but `deleted_at`. See Account deletion.
+22. **Deletion flow details.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): a confirmation code to the account's address, immediate deletion with no grace period and no final email; a deleting Moderator loses the role, while decisions, Moderation notes, and pending Invitations stay under the Pseudonym. See Account deletion.
 23. **Creator credit anonymisation.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): the User's own-work items, a translated "anonymous creator" label, Operator CLI commands outside account deletion, an Erasure log entry; licence and Rights basis never change, the credit is corrected by edit Submission. See Account deletion and Files, licences, and data.
-24. **Export content and format.** Which data an export contains (profile, Submissions, uploaded files, Moderation notes about the User, Notice data), its format, and the CLI command name are not decided.
+24. **Export content and format.** Answered by [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87): `tart users export` writes a zip of JSON files, originals, and a README; Notices are exported separately by address with `tart notices export`. See Data exports.
 
 **Files and data**
 25. **Public file rights fields** Answered by [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91): the Rights basis and a third party's origin URL are public; the Creator credit is the third party's creator. See Files, licences, and data.

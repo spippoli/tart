@@ -154,6 +154,18 @@ _Avoid_: Authorship, credit, signature
 A registered account on an Instance; never implies control over any Artist.
 _Avoid_: Contributor (as an entity), member, account holder
 
+**Display name**:
+The name, possibly a pseudonym and not necessarily unique, under which a User's Revisions are shown.
+_Avoid_: Username, nickname, handle
+
+**User number**:
+The short, stable number that tells apart Users with the same Display name, seen by Moderators.
+_Avoid_: User id, account number
+
+**Pseudonym**:
+The label, built from the User number, that replaces a deleted User's Display name wherever it appeared.
+_Avoid_: Anonymous user, ghost
+
 **Suspension**:
 The Operator's blocking of a User's access to the Instance, with a stated reason, until it is lifted; the User's contributions stay as they are.
 _Avoid_: Ban, block, deactivation
