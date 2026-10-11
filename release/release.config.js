@@ -34,11 +34,15 @@ export const conventions = {
 	}
 };
 
-/** The Operator files attached to each release, as separate assets. */
+/**
+ * The Operator files attached to each release, as separate assets. GitHub drops
+ * a leading dot from asset names (`.env.example` became `default.env.example`),
+ * so that file is attached as `env.example`.
+ */
 export const assets = [
-	{ path: '../deploy/compose.yaml', label: 'compose.yaml' },
-	{ path: '../deploy/Caddyfile', label: 'Caddyfile' },
-	{ path: '../deploy/.env.example', label: '.env.example' }
+	{ path: '../deploy/compose.yaml', name: 'compose.yaml', label: 'compose.yaml' },
+	{ path: '../deploy/Caddyfile', name: 'Caddyfile', label: 'Caddyfile' },
+	{ path: '../deploy/.env.example', name: 'env.example', label: 'env.example' }
 ];
 
 export default {
