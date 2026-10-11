@@ -1,0 +1,10 @@
+# Failure fixture: a vocabulary whose every entry is retired.
+[[entries]]
+key = "building_wall"
+label = { it = "Muro di edificio", en = "Building wall" }
+retired = true
+
+[[entries]]
+key = "shutter"
+label = { it = "Serranda", en = "Shutter" }
+retired = true

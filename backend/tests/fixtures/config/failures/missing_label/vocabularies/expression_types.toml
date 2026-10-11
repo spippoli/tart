@@ -1,0 +1,8 @@
+# Failure fixture: an Expression type without a label in an enabled UI language.
+[[entries]]
+key = "mural"
+label = { it = "Murale" }
+
+[[entries]]
+key = "stencil"
+label = { it = "Stencil", en = "Stencil" }

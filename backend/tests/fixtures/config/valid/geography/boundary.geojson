@@ -1,0 +1,8 @@
+{
+  "type": "Feature",
+  "properties": { "note": "A fictional rectangle around central Rome, for the tests." },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[12.40, 41.85], [12.56, 41.85], [12.56, 41.95], [12.40, 41.95], [12.40, 41.85]]]
+  }
+}
