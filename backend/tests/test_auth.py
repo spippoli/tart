@@ -6,6 +6,7 @@ deferred, rendered as the worker would through the capturing email adapter.
 """
 
 import asyncio
+import re
 from collections.abc import Iterator
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -656,3 +657,13 @@ def test_criterion_14_reads_need_no_custom_header(api: Api) -> None:
     bare = TestClient(api.client.app, base_url=BASE_URL)
 
     assert bare.get("/api/auth/session").json() == {"user": None}
+
+
+def test_criterion_53_caddy_sets_the_client_ip_header_on_every_proxied_request() -> None:
+    caddyfile = (Path(__file__).parents[2] / "deploy" / "Caddyfile").read_text(encoding="utf-8")
+    proxies = re.findall(r"reverse_proxy (\S+) \{\n(.*?)\n\t*\}", caddyfile, re.DOTALL)
+
+    assert {upstream for upstream, _ in proxies} == {"api:8000", "frontend:3000"}
+    assert caddyfile.count("reverse_proxy") == len(proxies)
+    for upstream, block in proxies:
+        assert "header_up X-Tart-Client-IP {client_ip}" in block, upstream

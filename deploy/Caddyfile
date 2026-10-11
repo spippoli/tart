@@ -1,7 +1,13 @@
 {$TART_SITE_ADDRESS:localhost} {
+	# The client's address goes to `api` and `frontend` in this header, which Caddy
+	# always overwrites; the app reads the client IP from nowhere else, never from
+	# X-Forwarded-For (Foundations spec, Rate limits). `api` must stay unreachable
+	# except through Caddy and `frontend`.
 	@api path /api /api/*
 	handle @api {
-		reverse_proxy api:8000
+		reverse_proxy api:8000 {
+			header_up X-Tart-Client-IP {client_ip}
+		}
 	}
 	# Basemap extracts from the tiles volume (Discovery spec, Basemap tiles): byte
 	# ranges, no `encode`, and immutable, since each file name carries its build.
@@ -25,6 +31,8 @@
 		}
 	}
 	handle {
-		reverse_proxy frontend:3000
+		reverse_proxy frontend:3000 {
+			header_up X-Tart-Client-IP {client_ip}
+		}
 	}
 }

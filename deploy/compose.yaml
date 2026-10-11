@@ -54,6 +54,8 @@ services:
     restart: unless-stopped
     environment:
       ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
+      # The client's address, which Caddy sets and the frontend forwards to `api`.
+      ADDRESS_HEADER: X-Tart-Client-IP
       # The frontend server reads the public Instance configuration from `api`.
       API_URL: http://api:8000
     depends_on:
