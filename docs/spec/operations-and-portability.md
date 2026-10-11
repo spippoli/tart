@@ -21,7 +21,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Data dump, Licensor, Content language, UI language, User, Moderator, Moderation note, Submission, Submission log, Archive record, Revision, Artwork, Artist, Location, Site, Area, Series, Source, Documentation item, Creator credit, Rights basis, History event, Claim, Attribution, Crew membership, Uncertain date, Merge, Duplicate retirement, Withdrawal, Redaction, Reinstatement, Purge, Erasure log, Notice.
 
-**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (`operator.name`, the shape of `data_attribution`, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator acts on Notices as a Moderator), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Creator credit anonymisations in the Erasure log, Redactions of current values and the Data dump), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (no User names anywhere public outside `/revisions`, Documentation item dates, public positions only).
+**Decision tickets incorporated**: [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46), and [Public data dump](https://github.com/spippoli/tart/issues/47) (the core of this spec), and, for the parts that reach operations, [Tech stack decision](https://github.com/spippoli/tart/issues/13) (topology, sizing), [Licensing Decision Record (provisional)](https://github.com/spippoli/tart/issues/12) (CI licence allow-list, brand), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (CI allow-list, Operator documentation), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (tiles out of backups, tile cadence, external tile provider), and [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (checklist items on `self_approval` and Moderation notes). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8) (a public dump for preservation, distinct from portability), [Research: media pipeline and storage within budget](https://github.com/spippoli/tart/issues/10) (off-site media backups), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (the checklist's legal basis), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (`operator.name`, the shape of `data_attribution`, `tart config check --database`), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator acts on Notices as a Moderator), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Creator credit anonymisations in the Erasure log, Redactions of current values and the Data dump), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (no User names anywhere public outside `/revisions`, Documentation item dates, public positions only), [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101) (separate files for linked entities, README language, package name and path, checklist numbering and the backup item).
 
 **Depends on**: every earlier feature spec, as listed above.
 
@@ -35,7 +35,7 @@ Beyond the Instance itself, an archive meant for preservation must be able to ou
 
 The platform ships generic, versioned images and a Compose stack. Backups are a platform-owned, opt-in `backup` service: a nightly `pg_dump` into an encrypted restic repository and an encrypted `rclone sync` of media to a target with a protection the server cannot delete, plus the configuration directory. A weekly automatic verify restores the latest dump into a temporary database and checks it. Backups are never rewritten; Purges and account deletions are recorded in the Erasure log, which every restore applies again. `tart upgrade <version>` takes a tagged backup, checks the configuration with the new image, and runs forward-only migrations while the services are stopped; rollback is a restore of that backup. A public health endpoint feeds an external monitor of the Operator's choice, a token-protected endpoint gives the details, and the `worker` emails the Operator when a check fails. Logs are structured, kept about 14 days, and never carry emails, codes, tokens, or Notice content.
 
-The Operator produces a Data dump with `tart dump`: a zip of the current public archive (NDJSON per record kind, GeoJSON of Locations, a redirects table, a manifest, licence and README) that holds exactly what public pages show, validated against a published JSON Schema, with an optional package of public renditions. Publishing it is the Operator's choice. The Operator compliance checklist, grouped by phase and delivered as an Operator guide, lists the legal and operational duties the software cannot perform, with an Italy annex and legal-review flags.
+The Operator produces a Data dump with `tart dump`: a zip of the current public archive (NDJSON per record kind and per linked entity, GeoJSON of Locations, a redirects table, a manifest, licence and README) that holds exactly what public pages show, validated against a published JSON Schema, with an optional package of public renditions. Publishing it is the Operator's choice. The Operator compliance checklist, grouped by phase and delivered as an Operator guide, lists the legal and operational duties the software cannot perform, with an Italy annex and legal-review flags.
 
 ## User Stories
 
@@ -116,7 +116,7 @@ The Operator produces a Data dump with `tart dump`: a zip of the current public 
 | Health | Run the checks; serve `GET /api/health` and the token-protected `GET /api/health/details` | backend (`api`) |
 | Alerting | Email the Operator when a check turns `fail`, at most once per check per day; ping `BACKUP_PING_URL` after backup and verify | `worker`, `backup` |
 | Jobs admin | `tart jobs failed`, `tart jobs retry <id\|--all>`; delete completed jobs after 30 days | Operator CLI, `worker` |
-| Data dump | `tart dump [--with-media]`: write the dump package (and optionally the media package) to the data volume | Operator CLI |
+| Data dump | `tart dump [--with-media]`: write the dump package (and optionally the media package) to `dumps/` in the data volume | Operator CLI |
 | Operator documentation | Runbook, `.env.example`, and the compliance guide `docs/operator/compliance.md` | platform repository |
 
 Backup and Data dump read the database and storage through the same storage adapter as the application, so filesystem and S3 storage take the same path. The domain modules that perform Purge and account deletion depend only on the Erasure log's append interface.
@@ -131,12 +131,12 @@ Backup and Data dump read the database and storage through the same storage adap
   - **major**: anything needing Operator action (a `config_version` bump, a manual step, a PostgreSQL major upgrade).
 - **Pinning.** Compose reads `TART_VERSION` from `.env`. The `latest` tag is never used.
 - **Release notes** always have an "Operator actions" section. Minor releases can be skipped; majors are applied in order.
-- **No phone-home.** The Instance never checks for updates. Operators watch GitHub releases or their Atom feed (checklist item 19).
-- **Host.** Host OS security updates are the Operator's: the runbook explains them and the checklist lists them (item 13).
+- **No phone-home.** The Instance never checks for updates. Operators watch GitHub releases or their Atom feed (checklist item 20).
+- **Host.** Host OS security updates are the Operator's: the runbook explains them and the checklist lists them (item 14).
 
 ### 2. Backups
 
-**Ownership.** Backups are platform-owned and opt-in: an optional `backup` Compose service (profile) and `tart backup run|verify|restore`, configured through the environment (repository, encryption secrets, schedule). Until backups are configured, `/api/health/details` reports the backup check as a `not_configured` **warning**, not a failure. Provider snapshots of the server are an optional extra, mentioned in the runbook. Rome turns backups on at launch.
+**Ownership.** Backups are platform-owned and opt-in: an optional `backup` Compose service (profile) and `tart backup run|verify|restore`, configured through the environment (repository, encryption secrets, schedule). Until backups are configured, `/api/health/details` reports the backup check as a `not_configured` **warning**, not a failure; turning them on is checklist item 12. Provider snapshots of the server are an optional extra, mentioned in the runbook. Rome turns backups on at launch.
 
 **Tools.**
 - Database: `pg_dump` in custom format into a restic repository.
@@ -164,7 +164,7 @@ The small tile manifest in the data volume may be included ([#38](https://github
 
 **Target.** The general runbook rule: the backup target must have a protection the server cannot delete (for example provider-side snapshots the server's credentials cannot remove), in a different location from the server. Single-provider risk is accepted for the MVP; an occasional second copy downloaded by the Operator is optional good practice. Rome's target is in [Instance configuration](#instance-configuration).
 
-**Secrets.** The restic password, the rclone crypt key, the target credentials, and `.env` are kept **off the server** as well: in the Operator's password manager and with a second person (checklist item 12).
+**Secrets.** The restic password, the rclone crypt key, the target credentials, and `.env` are kept **off the server** as well: in the Operator's password manager and with a second person (checklist item 13).
 
 ### 3. Restore and the Erasure log
 
@@ -178,7 +178,7 @@ The small tile manifest in the data volume may be included ([#38](https://github
   3. a sample of media keys exists in the backup copy.
 
   It then drops the temporary database. A failure raises an alert ([Monitoring](#5-monitoring)).
-- **Drill (manual).** A full restore on a clean machine before launch and then yearly (checklist items 15 and 20).
+- **Drill (manual).** A full restore on a clean machine before launch and then yearly (checklist items 16 and 21).
 - **Handover.** A move to a new server, or a handover between Operators of the same Instance, uses backup and restore, not the Data dump ([#47](https://github.com/spippoli/tart/issues/47)).
 
 ### 4. Upgrades
@@ -221,7 +221,7 @@ If a step fails, the command stops and prints the rollback instructions. Because
 | Verify | Last successful verify younger than 8 days |
 
 **Alerting.**
-- The primary channel is an **external monitor** of the Operator's choice polling `/api/health` (for example Uptime Kuma on another machine, or a free hosted service). The monitor sees no personal data; it is named in the checklist (item 14).
+- The primary channel is an **external monitor** of the Operator's choice polling `/api/health` (for example Uptime Kuma on another machine, or a free hosted service). The monitor sees no personal data; it is named in the checklist (item 15).
 - Optional dead-man's switch: `BACKUP_PING_URL` (environment) receives a generic `GET` at the end of each backup and each verify, compatible with Healthchecks.io or a self-hosted equivalent.
 - As reinforcement, the `worker` emails `OPERATOR_ALERT_EMAIL` (environment) when a check turns `fail`, at most once per check per day.
 
@@ -258,17 +258,22 @@ Creator credits appear as shown publicly, so anonymised ones stay anonymised.
 - Documentation item metadata is always included: kind, file licence, Creator credit, Rights basis, third-party origin URL, and public rendition URL. Text Documentation items are included with their licence.
 - `tart dump --with-media` also writes a separate media package of **public renditions only** (never originals; resolution-capped; no EXIF) with a per-file licence manifest listing each file's licence, Creator credit, and origin URL. The Operator decides whether to publish it.
 
-**Format.** A `.zip` containing:
+**Format.** A `.zip` named `data-dump-<YYYYMMDDTHHMMSSZ>.zip` (generation time in UTC) containing:
 
 | File | Content |
 |---|---|
 | `manifest.json` | Dump schema version, TART version, archive name, Content language, Data licence, generation time, counts per kind |
-| One NDJSON file per record kind | The records of that kind |
+| One NDJSON file per record kind | The records of that kind: `artworks`, `artists`, `locations`, `sites`, `areas`, `series`, `sources`, `documentation_items` |
+| `history_events.ndjson` | History events, each with its own id and the id of its Artwork |
+| `attributions.ndjson` | Attributions, each with its own id, its Artwork and Artist ids, and its Alias |
+| `crew_memberships.ndjson` | Crew memberships, each with its own id and the ids of the crew and the member |
+| `citations.ndjson` | One row per citation: the citing subject (a Claim or a record, by kind and id) and the cited Source or Documentation item (by kind and id), for Claim citations and record-level citations alike |
 | `redirects.ndjson` | Retired id → surviving id, with the date |
 | `locations.geojson` | A FeatureCollection of Locations with their Artworks as properties, for GIS tools |
 | `LICENSE` | See below |
 | `README` | See below |
 
+- Linked entities are their own files, never nested in their records: Attributions and Crew memberships join two records, and flat files load as tables ([#101](https://github.com/spippoli/tart/issues/101)).
 - Stable ids; references by id; GeoJSON geometries; Uncertain dates as modelled (value plus precision).
 - Vocabulary values are exported as stable keys with labels in the enabled UI languages.
 - A **JSON Schema**, versioned with SemVer, is published with the platform. Every dump validates against it.
@@ -277,13 +282,13 @@ Creator credits appear as shown publicly, so anonymised ones stay anonymised.
 
 **Licence and notices.** The package is under the Instance's Data licence.
 - `LICENSE`: the licence name, version, official URL, and full legal text, generated from the configured `licenses.data`, including the ODbL notice when applicable.
-- `README`, in the Content language and in English, with:
+- `README`, always in English, and also in the Content language when the platform has a message catalogue for it. Its fixed text comes from the platform catalogue, never from an Operator translation, so its legal statements are always reviewed text. When the Content language has no catalogue, the README is in English only and says that no translation is available; the attribution text is still quoted as is ([#101](https://github.com/spippoli/tart/issues/101)). It contains:
   - the attribution text: `licenses.data_attribution`, one string in the Content language quoted as is in both README languages, or by default the archive name and `operator.name`; the platform always follows it with the Instance URL and the dump date ([Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85)). It is a courtesy request when the licence is CC0;
   - a statement that the Data licence covers neither Documentation item files (each has its own licence in the manifest) nor the depicted Artworks (there is no freedom of panorama in Italy);
   - a **non-binding request** that reusers drop content withdrawn after the dump date and prefer the latest dump. It is a request, not a condition, because CC and ODbL licences forbid additional restrictions;
   - "Powered by TART" with the TART version, granting no software licence ([ADR 0011](../adr/0011-provisional-software-license.md)).
 
-**Production and publication.** `tart dump` writes the package to the data volume. Whether, where (for example Zenodo, the Internet Archive, or the Operator's own site), and how often to publish is the Operator's choice. There is no periodic dump job, and the Instance neither hosts nor links to dumps. After a Withdrawal or Purge, the Operator replaces any published dump and publishes only the latest one (checklist item 23).
+**Production and publication.** `tart dump` writes the package to `dumps/` in the data volume, a directory Caddy never serves, and prints its path; `--with-media` writes `media-<YYYYMMDDTHHMMSSZ>.zip` beside it with the same timestamp. The timestamp tells which dump is published, so that the right one is replaced. Old packages stay until the Operator deletes them; there is no automatic clean-up and no output option ([#101](https://github.com/spippoli/tart/issues/101)). Whether, where (for example Zenodo, the Internet Archive, or the Operator's own site), and how often to publish is the Operator's choice. There is no periodic dump job, and the Instance neither hosts nor links to dumps. After a Withdrawal or Purge, the Operator replaces any published dump and publishes only the latest one (checklist item 24).
 
 ### 7. Operator CLI additions
 
@@ -297,7 +302,7 @@ These join the [Foundations Operator CLI](foundations.md#5-operator-cli):
 | `tart upgrade <version>` | The seven steps of [Upgrades](#4-upgrades) |
 | `tart jobs failed` | List failed jobs without personal data in clear |
 | `tart jobs retry <id\|--all>` | Retry one or all failed jobs |
-| `tart dump [--with-media]` | Write the Data dump, and optionally the media package, to the data volume |
+| `tart dump [--with-media]` | Write the Data dump, and optionally the media package, to `dumps/` in the data volume, and print each path |
 
 ### 8. Processing inventory
 
@@ -313,7 +318,7 @@ The platform's processing inventory is specified in [Rights and legal actions](r
 
 **Form.** The checklist is this section. Implementation delivers it as an Operator guide, `docs/operator/compliance.md`, in the platform repository, written in English like all project documentation. There is no CLI command for it: what software can verify, `tart config check` already checks (terms, privacy policy, DSA contact, map attribution); the remaining items happen outside the software.
 
-**Structure.** Items are grouped by phase: before launch, at launch, ongoing, on event. Each item states who acts (Operator or Moderator), where it lives (configuration, CLI, host, or an external document), and its legal or ADR basis. The core covers the EU; an **Italy annex** (🇮🇹) is the only national annex in the MVP. Items marked ⚖️ need legal review.
+**Structure.** The numbers below are the only canonical ones: the Operator guide uses them as they are, and a change to the checklist renumbers it and updates every cross-reference ([#101](https://github.com/spippoli/tart/issues/101)). Items are grouped by phase: before launch, at launch, ongoing, on event. Each item states who acts (Operator or Moderator), where it lives (configuration, CLI, host, or an external document), and its legal or ADR basis. The core covers the EU; an **Italy annex** (🇮🇹) is the only national annex in the MVP. Items marked ⚖️ need legal review.
 
 **Opening warning.** An Operator that is 25% or more publicly controlled (a city, a public museum, or a university) is never an SME and may owe the full online-platform duties. The MVP does not support them, so such an Operator must get legal advice before launch. ⚖️
 
@@ -332,38 +337,39 @@ The platform's processing inventory is specified in [Rights and legal actions](r
 | 9 | Tell Moderators that Moderation notes are personal data subject to access requests, so they must stay factual. | Operator, Moderators | Operator guide | GDPR Art. 15; [#43](https://github.com/spippoli/tart/issues/43) |
 | 10 | Read the Art. 6 position: approved records may not be shielded by the hosting exemption. ⚖️ | Operator | — | DSA Art. 6; [#19](https://github.com/spippoli/tart/issues/19) |
 | 11 | Brand: "Powered by TART" is optional; never call TART "Open Source"; the archive's name stays distinct from TART. | Operator | Configuration, public texts | [ADR 0011](../adr/0011-provisional-software-license.md) |
-| 12 | Keep the backup secrets (restic password, rclone crypt key, target credentials) and `.env` off the server: in a password manager and with a second person. | Operator | External | [#45](https://github.com/spippoli/tart/issues/45) |
-| 13 | Enable host OS security updates. | Operator | Host | [#45](https://github.com/spippoli/tart/issues/45) |
-| 14 | Set up an external monitor polling `/api/health`; it sees no personal data. | Operator | External service | [#45](https://github.com/spippoli/tart/issues/45) |
+| 12 | Turn on backups to a target with a protection the server cannot delete, in a different location from the server, and set `OPERATOR_ALERT_EMAIL`. | Operator | Environment, external service | [#45](https://github.com/spippoli/tart/issues/45), [#101](https://github.com/spippoli/tart/issues/101) |
+| 13 | Keep the backup secrets (restic password, rclone crypt key, target credentials) and `.env` off the server: in a password manager and with a second person. | Operator | External | [#45](https://github.com/spippoli/tart/issues/45) |
+| 14 | Enable host OS security updates. | Operator | Host | [#45](https://github.com/spippoli/tart/issues/45) |
+| 15 | Set up an external monitor polling `/api/health`; it sees no personal data. | Operator | External service | [#45](https://github.com/spippoli/tart/issues/45) |
 
 **At launch**
 
 | # | Item | Who | Where | Basis |
 |---|---|---|---|---|
-| 15 | Get a clean `tart config check --database` run and a tested backup restore: a full restore drill on a clean machine. | Operator | CLI, host | [#45](https://github.com/spippoli/tart/issues/45), [#46](https://github.com/spippoli/tart/issues/46) |
-| 16 | 🇮🇹 Notify AGCOM of the point of contact (`dsa@agcom.it`). ⚖️ | Operator | External | [#46](https://github.com/spippoli/tart/issues/46) |
+| 16 | Get a clean `tart config check --database` run and a tested backup restore: a full restore drill on a clean machine. | Operator | CLI, host | [#45](https://github.com/spippoli/tart/issues/45), [#46](https://github.com/spippoli/tart/issues/46) |
+| 17 | 🇮🇹 Notify AGCOM of the point of contact (`dsa@agcom.it`). ⚖️ | Operator | External | [#46](https://github.com/spippoli/tart/issues/46) |
 
 **Ongoing**
 
 | # | Item | Who | Where | Basis |
 |---|---|---|---|---|
-| 17 | 🇮🇹 File the yearly AGCOM contribution declaration, even when nothing is due. ⚖️ | Operator | External | [#46](https://github.com/spippoli/tart/issues/46) |
-| 18 | Periodically review the Notice log and decision times. The recommended target is a decision within 7 days; it is guidance, not a configuration value. | Operator | Moderation area | [#46](https://github.com/spippoli/tart/issues/46) |
-| 19 | Watch GitHub releases or their Atom feed; read each release's "Operator actions"; apply majors in order. | Operator | External | [#45](https://github.com/spippoli/tart/issues/45) |
-| 20 | Repeat the full restore drill on a clean machine yearly. | Operator | Host | [#45](https://github.com/spippoli/tart/issues/45) |
-| 21 | Publish a new version of the terms whenever they change. | Operator | Configuration | [#46](https://github.com/spippoli/tart/issues/46); [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
-| 22 | Switch `self_approval` to `false` once at least two Moderators are active. | Operator | Configuration | [#43](https://github.com/spippoli/tart/issues/43) |
+| 18 | 🇮🇹 File the yearly AGCOM contribution declaration, even when nothing is due. ⚖️ | Operator | External | [#46](https://github.com/spippoli/tart/issues/46) |
+| 19 | Periodically review the Notice log and decision times. The recommended target is a decision within 7 days; it is guidance, not a configuration value. | Operator | Moderation area | [#46](https://github.com/spippoli/tart/issues/46) |
+| 20 | Watch GitHub releases or their Atom feed; read each release's "Operator actions"; apply majors in order. | Operator | External | [#45](https://github.com/spippoli/tart/issues/45) |
+| 21 | Repeat the full restore drill on a clean machine yearly. | Operator | Host | [#45](https://github.com/spippoli/tart/issues/45) |
+| 22 | Publish a new version of the terms whenever they change. | Operator | Configuration | [#46](https://github.com/spippoli/tart/issues/46); [ADR 0012](../adr/0012-per-file-licence-with-rights-basis.md) |
+| 23 | Switch `self_approval` to `false` once at least two Moderators are active. | Operator | Configuration | [#43](https://github.com/spippoli/tart/issues/43) |
 
 **On event**
 
 | # | Item | Who | Where | Basis |
 |---|---|---|---|---|
-| 23 | **After a Withdrawal, a Redaction of a current value, or a Purge**: replace any published Data dump, and publish only the latest one. | Operator | CLI, external | [#47](https://github.com/spippoli/tart/issues/47) |
-| 24 | **A Notice a Moderator cannot judge**: escalate Moderator → Operator → legal counsel. Whoever decides for the Operator is granted the Moderator role and decides in the Moderation area; there is no other path. Meanwhile, "when in doubt, withdraw", because a Withdrawal is reversible by Reinstatement. | Moderator, Operator | Moderation area | [#46](https://github.com/spippoli/tart/issues/46), [#93](https://github.com/spippoli/tart/issues/93); [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
-| 25 | **Authority order**: the Operator answers alone, with a Purge where the order requires one (`tart purge <legal-action-id> --ground authority-order`); the Purge's statement of reasons informs the affected Submitters (Art. 9(5)). | Operator | CLI, external | DSA Art. 9–10; [#95](https://github.com/spippoli/tart/issues/95) |
-| 26 | **Threat to life or safety**: inform the police. | Operator | External | DSA Art. 18 |
-| 27 | **GDPR request**: access and portability are produced through the CLI; erasure is self-service account deletion or a Purge; the answer is due within one month. | Operator | CLI | GDPR Art. 12; [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
-| 28 | **Data breach**: assess it; notify the supervisory authority (🇮🇹 Garante) within 72 hours where there is a risk, and the data subjects where the risk is high. | Operator | External | GDPR Art. 33–34 |
+| 24 | **After a Withdrawal, a Redaction of a current value, or a Purge**: replace any published Data dump, and publish only the latest one. | Operator | CLI, external | [#47](https://github.com/spippoli/tart/issues/47) |
+| 25 | **A Notice a Moderator cannot judge**: escalate Moderator → Operator → legal counsel. Whoever decides for the Operator is granted the Moderator role and decides in the Moderation area; there is no other path. Meanwhile, "when in doubt, withdraw", because a Withdrawal is reversible by Reinstatement. | Moderator, Operator | Moderation area | [#46](https://github.com/spippoli/tart/issues/46), [#93](https://github.com/spippoli/tart/issues/93); [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
+| 26 | **Authority order**: the Operator answers alone, with a Purge where the order requires one (`tart purge <legal-action-id> --ground authority-order`); the Purge's statement of reasons informs the affected Submitters (Art. 9(5)). | Operator | CLI, external | DSA Art. 9–10; [#95](https://github.com/spippoli/tart/issues/95) |
+| 27 | **Threat to life or safety**: inform the police. | Operator | External | DSA Art. 18 |
+| 28 | **GDPR request**: access and portability are produced through the CLI; erasure is self-service account deletion or a Purge; the answer is due within one month. | Operator | CLI | GDPR Art. 12; [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md) |
+| 29 | **Data breach**: assess it; notify the supervisory authority (🇮🇹 Garante) within 72 hours where there is a risk, and the data subjects where the risk is high. | Operator | External | GDPR Art. 33–34 |
 
 Drafting the terms of use, privacy notice, and other legal texts stays out of scope; the platform provides the processing inventory as a starting point, not a template.
 
@@ -389,7 +395,7 @@ A good test drives a module through its external interface (a CLI command, an HT
 - **Alerting (integration)**: an Operator alert email when a check turns `fail`, no second one for the same check within a day; `BACKUP_PING_URL` receives a `GET` after backup and verify.
 - **Logs (unit)**: log records produced during sign-in, Notice intake, and email sending contain the User id where relevant and no email address, sign-in code, token, or Notice content.
 - **Jobs (integration)**: a job that exhausts its retries is `failed` and counted by the Email check when it is an email; `tart jobs failed` output shows no personal data in clear; `tart jobs retry` re-enqueues; completed jobs older than 30 days are deleted.
-- **Data dump (integration)**: from a fixture archive with every record kind, withdrawn, merged, duplicate-retired, purged, pending, and redacted cases, and a deleted account: the dump validates against the JSON Schema; every public field is present; nothing in the exclusion rule is present; `redirects.ndjson` covers merged and retired ids; `locations.geojson` is valid GeoJSON; `LICENSE` matches the configured `licenses.data` for each allowed value; the README carries the `licenses.data_attribution` text, or the default when it is absent, (and its default); `--with-media` contains only public renditions without EXIF and a manifest entry per file.
+- **Data dump (integration)**: from a fixture archive with every record kind, withdrawn, merged, duplicate-retired, purged, pending, and redacted cases, and a deleted account: the dump validates against the JSON Schema; every public field is present; nothing in the exclusion rule is present; `redirects.ndjson` covers merged and retired ids; History events, Attributions, Crew memberships, and citations are in their own files, referenced by id; the README is in English and in the Content language, or in English only with the no-translation note when a fixture Content language has no catalogue; the package lands under `dumps/` with the timestamped name, and `/dumps/` is not served; `locations.geojson` is valid GeoJSON; `LICENSE` matches the configured `licenses.data` for each allowed value; the README carries the `licenses.data_attribution` text, or the default when it is absent, (and its default); `--with-media` contains only public renditions without EXIF and a manifest entry per file.
 
 ## Acceptance criteria
 
@@ -420,14 +426,14 @@ A good test drives a module through its external interface (a CLI command, an HT
 20. A job that exhausts its retries stays `failed`; `tart jobs failed` lists failed jobs without personal data in clear; `tart jobs retry <id|--all>` retries them; completed jobs are deleted after 30 days.
 
 **Data dump**
-21. `tart dump` writes a `.zip` to the data volume containing `manifest.json`, one NDJSON file per record kind, `redirects.ndjson`, `locations.geojson`, `LICENSE`, and `README`, and nothing is published or linked by the Instance.
+21. `tart dump` writes `dumps/data-dump-<YYYYMMDDTHHMMSSZ>.zip` to the data volume, which Caddy does not serve, and prints its path; the zip contains `manifest.json`, one NDJSON file per record kind, `history_events.ndjson`, `attributions.ndjson`, `crew_memberships.ndjson`, `citations.ndjson`, `redirects.ndjson`, `locations.geojson`, `LICENSE`, and `README`, and nothing is published or linked by the Instance.
 22. The dump validates against the published, SemVer-versioned JSON Schema, and every field shown on public Archive record pages is present in it, except Revisions and User names.
 23. The dump contains none of: Revisions, User names, Users, non-approved or retracted Submissions, the Submission log, Moderation notes, withdrawn or Purged content (including a withdrawn Artist's Attributions and Crew memberships), Notices, the legal action log, the Erasure log.
 24. Creator credits appear as on public pages; anonymised credits stay anonymised.
 25. Merged and duplicate-retired ids appear in `redirects.ndjson` with the surviving id and date, without their content.
 26. Uncertain dates are exported as value plus precision; vocabulary values as stable keys with labels in every enabled UI language; geometries as GeoJSON.
-27. `LICENSE` contains the configured Data licence's name, version, URL, and full text, with the ODbL notice when applicable; `README` is in the Content language and English and contains the attribution text, the statement that the Data licence covers neither the files nor the depicted Artworks, the non-binding request about later withdrawals, and "Powered by TART" with the version and no software licence grant.
-28. `tart dump --with-media` additionally produces a media package of public renditions only (no originals, capped resolution, no EXIF) with a manifest giving each file's licence, Creator credit, and origin URL.
+27. `LICENSE` contains the configured Data licence's name, version, URL, and full text, with the ODbL notice when applicable; `README` is in English, and also in the Content language when the platform has a catalogue for it (otherwise it says no translation is available), and contains the attribution text, the statement that the Data licence covers neither the files nor the depicted Artworks, the non-binding request about later withdrawals, and "Powered by TART" with the version and no software licence grant.
+28. `tart dump --with-media` additionally produces `dumps/media-<YYYYMMDDTHHMMSSZ>.zip`, with the dump's timestamp: a media package of public renditions only (no originals, capped resolution, no EXIF) with a manifest giving each file's licence, Creator credit, and origin URL.
 
 **Documentation and compliance**
 29. The platform repository contains `docs/operator/compliance.md` with every item of the [Operator compliance checklist](#9-operator-compliance-checklist), grouped by phase, each with who acts, where it lives, and its basis, with the Italy annex marked 🇮🇹 and legal-review items marked ⚖️, opening with the public-control warning.
@@ -516,17 +522,17 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 13. **Log sizing.** "About 14 days" is a target; the `json-file` size and file count, and the mechanism that rotates IP addresses out of Caddy logs, are left to implementation.
 
 **Data dump**
-14. **Nested or separate files.** "One NDJSON file per record kind" covers the eight Archive record kinds; whether History events, Attributions, Crew memberships, and citations are nested in their records or exported as their own files is not decided.
+14. **Nested or separate files.** Answered by [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101): separate NDJSON files with their own ids, referenced by id ([Data dump](#6-data-dump)).
 15. **Operator name.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `operator.name` is a required key; the default attribution is the archive name and the Operator name.
-16. **README language.** The README is in the Content language and English. The Content language need not be a platform UI language with a message catalogue; how the Content-language README text is produced in that case is not decided.
+16. **README language.** Answered by [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101): always English, plus the Content language only when the platform has a catalogue for it; otherwise English only, with a no-translation note.
 17. **Shape of `data_attribution`.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): one string in the Content language; the platform appends the Instance URL and the dump date.
 18. **Timeline names.** Answered by [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91): the Timeline names no Submitter, so the dump's "no User names" rule meets no conflict.
 19. **Coarsened positions.** Answered by [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91): there is no deliberate coarsening; the archive stores only the public geometry, which the dump carries.
-20. **Package naming and location.** The dump's file name and its path in the data volume are not decided.
+20. **Package naming and location.** Answered by [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101): `dumps/data-dump-<YYYYMMDDTHHMMSSZ>.zip` and `dumps/media-<…>.zip` in the data volume, never served, with no automatic clean-up.
 
 **Checklist**
-21. **Numbering.** The checklist above merges the 20 items of [#46](https://github.com/spippoli/tart/issues/46) with the items handed on by [#38](https://github.com/spippoli/tart/issues/38), [#43](https://github.com/spippoli/tart/issues/43), [#45](https://github.com/spippoli/tart/issues/45), and [#47](https://github.com/spippoli/tart/issues/47), so its numbers differ from #46's. Configuring backups and the Operator alert address are runbook steps, not checklist items, because #45 names only the drill, secrets, releases, host updates, and monitor as checklist items; whether the checklist should also list them is not decided.
-22. **Operator acting on Notices.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator has no CLI command or UI for Notices; whoever decides for it is granted the Moderator role (checklist item 24).
+21. **Numbering.** Answered by [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101): this spec's numbers are the only canonical ones, and #46's are historical only. Turning on backups and setting `OPERATOR_ALERT_EMAIL` is now checklist item 12, before launch, because item 16's restore drill presumes backups exist.
+22. **Operator acting on Notices.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator has no CLI command or UI for Notices; whoever decides for it is granted the Moderator role (checklist item 25).
 
 ### Notes
 
