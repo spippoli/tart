@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Erasure log, User, Moderator, Submitter, Submission, Submission status, Retraction, Outdated, Decision message, Moderation note, Archive record, Revision, Artwork, Artist, Attribution, Crew membership, Location, Source, Documentation item, Creator credit, Rights basis, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Purge, Notice, UI language, Content language.
 
-**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Redaction by operation and of current values, the Purge command and what it leaves, Creator credit anonymisation, immutable file licences), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (public Rights basis and origin URL, one creator field, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (effects on linked records, Moderator and Submitter views of hidden content, statements in the app), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (Notice rate limits, the honeypot and minimum fill time, IP retention).
+**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Redaction by operation and of current values, the Purge command and what it leaves, Creator credit anonymisation, immutable file licences), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (public Rights basis and origin URL, one creator field, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (effects on linked records, Moderator and Submitter views of hidden content, statements in the app), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (Notice rate limits, the honeypot and minimum fill time, IP retention), [Notice handling details](https://github.com/spippoli/tart/issues/94) (report target, Moderator pages and routes, Notice reference, several Notices and "already removed", signed-in notifiers, ground and facts of a measure, redress, deleted recipients).
 
 **Depends on**: [Foundations](foundations.md) (configuration, sessions, storage and media pipeline, Account page, Operator CLI, email adapter), [Archive records](archive-records.md) (record model, visibility table, `/revisions`, "Report" action), and Contribution and moderation (roles and permission checks, Submission rejection and Decision messages, the review checklist, terms acceptance).
 
@@ -95,6 +95,10 @@ Anyone can send a Notice from any public record or Documentation item page, with
 32. As an Operator, I want the notifier's personal data erased automatically six months after the decision, so that retention is enforced without manual work.
 33. As an Operator, I want a documented inventory of what the platform processes, so that my privacy notice and record of processing start from facts.
 34. As a person whose address someone else typed into the report form, I want to receive at most a few acknowledgements a day, so that the archive cannot be used to spam me.
+35. As a person reporting an old value, I want to report a single Revision from `/revisions`, so that the Moderator sees exactly which change exposes someone.
+36. As a notifier, I want a reference on screen and in the email, so that I can quote my report when I write to the DSA contact.
+37. As a Moderator, I want Notices in their own list, apart from the Submission queue, with the other open Notices on the same content shown, so that I can decide them together and in time.
+38. As a Moderator, I want to write the facts once and pick the ground from the Notice reasons list, so that the Submitters and the notifier receive the same explanation, each in their own language.
 
 ## Implementation Decisions
 
@@ -112,7 +116,7 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 
 | Module | Interface (what callers see) | Lives in |
 |---|---|---|
-| Legal actions domain | Open a Notice; close it (Withdrawal, Redaction, no action); withdraw, redact, reinstate on own initiative; compute affected Submitters; build the statement of reasons; check that a Purge target is hidden. No framework or persistence imports | backend |
+| Legal actions domain | Open a Notice; close it (Withdrawal, Redaction, no action, already removed); withdraw, redact, reinstate on own initiative; compute affected Submitters; build the statement of reasons; check that a Purge target is hidden. No framework or persistence imports | backend |
 | Archive visibility port | Set and clear the withdrawn flag of a record or Documentation item, and the redacted flag of a Revision; implemented by the archive persistence of [Archive records](archive-records.md) | backend |
 | Legal message port | Queue an acknowledgement, a decision notice, or a statement of reasons for a recipient; implemented by the Notifications spec's email sender | backend (`worker`) |
 | Notice intake API | Public endpoint for the report form; no session required | backend |
@@ -160,6 +164,8 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 |---|---|---|
 | Report form | `/it/segnala?oggetto=…` | `/en/report?object=…` |
 
+**Target** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). `?oggetto=` (`?object=`) carries the canonical path of the page the report started from, URL-encoded, plus the anchor of a Revision when the report starts from `/revisions`, where each Revision has its own "Report" link ([Archive records](archive-records.md#public-record-pages)). The URL field is prefilled with the full URL. On receipt the server tries to resolve the URL, as sent, into a **target**: a record (kind and id), a Documentation item, or a Revision of a record. The target is stored beside the URL and is only the Moderator's starting point; the target of a measure is always chosen on the measure form. A URL that does not resolve (another site, an edited or mistyped path, a page that is not content) is accepted and stored without a target: the Notice is judged on its content.
+
 **Form fields** (the DSA Art. 16(2) elements, [ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)):
 
 | Field | Rule |
@@ -168,12 +174,13 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 | URL | Required. The exact URL of the content, prefilled from the page the report started from |
 | Explanation | Required. Free text |
 | Name | Optional |
-| Email | Optional. Without it, no acknowledgement or decision is sent |
+| Email | Optional. Prefilled, editable and clearable, with a signed-in User's account email. Without it, no acknowledgement or decision is sent |
 | Good-faith statement | Required confirmation |
 
 - The UI language of the form is stored with the Notice and used for the notifier's emails ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)).
 - The "personal data" reason covers an Attribution that exposes someone ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)).
 - Notices are judged on their content, never on who sends them; no identity is verified.
+- **Signed-in notifiers** ([Notice handling details](https://github.com/spippoli/tart/issues/94)): a Notice stores no User id and is never linked to an account; the form only prefills the Email field, and the Name field stays empty, since a display name is public and does not identify the notifier. Moderators never see which User reported, the six-month erasure is the same for every notifier, and account deletion does not touch Notices.
 
 **Abuse protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)). The form needs no session and accepts any email address, so it could send acknowledgements to strangers and flood Moderators. Platform constants, counted by the Foundations rate-limit module:
 - **Per IP**: at most 5 Notices per hour and 20 per 24 hours, signed in or not, so there is one path.
@@ -181,13 +188,25 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 - Beyond a limit the form answers `429` with a translatable error code and the time to wait, and the Notice is not stored.
 - **Honeypot and minimum fill time**: the form carries the Foundations honeypot field and a signed render timestamp (no cookie); a submission less than 3 seconds after the form was rendered is treated like a filled honeypot: a fake success answer, nothing stored or sent.
 - Notice received emails to Moderators are capped per hour, with a summary past the cap ([Notifications](notifications.md#email-catalogue)); every Notice is still listed in the queue.
-- After sending, the page confirms receipt in text (a status message announced to assistive technology).
+- After sending, the page confirms receipt in text (a status message announced to assistive technology) and shows the Notice reference, with a line asking to quote it when writing to the DSA contact.
 
-**Lifecycle.** A Notice is *open* until a Moderator closes it with exactly one decision: **Withdrawal**, **Redaction**, or **no action**. On receipt:
+**Notice reference** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). A random code `N-XXXX-XXXX`: 8 characters from an alphabet without ambiguous characters (no `0`, `O`, `1`, `I`, `L`), unique and immutable, separate from the internal id so that it reveals neither the volume nor the order of Notices. It is shown on the confirmation, carried by the acknowledgement and the decision email, and searchable in the Notice list. It grants access to nothing: there is no public status page for Notices. The fake confirmation given to a filled honeypot or a too-fast submission shows a code of the same format that is not stored.
+
+**Lifecycle.** A Notice is *open* until a Moderator closes it with exactly one decision: **Withdrawal**, **Redaction**, **no action**, or **already removed** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). *Already removed* links the Notice to an existing Withdrawal or Redaction that already hides the reported content; it creates no measure and sends no statement of reasons, and the Notice page proposes it when the resolved target is already hidden. On receipt:
 - if the notifier gave an email, an acknowledgement is queued at once: Notice reference, a copy of the reason, URL and explanation, and that the decision will follow by email ([#44](https://github.com/spippoli/tart/issues/44));
 - every Moderator is notified at once, including a Moderator whose own content is reported; this cannot be turned off or batched (Notifications spec). The Operator receives no email; with no Moderator, the Notice is stored, acknowledged, and waits ([#93](https://github.com/spippoli/tart/issues/93)).
 
-On closing, a decision notice is queued for the notifier (if they gave an email) with the decision, a short reason, and redress: email reply, out-of-court settlement, courts. The Submitter of the reported content is told nothing when a Notice arrives, only when a measure is taken.
+On closing, a decision notice is queued for the notifier (if they gave an email) with the decision, the Notice reference, the short reason (the facts and reasons text below; for *already removed*, only that the content had already been removed), and the redress block of [Statements of reasons](#7-statements-of-reasons). The Submitter of the reported content is told nothing when a Notice arrives, only when a measure is taken.
+
+**Closing inputs** ([Notice handling details](https://github.com/spippoli/tart/issues/94)):
+- **Withdrawal or Redaction**: a **ground**, picked from the Notice reasons vocabulary (entries not retired), prefilled with the Notice's reason and changeable; on own initiative it has no default. Plus one required free text, **facts and reasons**, written by the Moderator: it is element 2 of the statement of reasons to the Submitters and the short reason of the notifier's decision. The form warns that the text reaches both the notifier and the Submitters, so it must name neither. With the `other` reason, the text must state the ground.
+- **No action**: no ground, since no measure is taken; the facts and reasons text is required and is the short reason to the notifier.
+- **Already removed**: the Moderator picks the existing measure; no text.
+- Ground labels are UI labels, translated into each recipient's language ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)).
+
+**Several Notices on one target** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). Notices are never merged or deduplicated: each has its own reference and decision. The Notice page lists the other open Notices with the same resolved target. The measure form opened from a Notice lists them as checkboxes, unticked by default, since two Notices on one record may concern different values; each ticked Notice is closed by the same measure, and each notifier receives their own decision email.
+
+**No reopening** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). A closed Notice stays closed. When a notifier contests a *no action* decision (a reply reaching `contacts.dsa`), a Moderator who agrees takes a measure on own initiative and records the link in the Notice's Moderation notes; a contested measure is undone by a Reinstatement.
 
 **Who decides** ([Moderation roles and permissions](https://github.com/spippoli/tart/issues/43)):
 - Any Moderator. There is no claiming or assignment: the first decision wins, and a decision is accepted only if the Notice is still in the state the Moderator saw; otherwise the API returns a translated error and the page reloads.
@@ -195,6 +214,21 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 - Escalation is Moderator → Operator → legal counsel. It says who is involved, not a separate decision path: the Operator has no CLI command or UI for Notices, and whoever decides for the Operator does so as a Moderator ([Contribution and moderation](contribution-and-moderation.md#roles-and-permissions)). While a Notice cannot be judged, the guidance is "when in doubt, withdraw", because Withdrawal is reversible ([#46](https://github.com/spippoli/tart/issues/46)). The recommended target is a decision within 7 days; it is guidance in the Operator documentation, not configuration or an enforced deadline.
 
 **Notice log.** Every Notice is kept with its reason, URL, explanation, form language, receipt time, decision, deciding Moderator, decision time, and any Moderation notes. The log is visible only to Moderators and the Operator. Six months after the decision, the `worker` erases the notifier's name and email; the rest of the log is kept ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)).
+
+**Moderator pages** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). Notices sit apart from the Submission queue. The Moderation area's sub-navigation reads Queue, Notices, Legal actions, and Invitations (the last only under `registration = invite`); the Notices entry shows the number of open Notices in text. Every page below behaves like the Queue for an anonymous user or a non-Moderator ([Contribution and moderation](contribution-and-moderation.md#queue)).
+
+| Page | `it` | `en` |
+|---|---|---|
+| Notice list | `/it/moderazione/segnalazioni` | `/en/moderation/notices` |
+| Notice page | `/it/moderazione/segnalazioni/{id}` | `/en/moderation/notices/{id}` |
+| Legal action log | `/it/moderazione/azioni-legali` | `/en/moderation/legal-actions` |
+| Legal action page | `/it/moderazione/azioni-legali/{id}` | `/en/moderation/legal-actions/{id}` |
+| Measure form | `/it/moderazione/azioni-legali/nuova` | `/en/moderation/legal-actions/new` |
+
+- **Notice list**: open Notices first, oldest first; a filter for open and closed; search by Notice reference. Each entry shows the reason, the target or URL, the receipt date, and the state in words.
+- **Notice page**: the Notice log fields, the reference, the resolved target with a link, the other open Notices on the same target, and Moderation notes. *No action* and *already removed* are decided on this page; Withdrawal and Redaction open the measure form with the target and ground set. Notice received links here.
+- **Measure form**: reached from a Notice page or, on own initiative, from the Moderator menu on a public record or Documentation item page. A Withdrawal shows the confirmation step of [Withdrawal](#3-withdrawal); a Redaction lists the record's Revisions, newest first, with their operations as checkboxes and a "whole Revision" checkbox for each. Both take the closing inputs; the rules of Who decides apply.
+- **Legal action log and page**: the entries of the [legal action log](#6-legal-action-log-and-moderation-notes), newest first; each entry's page shows it with its Moderation notes and offers Reinstate where allowed. The banner on hidden content links to this page.
 
 **Effects on other flows.** While a Notice is open on a record, a Merge, Duplicate retirement, or Unmerge involving it is Outdated ([ADR 0018](../adr/0018-merge-as-reconciling-multi-record-submission.md)).
 
@@ -220,7 +254,7 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 - **Trigger**: closing a Notice, or a Moderator's own initiative.
 - **Effect on `/revisions`**: each affected Revision stays listed with its Submitter, dates, and the names of the fields or items its operations touched; the content of the redacted operations is hidden from the public ([Archive records](archive-records.md#visibility)). A Redaction produces no Revision.
 - **Current values**: when a redacted operation carries a value that is still current, the public page hides it too. A field shows a neutral, translated placeholder ("removed for legal reasons"); an item (an Attribution, a History event) is omitted, as a withdrawn Artist's Attributions are. The Data dump, which holds what public pages show, omits it as well. The gap is filled by an ordinary edit Submission from anyone, approved under the usual rules; the editor never pre-fills a redacted value and shows the placeholder as the current value. Once a later Revision replaces the value, the page shows the new one; the redacted operation stays hidden.
-- How a Moderator selects the operations in the Moderation area belongs to the Moderator pages for Notices and legal actions (open item 3).
+- A Moderator selects the operations on the measure form ([Notices, Moderator pages](#2-notices)).
 - Redacted Revisions of a record merged into another stay redacted ([ADR 0018](../adr/0018-merge-as-reconciling-multi-record-submission.md)).
 - After an Artist's Reinstatement, past Revisions that still carry an exposing name are handled by Redaction where needed ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)).
 - Redacting one's own content is always allowed, whatever `self_approval` says.
@@ -234,7 +268,7 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 
 ### 6. Legal action log and Moderation notes
 
-- Withdrawals, Redactions, and Reinstatements are recorded in their own log, not as Revisions ([ADR 0002](../adr/0002-every-change-is-a-submission.md)). Each entry records the target, the measure, the Moderator, the time, the Notice it closes (or own initiative), and the statement of reasons sent; each has a legal action id, which the Purge command takes.
+- Withdrawals, Redactions, and Reinstatements are recorded in their own log, not as Revisions ([ADR 0002](../adr/0002-every-change-is-a-submission.md)). Each entry records the target, the measure, the Moderator, the time, the Notices it closes (none on own initiative), the ground and the facts and reasons text, and, for each recipient, the statement of reasons sent or *not sent: no address* (a deleted account); each has a legal action id, which the Purge command takes.
 - A Purge adds a content-free entry: the measure (Purge), the purged Withdrawal or Redaction, the legal ground, the reference, the time, and "Operator" as actor (the CLI has no User identity). The purged entry is marked purged ([#95](https://github.com/spippoli/tart/issues/95)).
 - Moderation notes can be written on Notices, Withdrawals, and Redactions. They are immutable, carry author and date, and are visible only to Moderators and the Operator ([#43](https://github.com/spippoli/tart/issues/43)).
 - Moderator identity is visible only to Moderators and the Operator. Statements of reasons, decision notices, and every public page say "a Moderator".
@@ -249,15 +283,17 @@ On closing, a decision notice is queued for the notifier (if they gave an email)
 - for a Purge: the same recipients as the purged Withdrawal or Redaction;
 - for a rejection: the Submission's Submitter.
 
-A recipient whose account was deleted has no address and gets nothing. The person who performed the action gets no email ([#44](https://github.com/spippoli/tart/issues/44)).
+A recipient whose account was deleted has no address and gets nothing. The legal action log records that recipient's statement as not sent for lack of an address, and the Submission log entry below is written as for anyone else; nothing else is done, since DSA Art. 17(2) applies the duty only where the provider knows the electronic contact details ([Notice handling details](https://github.com/spippoli/tart/issues/94)). ⚖️ legal review. The person who performed the action gets no email ([#44](https://github.com/spippoli/tart/issues/44)).
 
 **Content** (DSA Art. 17):
 1. the measure taken and its target;
-2. the facts and circumstances;
+2. the facts and circumstances (the Moderator's facts and reasons text);
 3. whether it followed a Notice or was taken on the Moderator's own initiative;
-4. the ground in the terms of use or in law;
+4. the ground in the terms of use or in law (the Notice reason picked on the measure form; for a Reinstatement, the ground of the measure it undoes, which no longer holds);
 5. whether automation was used (always "no" in the MVP);
-6. redress: replying to the email, out-of-court settlement, and courts.
+6. redress: the **redress block**, the same platform text in every legal email (statements of reasons, Notice decisions, Suspension): contest by replying to the email, or go to court. Out-of-court settlement is not mentioned: DSA Art. 21 is an online-platform duty that small Instances are exempt from, and Art. 17(3)(f) asks for redress routes only where applicable ([Notice handling details](https://github.com/spippoli/tart/issues/94)). ⚖️ legal review.
+
+A Reinstatement takes the facts and reasons text on the legal action page; it has no ground of its own.
 
 **In the app** ([Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92)): every Withdrawal, Redaction, and Reinstatement also adds an entry to the Submission log of each affected Submission ("Withdrawn", "Redacted", "Reinstated"), holding the full statement of reasons. The Submitter and Moderators see it on the Submission page, as they see a rejection's Decision message; it names neither the Moderator nor the notifier. Email stays the primary channel; the in-app copy covers failed emails and changed addresses. A Purge erases the purged content from the Submission but leaves the entry, which carries no content.
 
@@ -318,12 +354,13 @@ A good test exercises a module through its external interface and asserts observ
 
 - **Legal actions domain (unit, pytest)**: Notice lifecycle (one decision, no reopening by a second decision); affected-Submitter computation for a Documentation item, a record with many Revisions, and a rejection, including a deleted account; statement of reasons content (all six elements present, "no automation", no Moderator or notifier identity); `self_approval` rules for closing, reinstating, withdrawing, and redacting own content; Purge refusal on public content.
 - **Persistence and API (integration, pytest against PostGIS)**: after a Withdrawal the record page and `/revisions` answer 410 and the content is absent from lists, the map data, search, galleries, and Timelines; a withdrawn Artist's Attributions and Crew memberships disappear and return on Reinstatement; a redacted Revision is listed without content; Withdrawal and Redaction create no Revision; pending Submissions on a withdrawn target become Outdated; a Merge on a record with an open Notice is Outdated; concurrent Notice decisions (second one refused with a stable error code); the Notice intake works without a session; Moderation notes and the Notice log are never returned to non-Moderators.
+- **Notice handling (unit and integration)**: target resolution of a record path, a Documentation item path, a Revision anchor, and an unresolvable URL; reference format and uniqueness; one measure closing several Notices, each with its own decision; *already removed* with no legal action and no statement; a closed Notice refusing any further decision; a signed-in report storing no User id; a statement to a deleted account recorded as not sent.
 - **Retention job**: with a controlled clock, the notifier's name and email are erased six months after the decision and the rest of the Notice is kept.
 - **Notice limits**: with a controlled clock, each per-IP and per-email limit at its threshold and one past it, the honeypot, and the minimum fill time.
 - **Account deletion (integration)**: email, passkeys, and sessions gone; pseudonym on `/revisions`; drafts and their media deleted; open Submissions retracted; approved records unchanged; Creator credits anonymised only when chosen.
 - **CLI**: Purge erases database content and stored objects of a withdrawn Documentation item and refuses public content; the export command produces an export for a User.
 - **Legal message port**: a capturing adapter asserts which messages are queued, to whom, in which UI language, and that no message goes to the actor or to a deleted account.
-- **Pages (Playwright with axe)**: the report form signed out and signed in, in both UI languages, with validation errors and the confirmation; the 410 page; the Moderator Notice and legal-action pages; account deletion. Keyboard-only completion of the report form and of the deletion flow.
+- **Pages (Playwright with axe)**: the report form signed out and signed in, in both UI languages, with validation errors and the confirmation; the 410 page; the Notice list and page, the measure form (Withdrawal confirmation and Redaction operation selection), and the legal action pages; account deletion. Keyboard-only completion of the report form and of the deletion flow.
 - Prior art: none in the repository yet; the seams of [Foundations](foundations.md#testing-decisions) and [Archive records](archive-records.md#testing-decisions) are reused.
 
 ## Acceptance criteria
@@ -343,7 +380,7 @@ A good test exercises a module through its external interface and asserts observ
 8. The report form can be sent without an account; it requires a reason, URL, explanation, and the good-faith statement, and accepts optional name and email.
 9. With an email, the notifier receives an acknowledgement (reference, reason, URL, explanation) and, on closing, a decision with redress, both in the UI language of the form; without an email, nothing is sent.
 10. Every Moderator is notified of each new Notice immediately, up to the hourly cap of [Notifications](notifications.md#email-catalogue); the reported content's Submitter is notified of nothing until a measure is taken.
-11. A Notice is closed with exactly one of Withdrawal, Redaction, or no action; a second decision on a Notice that is no longer open is refused with a translated error.
+11. A Notice is closed with exactly one of Withdrawal, Redaction, no action, or already removed; a second decision on a Notice that is no longer open is refused with a translated error.
 12. With `self_approval = false`, a Moderator cannot close a Notice about their own content with no action or reinstate their own content, can close it with a Withdrawal or Redaction of the reported content, and can always withdraw or redact their own content.
 13. Six months after a Notice's decision, the notifier's name and email are erased and the rest of the Notice log remains.
 14. The Notice log, legal action log, and Moderation notes are never returned to non-Moderators.
@@ -399,6 +436,18 @@ A good test exercises a module through its external interface and asserts observ
 41. From one IP, a sixth Notice within an hour or a twenty-first within 24 hours answers `429` with a translatable error code and stores nothing; so does a fourth Notice within 24 hours with the same notifier email, from any IP.
 42. A report with the honeypot filled, or sent less than 3 seconds after the form was rendered, gets the ordinary confirmation, and no Notice is stored and no email sent.
 
+**Notice handling** ([Notice handling details](https://github.com/spippoli/tart/issues/94))
+
+43. Each Revision on `/revisions` has a "Report" link whose `?oggetto=` carries the record path and the Revision anchor; a stored Notice holds the URL as sent and, when it resolves on the Instance, its target (record, Documentation item, or Revision); an unresolvable URL is accepted without a target.
+44. The confirmation page and both notifier emails show a Notice reference `N-XXXX-XXXX` drawn from the unambiguous alphabet, unique per Notice; a Moderator finds the Notice by searching the reference; the confirmation of a honeypot or too-fast report shows a reference that matches no Notice.
+45. A Notice sent while signed in stores no User id; the Email field is prefilled with the account email and can be changed or cleared; no Moderator page shows which User reported.
+46. The Notice list, Notice page, legal action log and page, and measure form answer at the routes of Moderator pages, behind the Queue's Moderator check; the sub-navigation shows Notices with its open count in text.
+47. The measure form opened from a Notice prefills target and ground and lists the other open Notices on the same target, unticked; each ticked Notice is closed by the measure and its notifier gets their own decision.
+48. A Withdrawal or Redaction requires a ground from the Notice reasons vocabulary and the facts and reasons text, which becomes element 2 of the statement and the short reason of the notifier's decision; no action requires the text; already removed links an existing measure, creates no legal action, and queues no statement of reasons.
+49. A closed Notice cannot be reopened or decided again.
+50. Every legal email ends with the same redress block, naming an email reply and the courts and not out-of-court settlement.
+51. A statement of reasons due to a recipient whose account was deleted is not sent and is recorded as not sent in the legal action log; the Submission log entry is still written.
+
 ## Instance configuration
 
 The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; "Not decided" means the decisions give no value for Rome.
@@ -408,7 +457,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 | Data licence (SPDX) | `licenses.data` | Footer, About page, data reuse | `CC-BY-SA-4.0` |
 | File licences, default first | `licenses.files` | Licence choice per file | `["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]` |
 | Public image rendition cap | `media.public_rendition_max_px` | Maximum public resolution (long edge) | Not decided |
-| Notice reasons | `vocabularies/notice_reasons.toml` | Report form reason list, labels per UI language | The platform defaults (`artwork_copyright`, `file_copyright`, `personal_data`, `illegal_content`, `other`); Rome's labels not decided |
+| Notice reasons | `vocabularies/notice_reasons.toml` | Report form reason list and grounds of measures, labels per UI language | The platform defaults (`artwork_copyright`, `file_copyright`, `personal_data`, `illegal_content`, `other`); Rome's labels not decided |
 | Self-review | `community.self_approval` | Closing Notices about, and reinstating, own content | `true` at launch; the Operator checklist says to switch to `false` once at least two Moderators are active |
 | DSA contact and its languages (required) | `contacts.dsa`, `contacts.dsa_languages` | About contacts page; `Reply-To` of statements of reasons and notifier emails | Not decided |
 | Privacy contact (required) | `contacts.privacy` | Account-level GDPR requests; About contacts page | Not decided |
@@ -416,7 +465,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 | Terms version | `terms.version` | Acceptance before submitting (Contribution and moderation) | `1` at launch |
 | Content language, UI languages, time zone | `languages.content`, `languages.ui`, `geography.time_zone` | Labels, email language, date formatting | `it`; `it` (default), `en`; `Europe/Rome` |
 
-**Platform constants, not configuration**: notifier name and email retention (six months after the decision); the Notice limits (5 per hour and 20 per 24 hours per IP, 3 per 24 hours per notifier email) and the 3-second minimum fill time; "no automation" in statements of reasons; Purge and Creator credit anonymisation only from the CLI; the Purge grounds (`gdpr-erasure`, `authority-order`); the "removed for legal reasons" placeholder and "anonymous creator" label, from the message catalogues. The 7-day decision target is Operator guidance only.
+**Platform constants, not configuration**: notifier name and email retention (six months after the decision); the Notice limits (5 per hour and 20 per 24 hours per IP, 3 per 24 hours per notifier email) and the 3-second minimum fill time; the Notice reference format; the redress block; "no automation" in statements of reasons; Purge and Creator credit anonymisation only from the CLI; the Purge grounds (`gdpr-erasure`, `authority-order`); the "removed for legal reasons" placeholder and "anonymous creator" label, from the message catalogues. The 7-day decision target is Operator guidance only.
 
 ## Out of Scope
 
@@ -429,6 +478,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 - The Operator compliance checklist, the public data dump, and backups (Operations and portability).
 - Drafting the terms of use, privacy policy, trademark policy, or any licence notice text beyond the platform's UI strings; professional legal review itself.
 - CAPTCHAs and content filtering of Notices ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)).
+- A public status page for Notices, linking Notices to accounts, and reopening closed Notices ([Notice handling details](https://github.com/spippoli/tart/issues/94)).
 
 ## Further Notes
 
@@ -446,6 +496,8 @@ These do not change the behaviour specified above, but the Operator must not tre
 6. Whether one intake channel can serve both DSA notices and GDPR requests ([#19](https://github.com/spippoli/tart/issues/19)); the MVP sends account-level GDPR requests to the privacy contact.
 7. How much moderation history is disclosable in an access request ([#8](https://github.com/spippoli/tart/issues/8)).
 8. Who holds the database right in a volunteer archive, and licence compatibility for cross-Instance aggregation and between ODbL data and the Instance's Data licence ([#8](https://github.com/spippoli/tart/issues/8), [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)).
+9. Leaving out-of-court settlement out of the redress block, on the reading that DSA Art. 21 does not bind small Instances ([Notice handling details](https://github.com/spippoli/tart/issues/94)).
+10. Reading DSA Art. 17(2) as releasing the duty towards a recipient whose account was deleted ([Notice handling details](https://github.com/spippoli/tart/issues/94)).
 
 ### Open items
 
@@ -453,14 +505,14 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 
 **Notices**
 1. **Notice reasons configuration.** The shape is answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): a fourth open vocabulary, `vocabularies/notice_reasons.toml`, starting from the platform defaults. Rome's labels: [Rome Instance values](https://github.com/spippoli/tart/issues/86).
-2. **Report form target.** The format of `?oggetto=` / `?object=` (record kind and id, or a URL), and whether a Notice can point at a specific Revision on `/revisions` (the natural target of a Redaction), are not decided.
-3. **Moderator pages for Notices and legal actions.** The routes of the Notice list and Notice page, where they sit in the Moderation area (with or apart from the Submission queue), and where a Moderator starts an own-initiative Withdrawal or Redaction are not in the [#15](https://github.com/spippoli/tart/issues/15) route table.
-4. **Notice reference and confirmation.** The acknowledgement email carries a "Notice reference" ([#44](https://github.com/spippoli/tart/issues/44)); its format, and whether the on-screen confirmation shows it, are not decided.
-5. **Several Notices on the same content**, a Notice about content that is already withdrawn, and whether a closed Notice can be reopened are not decided.
-6. **Signed-in notifiers.** Whether a Notice sent by a signed-in User is linked to the account (and what that means for the six-month erasure) is not decided.
+2. **Report form target.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): the page path, plus a Revision anchor from `/revisions`; the server resolves a target where it can and accepts any URL. See Notices, Target.
+3. **Moderator pages for Notices and legal actions.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): Notices and Legal actions in the Moderation sub-navigation, apart from the Queue, and one measure form reached from a Notice or a record page. See Notices, Moderator pages.
+4. **Notice reference and confirmation.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): a random `N-XXXX-XXXX` code, shown on the confirmation too. See Notices, Notice reference.
+5. **Several Notices on the same content.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): Notices stay separate and one measure may close several; the *already removed* decision; no reopening. See Notices.
+6. **Signed-in notifiers.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): never linked; only the Email field is prefilled. See Notices.
 7. **Operator as decider.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator has no decision path of its own; whoever decides for it is granted the role and acts as a Moderator. See Notices, Who decides.
 8. **Self-review wording.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): under `false`, a Moderator may close a Notice about their own content with a Withdrawal or Redaction of the reported content, never with no action.
-9. **Ground of a measure.** Whether the "ground in the terms or law" of a statement of reasons is picked from the Notice reasons list, from another list, or written freely is not decided.
+9. **Ground of a measure.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): picked from the Notice reasons vocabulary, with one facts and reasons text shared by the statement and the notifier's decision. See Notices, Closing inputs.
 
 **Withdrawal and Redaction**
 10. **Removing a current value.** Answered by [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95): a Redaction can hide a current value, shown as a placeholder (field) or omitted (item) until a later ordinary edit Submission replaces it. See Redaction.
