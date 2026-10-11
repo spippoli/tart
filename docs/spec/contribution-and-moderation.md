@@ -303,7 +303,7 @@ Edits of every record kind (Artist, Location, Area, Site, Series, Source, Docume
 
 ### Other editors
 
-([Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97); prototype on the throwaway branch [`prototype/97-editor-kinds`](https://github.com/spippoli/tart/tree/prototype/97-editor-kinds))
+([Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97); prototype on the archive tag [`archive/prototype/97-editor-kinds`](https://github.com/spippoli/tart/tree/archive/prototype/97-editor-kinds))
 
 All of them follow the common rules of the Submission form: stepper, autosave, validation on submit, Review and submit last.
 
@@ -607,7 +607,7 @@ Set by [Rome Instance values](https://github.com/spippoli/tart/issues/86), in th
 - **Pages (end-to-end, Playwright with axe)**: each Submission kind from entry point to approval in both UI languages; keyboard-only drawing in crosshair mode; the validation summary and focus; the duplicate warning; the state matrix of acceptance criterion 41.
 - **i18n**: the missing-key check covers every status, step, label, checklist item, and error code of this spec.
 - Test data uses fictional records only, marked as fictional, with no claims about real artworks or artists.
-- Prior art: the throwaway prototype on `prototype/27-submission-form` (`frontend/prototypes/submission-editor.html`) shows the intended editor; it is not a fixture and its copy is placeholder text.
+- Prior art: the throwaway prototype on `archive/prototype/27-submission-form` (`frontend/prototypes/submission-editor.html`) shows the intended editor; it is not a fixture and its copy is placeholder text.
 
 ## Out of Scope
 
