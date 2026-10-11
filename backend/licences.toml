@@ -7,4 +7,8 @@
 # tier = "weak-copyleft"   # an unmodified library, dynamically linked
 # reason = "How TART uses it, and why that fits the tier."
 
-[reviewed]
+[reviewed.certifi]
+licence = "MPL-2.0"
+tier = "weak-copyleft"
+reason = """Mozilla's CA bundle, unmodified; a development dependency \
+(testcontainers, docker, requests) that is not in the api image."""
