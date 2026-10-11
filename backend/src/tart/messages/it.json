@@ -1,4 +1,9 @@
 {
   "decision_reason_duplicate": "Duplicato di un record esistente",
-  "email_subject": "[{archive_name}] {event}"
+  "deleted_user_pseudonym": "Utente eliminato {number}",
+  "email_subject": "[{archive_name}] {event}",
+  "email_sign_in_code_subject": "Il tuo codice di accesso",
+  "email_sign_in_code_body": "Il tuo codice di accesso è:\n\n{code}\n\nVale {minutes} minuti e si può usare una sola volta. Inseriscilo nella pagina in cui l'hai chiesto.\n\nSe non hai chiesto tu questo codice, puoi ignorare questa email: senza il codice nessuno può accedere.",
+  "email_registration_not_open_subject": "Le registrazioni non sono aperte",
+  "email_registration_not_open_body": "Qualcuno ha chiesto di accedere con questo indirizzo email, ma non esiste un account collegato e al momento l'archivio non accetta nuove registrazioni. Non è stato creato nessun account.\n\nSe non l'hai chiesto tu, puoi ignorare questa email."
 }

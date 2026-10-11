@@ -9,11 +9,17 @@ worker passes its services to the jobs through the job context.
 """
 
 import logging
+from datetime import UTC, datetime
 
 from procrastinate import App, JobContext, PsycopgConnector
 from procrastinate.connector import BaseConnector
-from sqlalchemy import make_url
+from sqlalchemy import delete, make_url
+from sqlalchemy.ext.asyncio import AsyncEngine
 
+from tart import rate_limits
+from tart.auth import sessions
+from tart.auth.tables import sign_in_code
+from tart.db import create_engine
 from tart.email import Mailer
 
 SEND_EMAIL = "send_email"
@@ -45,9 +51,22 @@ async def send_email(
 
 
 async def sweep(timestamp: int) -> None:
-    """The hourly cleanup. Later features add its steps: expired rate-limit counters,
-    abandoned uploads, expired drafts."""
+    """The hourly cleanup. Later features add their steps: abandoned uploads, expired drafts."""
     logger.info("hourly sweep (scheduled at %s)", timestamp)
+    engine = create_engine()
+    try:
+        await sweep_database(engine, datetime.now(UTC))
+    finally:
+        await engine.dispose()
+
+
+async def sweep_database(engine: AsyncEngine, now: datetime) -> None:
+    """Delete expired rate-limit counters (and with them the IP addresses they
+    hold), expired one-time codes, and expired sessions."""
+    async with engine.begin() as connection:
+        await rate_limits.delete_expired(connection, now)
+        await connection.execute(delete(sign_in_code).where(sign_in_code.c.expires_at <= now))
+        await sessions.delete_expired(connection, now)
 
 
 def connector_for(database_url: str) -> PsycopgConnector:

@@ -42,6 +42,255 @@
         }
       }
     },
+    "/api/auth/code": {
+      "post": {
+        "summary": "Request Code",
+        "description": "Send a one-time code to the address, or what the address gets instead; the\nanswer never says which addresses have accounts.",
+        "operationId": "request_code_api_auth_code_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Request Code Api Auth Code Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitedError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/code/verify": {
+      "post": {
+        "summary": "Verify Code",
+        "description": "Check the code: sign in, ask for the registration step (send it again with the\ncode and `registration`), or refuse with an error code.",
+        "operationId": "verify_code_api_auth_code_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeAttemptBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Verified"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "summary": "Session",
+        "description": "The signed-in User, or null; the frontend's server asks on every page.",
+        "operationId": "session_api_auth_session_get",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sign-out": {
+      "post": {
+        "summary": "Sign Out",
+        "description": "End this session.",
+        "operationId": "sign_out_api_auth_sign_out_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sign-out-everywhere": {
+      "post": {
+        "summary": "Sign Out Everywhere",
+        "description": "End every session of the signed-in User, this one included.",
+        "operationId": "sign_out_everywhere_api_auth_sign_out_everywhere_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/map/style/{theme}.json": {
       "get": {
         "summary": "Map Style",
@@ -146,6 +395,62 @@
         ],
         "title": "Attribution"
       },
+      "CodeAttemptBody": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegistrationBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "code",
+          "language"
+        ],
+        "title": "CodeAttemptBody"
+      },
+      "CodeRequestBody": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "website": {
+            "type": "string",
+            "title": "Website",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "language"
+        ],
+        "title": "CodeRequestBody"
+      },
       "Contacts": {
         "properties": {
           "general": {
@@ -206,6 +511,19 @@
           "zoom"
         ],
         "title": "DefaultView"
+      },
+      "Error": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "Error"
       },
       "Geography": {
         "properties": {
@@ -437,6 +755,90 @@
         ],
         "title": "PublicConfiguration"
       },
+      "RateLimitedError": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "rate_limited",
+            "title": "Code"
+          },
+          "retry_after": {
+            "type": "integer",
+            "title": "Retry After"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "retry_after"
+        ],
+        "title": "RateLimitedError"
+      },
+      "RegistrationBody": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "age_confirmed": {
+            "type": "boolean",
+            "title": "Age Confirmed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "age_confirmed"
+        ],
+        "title": "RegistrationBody"
+      },
+      "SessionState": {
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedInUser"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user"
+        ],
+        "title": "SessionState"
+      },
+      "SignedInUser": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "preferred_language": {
+            "type": "string",
+            "title": "Preferred Language"
+          },
+          "moderator": {
+            "type": "boolean",
+            "title": "Moderator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "display_name",
+          "preferred_language",
+          "moderator"
+        ],
+        "title": "SignedInUser"
+      },
       "Texts": {
         "properties": {
           "about": {
@@ -531,6 +933,23 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "Verified": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "signed_in",
+              "registration_required"
+            ],
+            "title": "Outcome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "Verified"
       },
       "Vocabularies": {
         "properties": {
