@@ -18,7 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, UI language, Content language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Purge, Notice.
 
-**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge), and [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (retry policy, digest hour, the Notice received cap, the Suspension and "registration is not open" emails).
+**Decision tickets incorporated**: [Notifications](https://github.com/spippoli/tart/issues/44) (the whole of this spec's content), and, for the parts that shape emails, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (statuses, Outdated, Decision message), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (Notice acknowledgement, statements of reasons, contesting by email), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19) (Art. 16 and 17 elements, as background), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (`self_approval`, Moderator anonymity, Invitation email), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (visibility of failed emails), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (the DSA contact as `Reply-To`), and [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (Notice received recipients, digest contents), and [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the statement of reasons for a Purge), and [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (retry policy, digest hour, the Notice received cap, the Suspension and "registration is not open" emails), and [Notice handling details](https://github.com/spippoli/tart/issues/94) (the redress block, the Notice reference and short reason, New Submission content, deleted recipients, email wording as implementation).
 
 ## Problem Statement
 
@@ -72,6 +72,8 @@ Domain actions in the Contribution and moderation and the Rights and legal actio
 23. As an Operator, I want a final delivery failure logged, so that I can see when people are not being reached.
 24. As a Moderator, I want a burst of Notices to arrive as at most ten emails an hour plus one summary, so that a flood of reports does not bury my inbox while every Notice still reaches the queue.
 25. As a suspended User, I want an email with the reason and how to contest it, so that I am not cut off without an explanation.
+26. As a notifier, I want the decision email to carry my Notice reference and the same redress routes as every other legal email, so that I can match it to my report and know my options.
+27. As a Moderator receiving one email per Submission, I want each email to say what kind of change arrived, on which record, and how many are waiting, so that I can triage from my inbox.
 
 ## Implementation Decisions
 
@@ -115,7 +117,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 |---|---|---|---|---|
 | Notice received | A Notice is sent | Every Moderator, including one whose own content is reported; never the Operator | Mandatory; immediate up to the hourly cap, never in the digest | The Notice reason, the reported URL, a link to the Notice page |
 | Notices summary | The hourly cap of Notice received was reached for a Moderator in the hour that ends | That Moderator | Mandatory | The number of Notices not emailed one by one, and a link to the Notice queue |
-| New Submission | A Submission is submitted or resubmitted | Every Moderator whose mode is *one email per Submission* | Optional (Submission email mode) | A summary and a link to the Submission page (exact content: Open item 8) |
+| New Submission | A Submission is submitted or resubmitted | Every Moderator whose mode is *one email per Submission* | Optional (Submission email mode) | The derived kind; the record's current name, or "new" plus the kind for a record not yet approved (never a proposed name); new or resubmitted; a link to the Submission page; the number of pending Submissions that Moderator may decide, counted as in the digest. No Submitter name and no note to Moderators ([Notice handling details](https://github.com/spippoli/tart/issues/94)) |
 | Moderator digest | Daily, see [Moderator digest](#moderator-digest) | Every Moderator whose mode is *digest* | Optional (Submission email mode) | Pending count, the new Submissions (kind, record, link), the oldest one waiting |
 
 - Notice received is always sent and cannot be turned off or moved into the digest, for the Art. 16 timing ([#19](https://github.com/spippoli/tart/issues/19)).
@@ -126,8 +128,8 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 
 | Email | Trigger | Recipient | Opt-out | Content |
 |---|---|---|---|---|
-| Notice acknowledgement | A Notice is sent with an email address | The notifier | Mandatory | The Notice reference; a copy of the reason, URL, and explanation; that the decision will follow by email |
-| Notice decision | The Notice is closed | The notifier, if they gave an email | Mandatory | The decision (Withdrawal, Redaction, or no action), a short reason, and redress: email reply, out-of-court settlement, courts |
+| Notice acknowledgement | A Notice is sent with an email address | The notifier | Mandatory | The Notice reference (`N-XXXX-XXXX`, [Rights and legal actions](rights-and-legal-actions.md#2-notices)); a copy of the reason, URL, and explanation; that the decision will follow by email |
+| Notice decision | The Notice is closed | The notifier, if they gave an email | Mandatory | The decision (Withdrawal, Redaction, no action, or already removed); the Notice reference; the short reason, which is the Moderator's facts and reasons text (none for already removed); the redress block ([Notice handling details](https://github.com/spippoli/tart/issues/94)) |
 | Statement of reasons | A Withdrawal, Redaction, Reinstatement, or Purge is performed, or a Submission is rejected | The affected Submitters (for a Purge, those of the purged measure) | Mandatory | See [Statement of reasons](#statement-of-reasons) |
 
 - The rejection email of the Submitter table *is* the statement of reasons for a rejection; it is one email, not two.
@@ -144,7 +146,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 | Sign-in code | A code is requested | The email address entered | Mandatory | [Foundations](foundations.md) ([ADR 0005](../adr/0005-passwordless-in-app-auth.md)) |
 | Invitation | A Moderator issues an Invitation in the Moderation area, or the Operator runs `tart invites create <email>` | The invited address | Mandatory | Contribution and moderation ([#43](https://github.com/spippoli/tart/issues/43)) |
 | Registration not open | A code is requested, under `invite` or `closed`, for an address that may not register | The email address entered, in the sign-in page's UI language | Mandatory | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)) |
-| Suspension | The Operator runs `tart users suspend` | The suspended User | Mandatory; `Reply-To` is `contacts.dsa`, so a reply contests the Suspension | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)); carries the reason given to the command |
+| Suspension | The Operator runs `tart users suspend` | The suspended User | Mandatory; `Reply-To` is `contacts.dsa`, so a reply contests the Suspension | [Foundations](foundations.md#2-authentication-and-sessions) ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)); carries the reason given to the command and the redress block |
 
 Under `registration = invite` the Invitation link can also be copied by the issuing Moderator ([#43](https://github.com/spippoli/tart/issues/43)); the email is sent regardless.
 
@@ -157,15 +159,17 @@ Sent for every Withdrawal, Redaction, Reinstatement, Purge, and Submission rejec
 3. whether it followed a Notice or was taken on the Instance's own initiative;
 4. the ground in the terms of use or the law;
 5. that no automated means were used (never, in the MVP);
-6. redress, starting with replying to the email.
+6. redress: the redress block.
 
-For a rejection, the Decision message (a configured reason plus free text, [#5](https://github.com/spippoli/tart/issues/5)) supplies the facts and ground. For Withdrawal, Redaction, and Reinstatement, the inputs are captured by the Moderator as specified in Rights and legal actions; for a Purge, by the Operator CLI's `--ground` (never its `--reference`). This spec renders them.
+For a rejection, the Decision message (a configured reason plus free text, [#5](https://github.com/spippoli/tart/issues/5)) supplies the facts and ground. For Withdrawal and Redaction, the ground (a Notice reason) and the facts and reasons text are captured on the measure form, and for a Reinstatement the facts and reasons text, as specified in [Rights and legal actions](rights-and-legal-actions.md#2-notices); for a Purge, by the Operator CLI's `--ground` (never its `--reference`). This spec renders them.
+
+**Redress block** ([Notice handling details](https://github.com/spippoli/tart/issues/94)). Every legal email (statements of reasons, the Notice decision, Suspension) ends with the same platform text: contest by replying to this email, which reaches `contacts.dsa`, or go to court. Out-of-court settlement is not mentioned: DSA Art. 21 is an online-platform duty that small Instances are exempt from, and Art. 17(3)(f) asks for redress routes only where applicable. The text is a catalogue string, not configuration. ⚖️ legal review.
 
 ### Recipient rules
 
 - **Performer rule.** No email goes to the person who performed the action. For example, a Moderator approving their own Submission under `self_approval = true` gets no Approved email; a Moderator submitting a Submission gets no New Submission email for it.
 - **Moderator anonymity.** Emails never name the Moderator; they say "a Moderator" ([#43](https://github.com/spippoli/tart/issues/43)).
-- **No address, no email.** A User whose account was deleted has no email address ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)); nothing is sent to them.
+- **No address, no email.** A User whose account was deleted has no email address ([ADR 0013](../adr/0013-hide-not-delete-for-legal-removals.md)); nothing is sent to them. A statement of reasons due to such a User is recorded as not sent in the legal action log, and its Submission log entry is still written; nothing else is done, since DSA Art. 17(2) applies the duty only where contact details are known ([Notice handling details](https://github.com/spippoli/tart/issues/94)). ⚖️ legal review.
 - **Digest and self-approval.** A Moderator's digest counts the Submissions that Moderator may decide: with `self_approval = false` it leaves out their own, with `true` it counts them. Their own Submissions are never listed as new, by the performer rule ([#93](https://github.com/spippoli/tart/issues/93)).
 - **Notices about a Moderator's content.** The rule that a Submitter learns nothing before a measure applies to Submitters as such; a Moderator whose content is reported receives Notice received like every other Moderator. The Operator is not a recipient: with no Moderator, nobody receives it, and the configuration warning in Foundations flags that state.
 
@@ -203,6 +207,7 @@ Per [ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)
 
 - **Format**: multipart, plain text plus minimal HTML. No remote images, tracking pixels, or tracked links.
 - **Sender**: the From name is the archive name in the Content language; the From address comes from the SMTP environment settings.
+- **Subjects and wording** ([Notice handling details](https://github.com/spippoli/tart/issues/94)): every subject reads `[<archive name>] <event>`, short, with no Submission content and no person's name. A statement of reasons gives the six elements in order, each under its own heading; the Notice decision gives the decision, the short reason, the Notice reference, and the redress block. The wording of every subject and body is an implementation task: catalogue strings in every platform UI language, without invented legal formulas. The legal texts and the redress block need legal review before launch ([Operations and portability](operations-and-portability.md#9-operator-compliance-checklist), checklist item 3). ⚖️
 - **Content**: each email summarises the event and links to its page; it does not copy Submission content or files. The Notice acknowledgement is the one exception: it echoes the notifier's own input.
 - **Reply-To**: the Operator's DSA contact on legal emails ([Legal emails](#email-catalogue)).
 - **Delivery**: the `worker` sends with bounded retries and backoff ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)):
@@ -222,6 +227,7 @@ A good test drives a module through its external interface and asserts observabl
 - **Delivery (integration)**: a failing SMTP adapter triggers bounded retries and, after the last, a logged failure; Mailpit for manual checks in development.
 - **End to end (Playwright with axe)**: the Account-page notification settings in both UI languages, keyboard-only, with the Moderator mode shown only to Moderators.
 - **i18n**: the backend catalogue's missing-key check covers every email string.
+- **Rendering**: each email renders in every platform UI language and contains its required elements (the subject pattern, the six headed elements of a statement, the redress block); tests never assert exact wording.
 
 ## Acceptance criteria
 
@@ -241,7 +247,7 @@ A good test drives a module through its external interface and asserts observabl
 
 **Legal emails**
 11. A Notice with an email address gets an immediate acknowledgement with the Notice reference and a copy of the reason, URL, and explanation; a Notice without one gets none.
-12. Closing a Notice sends the notifier (if they gave an email) the decision, a short reason, and redress (email reply, out-of-court settlement, courts).
+12. Closing a Notice sends the notifier (if they gave an email) the decision, the Notice reference, the short reason (none for already removed), and the redress block.
 13. A Withdrawal, Redaction, Reinstatement, or Purge sends every affected Submitter, as defined in ADR 0013 (for a Purge, those of the purged measure), a statement of reasons with all six elements.
 14. No email goes to a Submitter when a Notice about their content arrives; no email goes to a notifier on a later Reinstatement.
 15. Every legal email has `Reply-To` set to `contacts.dsa`.
@@ -271,6 +277,13 @@ A good test drives a module through its external interface and asserts observabl
 29. A code request under `invite` or `closed` for an address that may not register sends Registration not open, in the sign-in page's UI language, and no code.
 30. `tart users suspend <email> --reason <text>` sends the User a Suspension email carrying the reason, with `Reply-To` set to `contacts.dsa`; `tart users unsuspend` sends nothing.
 31. The Moderator digest is sent at 08:00 in `geography.time_zone`.
+
+**Notice handling and wording** ([Notice handling details](https://github.com/spippoli/tart/issues/94))
+
+32. A New Submission email gives the derived kind, the record's current name or "new" plus the kind, whether it is new or resubmitted, the link, and the pending count, and never the Submitter's name, the note to Moderators, or a proposed name.
+33. Every legal email, the Suspension email included, ends with the same redress block, naming an email reply and the courts and not out-of-court settlement.
+34. A statement of reasons due to a deleted account sends nothing and is recorded as not sent.
+35. Every subject reads `[<archive name>] <event>` with no Submission content or person's name; every statement of reasons gives the six elements in order, each under a heading.
 
 ## Instance configuration
 
@@ -315,14 +328,14 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 1. **Notice about a Moderator's own content.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): that Moderator receives Notice received like every Moderator; see Recipient rules.
 2. **No Moderator, or Operator escalation.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator receives no Notice received and has no decision path of its own; with no Moderator the Notice waits, and startup warns.
 3. **Own Submissions under `self_approval = true`.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): they count in the pending count and the oldest waiting, but are never listed as new and never trigger a digest; see Moderator digest.
-4. **Statements of reasons to deleted accounts.** A deleted User has no address, so an affected Submitter whose account was deleted receives no statement of reasons. Whether the Art. 17 duty needs any other handling in that case is not decided (and ties to the legal-review item on "affected recipients", [#19](https://github.com/spippoli/tart/issues/19) item 5).
+4. **Statements of reasons to deleted accounts.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): nothing else is sent; the legal action log records the statement as not sent, and the Submission log entry is written; ⚖️ legal review of the Art. 17(2) reading. See Recipient rules.
 
 **Content**
-5. **Redress text in statements of reasons.** The notifier's decision email lists email reply, out-of-court settlement, and courts. For statements of reasons the decisions say "redress" and "contesting by email reply" only; whether they list the same three routes is not decided. Out-of-court settlement under DSA Art. 21 is an online-platform duty that small Instances may be exempt from ([#19](https://github.com/spippoli/tart/issues/19)); legal review applies.
-6. **Notice decision "short reason".** Whether it is the same text as the ground in the Submitters' statement of reasons, a separate Moderator input, or a configured label is not decided; Rights and legal actions owns the inputs.
-7. **Notice reference.** The acknowledgement carries "the Notice reference"; its format (for example the Notice identifier) is not decided.
-8. **Per-Submission email content.** The digest lists kind, record, and link; the decisions do not detail the *one email per Submission* content beyond the general rule (summarise and link). Whether it carries the same three items is not decided.
-9. **Email subjects and wording.** No decision fixes subjects or body wording; they are catalogue strings to be written, in every platform UI language, without inventing legal text that needs review.
+5. **Redress text in statements of reasons.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): one redress block in every legal email, email reply and courts, without out-of-court settlement; ⚖️ legal review. See Statement of reasons.
+6. **Notice decision "short reason".** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): the Moderator's facts and reasons text, the same as element 2 of the Submitters' statement; see [Rights and legal actions](rights-and-legal-actions.md#2-notices).
+7. **Notice reference.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): a random `N-XXXX-XXXX` code, separate from the Notice id; see [Rights and legal actions](rights-and-legal-actions.md#2-notices).
+8. **Per-Submission email content.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): kind, record name, new or resubmitted, link, and the pending count; see [Email catalogue](#email-catalogue).
+9. **Email subjects and wording.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): implementation detail, within the subject pattern and the fixed structure of legal emails, with legal review of the legal texts before launch; see [Form and delivery](#form-and-delivery).
 
 **Configuration**
 10. **Legal contact.** Answered by [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85): `Reply-To` is the DSA contact, `contacts.dsa`; there is no separate legal contact key.
@@ -335,7 +348,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 
 **Interactions with other specs**
 15. **Email address change.** Whether changing the Account email sends a confirmation code to the new address is [Foundations open item 16](foundations.md#open-items); if so, it is a further mandatory email.
-16. **Notice page route.** Notice received links to "the Notice page"; that Moderator page and its route belong to Rights and legal actions and are not in the [#15](https://github.com/spippoli/tart/issues/15) route table.
+16. **Notice page route.** Answered by [Notice handling details](https://github.com/spippoli/tart/issues/94): `/it/moderazione/segnalazioni/{id}` (`/en/moderation/notices/{id}`); see [Rights and legal actions](rights-and-legal-actions.md#2-notices).
 
 ### Notes
 

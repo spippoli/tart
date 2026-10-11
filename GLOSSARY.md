@@ -257,5 +257,5 @@ The content-free list of every Purge, account deletion, and Creator credit anony
 _Avoid_: Deletion log, Purge log
 
 **Notice**:
-A report, from anyone and without an account, that a public Archive record or Documentation item is unlawful or infringes someone's rights; it is closed by a decision of Withdrawal, Redaction, or no action.
+A report, from anyone and without an account, that a public Archive record or Documentation item is unlawful or infringes someone's rights; it is closed by a decision of Withdrawal, Redaction, or no action, or by pointing to an existing Withdrawal or Redaction that already covers it.
 _Avoid_: Flag, complaint, takedown request
