@@ -1,18 +1,28 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from importlib.metadata import version
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
-from tart.migrations import ensure_database_at_head
+from tart.config.public import PublicConfiguration, public_configuration
+from tart.startup import start
 
 
 @asynccontextmanager
-async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
-    # Refuse to start on a database the code does not match; never migrate here (ADR 0020).
-    await ensure_database_at_head()
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Load the configuration once, and refuse to start on an invalid one or on a database
+    # the code does not match; never migrate here (ADR 0020). There is no hot reload.
+    configuration = await start()
+    app.state.configuration = configuration
+    app.state.public_configuration = public_configuration(configuration.instance)
     yield
+
+
+def get_public_configuration(request: Request) -> PublicConfiguration:
+    """The public subset of the configuration loaded at startup."""
+    return request.app.state.public_configuration
 
 
 def create_app() -> FastAPI:
@@ -30,5 +40,12 @@ def create_app() -> FastAPI:
     def health() -> str:
         # Liveness only; the Health module (Operations spec) adds the checks.
         return "ok"
+
+    @app.get("/api/config")
+    def config(
+        public: Annotated[PublicConfiguration, Depends(get_public_configuration)],
+    ) -> PublicConfiguration:
+        """The public subset of the Instance configuration, which the frontend caches."""
+        return public
 
     return app

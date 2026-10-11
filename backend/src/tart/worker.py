@@ -8,14 +8,17 @@ import asyncio
 import signal
 import sys
 
-from tart.migrations import RevisionMismatchError, ensure_database_at_head
+from tart.config import ConfigurationError
+from tart.migrations import RevisionMismatchError
+from tart.startup import start
 
 
 def main() -> None:
-    # Refuse to start on a database the code does not match; never migrate here (ADR 0020).
+    # Refuse to start on an invalid configuration or on a database the code does not
+    # match; never migrate here (ADR 0020).
     try:
-        asyncio.run(ensure_database_at_head())
-    except RevisionMismatchError as error:
+        asyncio.run(start())
+    except (ConfigurationError, RevisionMismatchError) as error:
         sys.exit(f"worker: {error}")
 
     stop_signals = {signal.SIGINT, signal.SIGTERM}
