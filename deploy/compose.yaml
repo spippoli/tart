@@ -50,6 +50,10 @@ services:
     restart: unless-stopped
     environment:
       ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
+      # The frontend server reads the public Instance configuration from `api`.
+      API_URL: http://api:8000
+    depends_on:
+      - api
 
   api:
     image: *api-image
