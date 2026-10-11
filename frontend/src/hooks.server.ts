@@ -1,10 +1,65 @@
-import { createApiClient } from './lib/api/client';
-import { createContentSecurityPolicyHandle } from './lib/server/content-security-policy';
-import { createInstanceConfigReader } from './lib/server/instance-config';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { sequence, type Handle } from '@sveltejs/kit/hooks';
+import { chooseLanguage, LANGUAGE_COOKIE, textDirection } from '#lib/i18n/language.ts';
+import { readInstanceConfig } from '#lib/server/config.ts';
+import { createContentSecurityPolicyHandle } from '#lib/server/content-security-policy.ts';
+import {
+	isLocale,
+	localizeHref,
+	overwriteServerAsyncLocalStorage,
+	type Locale
+} from '#lib/paraglide/runtime.js';
 
-/** Where the server side reaches the API: the `api` service of the Compose stack by default. */
-const apiUrl = process.env.API_URL || 'http://api:8000';
+type Store = { locale?: Locale; origin?: string; messageCalls?: Set<string> };
 
-const readInstanceConfig = createInstanceConfigReader(createApiClient({ baseUrl: apiUrl }));
+// Paraglide reads the UI language of the request being rendered from here.
+const requestStore = new AsyncLocalStorage<Store>();
+overwriteServerAsyncLocalStorage(requestStore);
 
-export const handle = createContentSecurityPolicyHandle(readInstanceConfig);
+/**
+ * Resolves the UI language of every request (ADR 0008): only `/` redirects, by
+ * cookie, then `Accept-Language`, then the Instance default; every other URL
+ * names its language in its prefix, and a prefix that is not an enabled UI
+ * language makes the page answer 404, rendered in the Instance default.
+ */
+const resolveLanguage: Handle = async ({ event, resolve }) => {
+	const config = await readInstanceConfig();
+	const enabled = config.languages.ui.filter(isLocale);
+	const defaultLocale = enabled[0];
+	const origin = event.url.origin;
+
+	if (event.url.pathname === '/') {
+		const language = chooseLanguage({
+			cookie: event.cookies.get(LANGUAGE_COOKIE),
+			acceptLanguage: event.request.headers.get('accept-language'),
+			enabled
+		}) as Locale;
+		const location = requestStore.run({ locale: language, origin }, () =>
+			localizeHref('/', { locale: language })
+		);
+		return new Response(null, {
+			status: 302,
+			headers: { location: location + event.url.search, vary: 'Cookie, Accept-Language' }
+		});
+	}
+
+	const prefix = event.url.pathname.split('/')[1];
+	const languageEnabled = (enabled as string[]).includes(prefix);
+	const locale = languageEnabled ? (prefix as Locale) : defaultLocale;
+	event.locals.config = config;
+	event.locals.locale = locale;
+	event.locals.languageEnabled = languageEnabled;
+
+	return requestStore.run({ locale, origin, messageCalls: new Set() }, () =>
+		resolve(event, {
+			transformPageChunk: ({ html }) =>
+				html.replace('%tart.lang%', locale).replace('%tart.dir%', textDirection(locale))
+		})
+	);
+};
+
+/** Every response carries the Content-Security-Policy, with the external map tile origins. */
+export const handle = sequence(
+	createContentSecurityPolicyHandle(readInstanceConfig),
+	resolveLanguage
+);

@@ -58,7 +58,7 @@ Frontend (run in `frontend/`):
 
 ```sh
 pnpm install
-pnpm dev                   # dev server (API_URL=http://localhost:8000 to reach a local API; default http://api:8000)
+pnpm dev                   # dev server
 pnpm lint                  # prettier --check and eslint
 pnpm format                # prettier --write
 pnpm check                 # svelte-check (type checking)
