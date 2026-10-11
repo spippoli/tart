@@ -46,6 +46,7 @@ uv run tart migrate        # apply migrations to the database at DATABASE_URL
 uv run tart config check   # validate the configuration directory at CONFIG_DIR (default /config)
 uv run tart config check --database   # also the checks against the database at DATABASE_URL
 uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabulary`), for editors
+uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
@@ -95,6 +96,7 @@ Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls t
 docker compose up --build              # caddy, frontend, api, worker, db
 docker compose run --rm api tart migrate   # first start and after pulling migrations
 docker compose run --rm api tart config check --database   # before a deploy
+docker compose run --rm api tart tiles update   # at installation and after a boundary change; Caddy serves /tiles/
 docker compose --profile dev up --build   # also Mailpit, UI on :8025
 docker compose down                    # add -v to drop the volumes
 ```

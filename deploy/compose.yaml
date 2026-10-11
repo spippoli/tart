@@ -41,6 +41,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+      - tiles-data:/srv/tiles:ro
     depends_on:
       - frontend
       - api
@@ -57,6 +58,8 @@ services:
     environment: *api-environment
     volumes:
       - *config-volume
+      # Basemap extracts (PMTILES_PATH): `tart tiles update` writes them, Caddy serves them.
+      - tiles-data:/data/tiles
     depends_on:
       db:
         condition: service_healthy
@@ -91,3 +94,4 @@ volumes:
   caddy-data:
   caddy-config:
   db-data:
+  tiles-data:
