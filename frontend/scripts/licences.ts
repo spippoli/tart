@@ -3,6 +3,9 @@
  *
  *     node scripts/licences.ts    (pnpm check:licences)
  *
+ * The JavaScript packages outside `frontend/` (the `release/` CI tools) reuse
+ * this check on their own directory and their own `licences.json`.
+ *
  * Permissive licences are allowed for any package. Everything else needs a
  * reviewed entry in `licences.json` that records the exact licence:
  * - `weak-copyleft`: an unmodified library, which a person has to judge;
@@ -119,10 +122,13 @@ export function violations(
 	return found;
 }
 
-/** Every installed package, development tools included, as `pnpm licenses` reports it. */
-export function installedDependencies(): Dependency[] {
+const frontendDir = new URL('..', import.meta.url);
+
+/** Every installed package of the pnpm package in `packageDir`, development tools
+ * included, as `pnpm licenses` reports it. */
+export function installedDependencies(packageDir: URL = frontendDir): Dependency[] {
 	const output = execFileSync('pnpm', ['licenses', 'list', '--json'], {
-		cwd: new URL('..', import.meta.url),
+		cwd: packageDir,
 		encoding: 'utf8',
 		maxBuffer: 64 * 1024 * 1024
 	});
@@ -134,8 +140,9 @@ export function installedDependencies(): Dependency[] {
 	);
 }
 
-export function loadReviewed(): Record<string, Reviewed> {
-	const policy = JSON.parse(readFileSync(new URL('../licences.json', import.meta.url), 'utf8'));
+/** The reviewed packages of the `licences.json` in `packageDir`. */
+export function loadReviewed(packageDir: URL = frontendDir): Record<string, Reviewed> {
+	const policy = JSON.parse(readFileSync(new URL('licences.json', packageDir), 'utf8'));
 	return policy.reviewed;
 }
 
