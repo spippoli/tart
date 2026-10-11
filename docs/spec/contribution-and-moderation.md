@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Content language, UI language, User, Invitation, Moderator, Submitter, Submission, Submission status, Changes requested, Retraction, Base revision, Outdated, Submission log, Decision message, Moderation note, Moderator digest, Archive record, Revision, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Notice, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Condition group, History event, Condition record, Creation event, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (terms version and when acceptance is asked, the reserved `duplicate` reason, key names), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, self-review scope, role-count warnings). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger, [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the edit form for a redacted current value), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (alt text collected in the Documentation step).
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3) (Submission targets), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4) (validation), [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (upload rights fields, terms, screening), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (hub, Submission page, queue, routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17) (proposal preview), [Submission form flow](https://github.com/spippoli/tart/issues/27), [Duplicate detection and Merge](https://github.com/spippoli/tart/issues/42), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43), [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40) (Location step entry modes and the step without WebGL2). [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event type groups, Uncertain date input, Location correction), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (terms version and when acceptance is asked, the reserved `duplicate` reason, key names), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, self-review scope, role-count warnings). [Notifications](https://github.com/spippoli/tart/issues/44) is cited only for the emails that lifecycle transitions trigger, [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (the edit form for a redacted current value), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (alt text collected in the Documentation step), [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) (primary targets, inline Sites, Series and Sources, the remaining editors, file and geometry comparison).
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, authentication and sessions, media pipeline, i18n shell, Operator CLI), [Archive records](archive-records.md) (record model, the archive write operation, Revisions, pending-content display on record pages), and Discovery (the map module, used by the Location step and the Submission page).
 
@@ -140,7 +140,17 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 
 ### Submission model
 
-- A Submission has one **primary target**: a new or existing Artwork, Artist, Location, Site, Series, or Area ([#3](https://github.com/spippoli/tart/issues/3)). It may create new related records (including Sources and Documentation items) and link existing ones. Sources and Documentation items are Archive records editable through Submissions ([#5](https://github.com/spippoli/tart/issues/5)); see open item 3.
+- A Submission has one **primary target** ([#3](https://github.com/spippoli/tart/issues/3), [#5](https://github.com/spippoli/tart/issues/5), [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97)):
+
+  | Record kind | Create as primary target | Edit as primary target |
+  |---|---|---|
+  | Artwork, Artist, Location, Area | Yes | Yes |
+  | Site | No: created only inline, from a Location's Site field | Yes |
+  | Series | No: created only inline, from an Artwork's Series field | Yes |
+  | Source | No: created only inline, from a citation picker | Yes |
+  | Documentation item | No: created only within a Submission on an Artwork | Yes |
+
+  It may create new related records and link existing ones. A Site, Series, or Source never exists without the record that created it in the same Submission.
 - A Submission never edits a second existing record and never references a record that exists only in another pending Submission (ADR 0007). Merge, Duplicate retirement and Unmerge are the one exception (ADR 0018).
 - **Create** Submissions have no Base revision; the changeset is the whole new record and its related records. **Edit** Submissions store the Base revision and a changeset of operations: set a field, or add, change, or remove an item (Attribution, History event, link to a Source or Documentation item) (ADR 0007). A Merge stores two Base revisions (ADR 0018).
 - There is one Submission model. Its **kind** is derived, never chosen: target kind × create | edit, plus Merge, Duplicate retirement, and Unmerge. It also carries computed **labels**: adds documentation, adds History event, changes Attribution, changes Condition ([#5](https://github.com/spippoli/tart/issues/5)). Journeys B, C, and D are entry points onto this one structure.
@@ -193,11 +203,17 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 
 | Kind | Steps |
 |---|---|
-| New Artwork | Location → Documentation → The Artwork (title or explicit *Untitled*, Expression types, description) → Attribution → Creation date (optional) → Sources → Review and submit |
+| New Artwork | Location → Documentation → The Artwork (title or explicit *Untitled*, Expression types, description, Series) → Attribution → Creation date (optional) → Sources → Review and submit |
 | Edit | What changes (per field: *Edit* reveals current vs proposed; item-level for Attributions) → Supporting Sources → Review and submit |
 | Add documentation | Documentation → "Does it show a change?" (optionally adds a History event citing the new files) → Sources → Review and submit |
 | History event (including disappearance) | Event type (grouped as below), Observed date, optional covering Artwork (existing or created inline) → Evidence (files and Sources, with a live Evidence level readout, *reported* if none) → Review and submit |
 | New Artist | Public identity (artist name only, individual or collective, Aliases, biography) → Activity (Uncertain-date period, Areas, Crew memberships) → Sources → Review and submit |
+| New Area | Name and description → Polygon → Sources → Review and submit |
+| Merge | Which records → Reconcile → References to rewrite → Review and submit |
+| Duplicate retirement | Which items → Review and submit |
+| Unmerge | What is separated → References → Review and submit |
+
+Edits of every record kind (Artist, Location, Area, Site, Series, Source, Documentation item included) use the Edit row; see [Other editors](#other-editors).
 
 - An edit may change the Artwork's Location only to correct wrong data; it creates no History event. A detached or moved piece is reported as a `removed` event, with the note saying where it went. Editing a Location's geometry is a separate Submission on that Location ([#27](https://github.com/spippoli/tart/issues/27)).
 - **History event type groups** ([History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89)), each type with a one-line description (a translated UI string; for `removed`: "taken away or detached from its surface; if it was moved elsewhere, say so in the note"):
@@ -211,10 +227,10 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 
 - When a current value is hidden by a Redaction, the edit form shows the "removed for legal reasons" placeholder as the current value and never pre-fills the redacted value; setting the field replaces it as any edit does (Rights and legal actions, [#95](https://github.com/spippoli/tart/issues/95)).
 - The Artwork page's "Report a condition change" action opens the History event step with the first three groups only; "Other facts" is reached from "Propose an edit".
-- The steps of the other kinds (new Site, Area, Series, or Source; Location geometry edits; Merge, Duplicate retirement, Unmerge) are open item 3.
+- The other kinds are specified under [Other editors](#other-editors).
 - Values from a `retired` vocabulary entry are not selectable in new Submissions (ADR 0009).
 
-**Entry points** ([#15](https://github.com/spippoli/tart/issues/15)): new Artworks from the Contribute hub; edits, documentation, and History events (including disappearance) from record pages; a new Artist from the Artists page or inline within a Submission; a Merge from a record page ("report as duplicate of…") or the form ([#42](https://github.com/spippoli/tart/issues/42)).
+**Entry points** ([#15](https://github.com/spippoli/tart/issues/15)): new Artworks from the Contribute hub; edits, documentation, and History events (including disappearance) from record pages; a new Artist from the Artists page or inline within a Submission; a new Area from the Areas page; a Merge from a record page ("report as duplicate of…") or the form ([#42](https://github.com/spippoli/tart/issues/42)); a Duplicate retirement from a Documentation item page ("report as duplicate of…"); an Unmerge from the "merged into" notice on X's `/revisions` or from Y's Merge Revision ([Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97)).
 
 **Location step** ([#27](https://github.com/spippoli/tart/issues/27)):
 
@@ -253,6 +269,42 @@ Moderator is the only User role, granted by the Operator from the CLI. Whether a
 
 - Every rule of the Archive records model: required fields, the boundary and self-intersection checks, the uncertainty radius on approximate points only, an image showing a single Location, `confirmed` with a citation, at least one Documentation item on a new Artwork, the required initial Condition record ([Archive records](archive-records.md)).
 - The related-record rule of ADR 0007 and, for Merge, the merged result's validity and the Artist rules of ADR 0018 (self- or duplicate Crew memberships fail).
+
+### Other editors
+
+([Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97); prototype on the throwaway branch [`prototype/97-editor-kinds`](https://github.com/spippoli/tart/tree/prototype/97-editor-kinds))
+
+All of them follow the common rules of the Submission form: stepper, autosave, validation on submit, Review and submit last.
+
+**Inline creation of Sites, Series, and Sources.** No Submission edits a second existing record (ADR 0007), so membership is edited only on the side that holds it:
+
+- **Site**: membership is the Location's Site field. The Site field of the Location step and of a Location edit offers "Create new Site" (name with the name-rule warning, optional description, Sources); the new Site's first member is that Location. Other Locations join through their own edits. A Site edit changes name, description, and Sources; its Locations are listed read-only with the hint that a Location joins or leaves through its own edit.
+- **Series**: membership is the Artwork's Series field (zero or more). The Artwork step of a new Artwork and an Artwork edit offer it, with "Create new Series" inline; the new Series' first member is that Artwork. A Series edit changes name, description, and Sources; its Artworks are listed read-only.
+- **Source**: created only from a citation picker ("Create new Source", with the URL and name rules of Duplicate detection). A Source edit changes its fields and reaches every citation without touching the citing records.
+
+**New Area**: the Polygon step reuses the Location step's drawing tool restricted to a polygon (clicks, crosshair mode, *Undo last vertex*, *Done* at 3 or more vertices; self-intersection and the Instance boundary are rejected). A text readout, announced to assistive technology, gives the vertex count, the number of Locations falling within, and the existing Areas it overlaps; overlaps are allowed. There is no coordinates entry and no "start from an existing Area". Without WebGL2 the step explains that drawing an Area needs the map. Areas of activity on an Artist are chosen among existing Areas only.
+
+**Location and Area edits**: the generic What changes step. The Geometry row's *Edit* opens the drawing tool with the current geometry shown as a grey solid outline and the proposal hatched with a dashed outline (ADR 0015), its vertices editable. The Location edit also carries Approximate and uncertainty radius, Surface type, Site, and Place description. Two notices:
+
+- always, on a Location: "This Location carries N Artworks: the change applies to all of them. If one Artwork is on another surface, correct that Artwork's Location instead";
+- when the proposed geometry falls within the proximity rule of another Location: "If it is the same surface, propose a Merge", linking the Merge editor with both records filled in.
+
+A geometry edit is a correction and creates no History event.
+
+**Documentation item edit**: correctable fields are the Observed date, the linked Artworks (an image's Artworks stay on one Location), the Location of disappearance documentation, the alt text, the Language, the text of a `text` item, and the URL of a `link` item. The file, Medium, licence, Rights basis, Creator credit, and origin URL are shown read-only: a wrong rights declaration is fixed by adding the correct Documentation item and proposing a Duplicate retirement of the wrong one, and a file that should never have been uploaded is reported through a Notice. A declared licence therefore never changes in the record's Revisions.
+
+**Artist edit**: the generic What changes step for name, kind, biography, and period of activity, with the content rules of ADR 0014 shown beside name, Aliases, and biography. Aliases, Crew memberships, and Areas of activity are item-level (add, change, remove). A Crew membership belongs to the member: a collective's edit lists its members read-only, with the hint that a member joins through its own edit. Validation refuses removing an Alias that an Attribution names (the Attribution is changed first, by an edit of that Artwork) and a Crew membership that would form a cycle.
+
+**Merge** (four steps):
+
+1. *Which records*: X (folded) and Y (surviving), with *Swap*. Opened from X's page, Y is searched among records of the same kind; for kinds with a position, candidates within the proximity rule come first.
+2. *Reconcile*: field values stay Y's unless chosen per field; X's and Y's items are listed together with a checkbox to drop each one. Contradictions (two `created` events, competing Attributions to the same Artist) are flagged at once and block only at submit. For Artists, X's name and Aliases are pre-filled as Aliases of Y, editable.
+3. *References to rewrite*: read-only, the same list the Moderator sees.
+4. *Review and submit*.
+
+**Duplicate retirement** (two steps): *Which items* shows the item set aside and the item kept side by side with their captions (Observed date, Creator credit, licence) and lists the Artwork links, disappearance-Location link, and citations that move. Items whose Artworks sit on different Locations are refused with a text message.
+
+**Unmerge** (three steps): *What is separated* lists Y's items that came from X, preselected for removal, and the items added to Y after the Merge, not preselected, for the proposer to decide; *References* lists the records that referenced X before the Merge, preselected to point back to X and editable; then *Review and submit*. The same editor undoes a Duplicate retirement.
 
 ### Duplicate detection
 
@@ -328,6 +380,9 @@ As ADR 0018, with these details from [#42](https://github.com/spippoli/tart/issu
 
 - One page `/it/contributi/{id}` (`/en/contributions/{id}`) for the Submitter and Moderators; the editor is at `…/modifica` (`…/edit`) ([#15](https://github.com/spippoli/tart/issues/15)). No one else can open it.
 - It shows: status in words; current against proposed data (field and item level, from the Base revision and the changeset; for creates, the proposed record in the preview style); the Submission log with each round and its changeset snapshot, and a comparison of the current round with the previous one; Decision messages; for Merge, the list of referencing records to rewrite; for Moderators, Moderation notes and the review checklist.
+- **File and geometry comparison** ([Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97)):
+  - **Images**: the proposed file beside the most recent image Documentation item of the Artwork (Add documentation, History event), or the two items of a Duplicate retirement, at the same size, current left and proposed right, stacked below 600 px, each captioned with Observed date, Creator credit, and licence. Each opens at full resolution in a new tab. There is no swipe or toggle view.
+  - **Geometries**: one map with both geometries overlaid, the current one grey with a solid outline and the proposed one hatched with a dashed outline, and a legend in words. Below it, a text summary: vertex count before and after, the largest shift in metres and its direction, the change in surface for Areas, the Locations entering or leaving an Area, and the Locations within the proximity rule. Without WebGL2 only the summary is shown.
 - Actions by role and status:
 
 | Actor | `draft` | `submitted` | `changes requested` |
@@ -444,6 +499,17 @@ From [#15](https://github.com/spippoli/tart/issues/15). Path segments are UI str
 43. The decision form lists the configured Decision message reasons in file order, followed by "duplicate of an existing record", which stores the key `duplicate`.
 44. With `self_approval = false`, approving, rejecting, and requesting changes on one's own Submission are all refused, while retracting it and adding a Moderation note succeed; with `true`, all three decisions succeed.
 
+**Other editors**
+
+45. A create Submission whose primary target is a Site, Series, Source, or Documentation item is refused; edit Submissions on each of them are accepted.
+46. Creating a Site from a Location's Site field, or a Series from an Artwork's Series field, yields on approval a public Site or Series with that record as its only member; a Site or Series edit cannot change membership.
+47. A new Area whose polygon has fewer than 3 vertices, self-intersects, or leaves the Instance boundary is refused with a text error; an overlapping Area is accepted.
+48. A Location geometry edit shows the number of Artworks on the Location, offers the Merge editor when the proposal falls within the proximity rule of another Location, and creates no History event on approval.
+49. A Documentation item edit that sets the file, Medium, licence, Rights basis, Creator credit, or origin URL is refused by the API.
+50. An Artist edit removing an Alias named by an Attribution, or adding a Crew membership that forms a cycle, fails validation with a stable error code.
+51. A Merge with two `created` events in the result fails validation at submit, not before; an Unmerge preselects only the items that came from X.
+52. The Submission page shows image comparisons side by side and geometry comparisons overlaid with a legend in words and a text summary; without WebGL2 the summary alone is shown.
+
 ## Instance configuration
 
 The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; this spec reads the following values.
@@ -495,7 +561,7 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 
 1. **Operator as decider, and self-review scope.** Answered by [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93): the Operator has no decision path of its own and decides only through a Moderator account; under `false` a Moderator takes no decision on their own Submission; startup warns when the Moderators are too few for `self_approval`. See [Roles and permissions](#roles-and-permissions).
 2. **ADR 0002 wording on auto-approval.** Answered by [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43): no auto-approval; ADR 0002's consequences are amended to match.
-3. **Primary targets and the missing editor kinds.** The primary target list ([#3](https://github.com/spippoli/tart/issues/3)) names Artwork, Artist, Location, Site, Series, and Area, while Sources and Documentation items are editable through Submissions with their own Revisions ([#5](https://github.com/spippoli/tart/issues/5)): whether they can be a primary target is not stated. The steps of new Site, Area (polygon drawing), Series, and Source Submissions, Location geometry edits, Documentation item and Artist edits beyond the generic Edit kind, and the Merge, Duplicate retirement, and Unmerge editors were not prototyped.
+3. **Primary targets and the missing editor kinds.** Answered by [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97): Sources and Documentation items are primary targets for edits only; Sites, Series, and Sources are created only inline; see [Submission model](#submission-model) and [Other editors](#other-editors).
 4. **Revising an Outdated Submission.** An Outdated Submission "cannot be approved until revised", but only `changes requested` lets a Submitter edit. Whether a `submitted` Outdated Submission can be edited directly, how the editor rebases it onto the current Revision, and whether that opens a new round are not decided. More generally, whether a Submitter may edit a `submitted` Submission before any decision is not stated.
 5. **Moderator actions on `changes requested`.** Whether a Moderator may reject or approve a Submission waiting in `changes requested`, and whether such Submissions expire when the Submitter never responds (`draft_expiry_days` covers drafts only), are not decided.
 6. **Retention of rejected and retracted Submissions.** [#5](https://github.com/spippoli/tart/issues/5) deferred retention to [#14](https://github.com/spippoli/tart/issues/14), whose resolution does not address it. How long rejected and retracted Submissions and their media are kept is not decided.
@@ -509,9 +575,9 @@ The inputs leave these questions unsettled. Implementers must not fill them by a
 14. **Abuse protection.** Rate limiting of Submissions and spam protection under `open` registration are still unticketed ("Performance and limits" on the [wayfinder map](https://github.com/spippoli/tart/issues/2)); once ticketed, that ticket blocks this spec and may add to it.
 15. **Invitations page.** Its route and place in the Moderation area are not decided.
 16. **What Moderators see of a Submitter.** The queue filters by Submitter; whether Moderators see only the display name or also the email address is not decided.
-17. **Image and map comparison.** The brief (§17) asks for image comparison and a map preview in review. The decisions fix the current-versus-proposed comparison but not how files and geometries are compared (side by side, overlay).
+17. **Image and map comparison.** Answered by [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97): images side by side, geometries overlaid with a text summary; see [Submission page](#submission-page).
 18. **Location step without WebGL2.** Answered by [List alternative and map/list sync](https://github.com/spippoli/tart/issues/40), point 6: existing-Location text list, coordinates field (always available, as a third mode), current position, Point only without WebGL2, no geocoding; see the Location step and [Discovery](discovery.md#location-entry-without-the-map).
-19. **Dependencies on Archive records open items.** The History event type groups, the date input, and Location correction versus physical moves are answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (see Form flow). Image text alternatives are answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): the Documentation step collects a required alt text per image (see Documentation step).
+19. **Dependencies on Archive records open items.** Answered: the History event type groups, the date input, and Location correction versus physical moves are answered by [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (see Form flow). Image text alternatives are answered by [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90): the Documentation step collects a required alt text per image (see Documentation step).
 
 ### Notes
 

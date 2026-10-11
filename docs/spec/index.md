@@ -140,6 +140,7 @@ Each decision ticket of the map [Wayfinder: TART MVP specification](https://gith
 | [Data dump layout and checklist numbering](https://github.com/spippoli/tart/issues/101) | `operations-and-portability.md` | Operations and portability |
 | [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) | `archive-records.md`, `rights-and-legal-actions.md`, `discovery.md`, `contribution-and-moderation.md` | Archive records; Rights and legal actions; Discovery |
 | [Map rendering details, style endpoint and theme](https://github.com/spippoli/tart/issues/98) | `discovery.md`, `foundations.md` | Discovery; Foundations |
+| [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) | `contribution-and-moderation.md`, `archive-records.md` | Contribution and moderation; Archive records |
 
 ### Open
 
@@ -152,7 +153,6 @@ These tickets settle the open items listed in the feature specs' Further Notes.
 | [Accounts: registration, email change, deletion and export](https://github.com/spippoli/tart/issues/87) | Foundations; Rights and legal actions; Notifications |
 | [Notice handling details](https://github.com/spippoli/tart/issues/94) | Rights and legal actions; Notifications |
 | [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96) | Contribution and moderation |
-| [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) | Contribution and moderation |
 | [Backup, restore and upgrade mechanics](https://github.com/spippoli/tart/issues/100) | Operations and portability |
 
 When a ticket closes, its resolution comment ends with a `Feeds:` line; move it from Open to Closed here in the PR that amends the spec it feeds.
