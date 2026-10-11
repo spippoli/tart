@@ -202,7 +202,7 @@ On Artwork and Location pages ([Archive records](archive-records.md), answering 
 
 - Framed on the Location at z17, or on the geometry's extent if larger. The record's Location is highlighted, nearby Locations are muted; no clustering and no panel.
 - Static by default: no wheel or drag pan/zoom, only the zoom buttons of the map control, plus an "Open on the map" link to Explore with `?superficie=…&mappa=…`.
-- **Without WebGL2** there is no server-rendered image. A text box takes its place: the Location title and Place description, Areas, Site, approximate notice ([Archive records](archive-records.md) acceptance criterion 30, [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)), coordinates, and an "Open in a maps app" link with a `geo:` URI.
+- **Without WebGL2** there is no server-rendered image. A text box takes its place: the Location title and Place description, Areas, Site, approximate notice ([Archive records](archive-records.md) acceptance criterion 33, [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90)), coordinates, and an "Open in a maps app" link with a `geo:` URI.
 
 ### Explore without WebGL2 or JavaScript
 

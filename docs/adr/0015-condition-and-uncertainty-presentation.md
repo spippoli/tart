@@ -23,4 +23,4 @@ The archive presents physical Condition, uncertainty, and pending Submissions wi
 - The map does not tell covered from destroyed; the word, the detail page, and Condition filters do.
 - At marker size and in grayscale, the dotted *unknown* sign is too close to the dashed *disappeared* sign; it needs a stronger differentiator (for example a "?" inside) when the design system is drawn.
 - Disappeared Artworks are shown on the map by default, and a Location's sign follows the priority *present* > *unknown* > *disappeared* (ADR 0019).
-- Still open: whether the public sees that a record has Submissions under review without seeing their content.
+- *Amended by [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91):* the public sees no sign that a record has Submissions under review, not even without their content. Documentation items on the Timeline show only their Observed date; their submitted and approved dates are on the Documentation item page.
