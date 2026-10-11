@@ -224,6 +224,7 @@ def test_criterion_7_a_missing_secret_or_connection_setting_is_an_error() -> Non
         ("environment", "PUBLIC_BASE_URL"),
         ("environment", "SESSION_KEY"),
         ("environment", "SMTP_HOST"),
+        ("environment", "SMTP_FROM"),
     ]
 
 

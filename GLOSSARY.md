@@ -18,6 +18,10 @@ _Avoid_: Admin, owner, host
 The settings that define what an Instance's archive is (identity, geography, languages, open vocabularies, policies, licences, and the Operator's own texts), set by the Operator and never edited through Submissions.
 _Avoid_: Settings, preferences, Instance data
 
+**Launch value**:
+A value of an Instance configuration that is a fact about the real Operator (its legal name, contact addresses, logo files), supplied at launch; until then the configuration holds an obviously fictional placeholder.
+_Avoid_: Default, TBD value
+
 **Data licence**:
 The licence under which an Instance publishes its structured archive data, chosen by the Operator from a fixed list of open licences; it never covers Documentation item files or the depicted Artworks.
 _Avoid_: Archive licence, content licence

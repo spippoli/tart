@@ -1,0 +1,50 @@
+# The platform's default Surface type list (Archive records spec), unchanged for Rome.
+# Keys never change; retire an entry (retired = true) instead of deleting it.
+
+[[entries]]
+key = "building_wall"
+label = { it = "Muro di edificio", en = "Building wall" }
+
+[[entries]]
+key = "boundary_wall"
+label = { it = "Muro di cinta o di contenimento", en = "Boundary or retaining wall" }
+
+[[entries]]
+key = "shutter"
+label = { it = "Saracinesca", en = "Shutter" }
+
+[[entries]]
+key = "door"
+label = { it = "Porta o portone", en = "Door" }
+
+[[entries]]
+key = "hoarding"
+label = { it = "Recinzione di cantiere", en = "Construction hoarding" }
+
+[[entries]]
+key = "fence"
+label = { it = "Cancello o recinzione", en = "Gate or fence" }
+
+[[entries]]
+key = "bridge_underpass"
+label = { it = "Ponte, sottopasso, galleria", en = "Bridge, underpass, tunnel" }
+
+[[entries]]
+key = "railway"
+label = { it = "Infrastruttura ferroviaria", en = "Railway infrastructure" }
+
+[[entries]]
+key = "street_furniture"
+label = { it = "Arredo urbano (cabina, palo, cartello)", en = "Street furniture (cabinet, pole, sign)" }
+
+[[entries]]
+key = "ground"
+label = { it = "Pavimentazione, scala", en = "Pavement, steps" }
+
+[[entries]]
+key = "free_standing"
+label = { it = "Struttura autonoma", en = "Free-standing structure" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro", en = "Other" }

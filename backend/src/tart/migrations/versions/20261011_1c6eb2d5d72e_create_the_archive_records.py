@@ -1,7 +1,7 @@
 """Create the archive records: the eight record kinds, their collections, and Revisions.
 
 Revision ID: 1c6eb2d5d72e
-Revises: 4d78a0c187a9
+Revises: f3d81374dc84
 Create Date: 2026-10-11 20:57:59.062854
 
 Forward only (ADR 0020): add no reverse function.
@@ -15,7 +15,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects import postgresql
 
 revision: str = "1c6eb2d5d72e"
-down_revision: str | Sequence[str] | None = "4d78a0c187a9"
+down_revision: str | Sequence[str] | None = "f3d81374dc84"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
