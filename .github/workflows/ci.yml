@@ -21,7 +21,7 @@ jobs:
           version: "0.13.0"
           working-directory: backend
           enable-cache: true
-          cache-dependency-glob: backend/uv.lock
+          cache-dependency-glob: "**/uv.lock"
           cache-python: true
       - run: uv sync --locked
       - run: uv run ruff check .
