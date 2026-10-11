@@ -32,6 +32,8 @@ jobs:
             backend:
               - *workflow
               - backend/**
+              # The backend tests load Rome's configuration directory.
+              - instances/**
               # A backend test checks this committed copy of the API schema.
               - frontend/src/lib/api/openapi.json
             frontend:
