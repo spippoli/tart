@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Content language, UI language, Instance configuration, Data licence, Artwork, Expression type, Location, Surface type, Site, Area, Series, Documentation item, Creator credit, Rights basis, Condition, Missing, Condition group, History event, Condition record, Creation event, Timeline, Uncertain date, Observed date, Claim, Source, Evidence level, Artist, Alias, Crew membership, Attribution, User, Moderator, Submitter, Submission, Archive record, Revision, Merge, Withdrawal, Redaction, Reinstatement, Notice.
 
-**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event types, Condition mapping, Uncertain date ranges and ordering, stratigraphy), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (redacted current values, purged ids), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (descriptive fields, Source citations, periods, Series and Crew cardinality, Place description, alt text, slugs, default Surface types), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (no names on the Timeline, `/revisions` as change lists, no public sign of pending Submissions, Documentation item dates, public Rights basis and origin URL, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (shown certainty without public evidence, records linked to withdrawn content, withdrawn Locations, Moderator and Submitter views), [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) (Site, Series, and Source creation; fixed rights fields on Documentation items).
+**Decision tickets incorporated**: [Core domain model and glossary](https://github.com/spippoli/tart/issues/3), [Uncertainty and provenance model](https://github.com/spippoli/tart/issues/4), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (record pages and routes), [Status, uncertainty and condition presentation rules](https://github.com/spippoli/tart/issues/17), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20), and, for the parts that shape records, [Submission and moderation lifecycle](https://github.com/spippoli/tart/issues/5) (what approval writes), [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14) (names on Revisions pages, file rights fields), [Submission form flow](https://github.com/spippoli/tart/issues/27) (required initial Condition record, Location geometry kinds), and [History event types and Uncertain-date ordering](https://github.com/spippoli/tart/issues/89) (History event types, Condition mapping, Uncertain date ranges and ordering, stratigraphy), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (redacted current values, purged ids), [Record descriptive fields, text alternatives and slugs](https://github.com/spippoli/tart/issues/90) (descriptive fields, Source citations, periods, Series and Crew cardinality, Place description, alt text, slugs, default Surface types), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (no names on the Timeline, `/revisions` as change lists, no public sign of pending Submissions, Documentation item dates, public Rights basis and origin URL, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (shown certainty without public evidence, records linked to withdrawn content, withdrawn Locations, Moderator and Submitter views), [Editor steps not yet prototyped](https://github.com/spippoli/tart/issues/97) (Site, Series, and Source creation; fixed rights fields on Documentation items), [Rome Instance values](https://github.com/spippoli/tart/issues/86) (Rome's Expression types, archive name, boundary, rendition cap).
 
 **Depends on**: [Foundations](foundations.md) (Instance configuration, storage and media pipeline, i18n shell, page shell).
 
@@ -518,12 +518,12 @@ Exact key names belong to the [Foundations](foundations.md) spec, which owns `in
 | Content language | `lang`/`dir` of all archive content | `it` |
 | Enabled UI languages and default | Route prefixes, labels | `it` (default), `en` |
 | Time zone | Formatting of Observed, submitted, and approved dates | `Europe/Rome` |
-| Archive name | Browser title `<Page> — <Archive name>` | "Rome Urban Art Archive" |
-| Expression type vocabulary | Artwork Expression types, labels per UI language, `retired` | Starting from the brief's §9 list |
-| Surface type vocabulary | Location Surface type, labels per UI language, `retired` | Starting from the platform default list below |
-| Boundary (GeoJSON) | Rejects Location geometries outside it | Not yet decided |
+| Archive name | Browser title `<Page> — <Archive name>` | "Archivio dell'arte urbana di Roma" |
+| Expression type vocabulary | Artwork Expression types, labels per UI language, `retired` | [Rome's Expression types](#romes-expression-types) |
+| Surface type vocabulary | Location Surface type, labels per UI language, `retired` | The platform default list below, unchanged |
+| Boundary (GeoJSON) | Rejects Location geometries outside it | Roma Capitale with Vatican City included ([Foundations](foundations.md#instance-configuration)) |
 | File licence allowlist | Licence values shown on Documentation items | `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC0-1.0`; default `CC-BY-SA-4.0` |
-| Public image rendition cap | Maximum resolution of public renditions | Not yet decided |
+| Public image rendition cap | Maximum resolution of public renditions | `2048` px |
 
 The Data licence is shown in the footer (Foundations); this spec does not render it per record.
 
@@ -543,6 +543,22 @@ The Data licence is shown in the footer (Foundations); this spec does not render
 | `ground` | Pavimentazione, scala | Pavement, steps |
 | `free_standing` | Struttura autonoma | Free-standing structure |
 | `other` | Altro | Other |
+
+### Rome's Expression types
+
+Set by [Rome Instance values](https://github.com/spippoli/tart/issues/86), in this order. The platform ships the brief's §9 list as the starting vocabulary; Rome adds `mosaic`, because tile mosaics fixed to walls are a common form that would otherwise fall under "other". An Artwork may have several types; `temporary` combines with the others.
+
+| `key` | `it` | `en` | Description (`it` / `en`, optional) |
+|---|---|---|---|
+| `mural` | Murale | Mural | Comprese le pitture di grandi dimensioni / Including large-scale paintings |
+| `graffiti` | Graffiti e lettering | Graffiti and lettering | Writing, tag, throw-up, pezzi / Writing, tags, throw-ups, pieces |
+| `stencil` | Stencil | Stencil | |
+| `paste_up` | Poster e paste-up | Poster and paste-up | |
+| `sticker` | Sticker | Sticker | Comprese le altre piccole applicazioni grafiche / Including other small graphic interventions |
+| `mosaic` | Mosaico | Mosaic | Tessere o piastrelle applicate a una superficie / Tiles applied to a surface |
+| `installation` | Installazione o scultura | Installation or sculpture | |
+| `temporary` | Intervento temporaneo o sperimentale | Temporary or experimental intervention | Si combina con gli altri tipi / Combines with the other types |
+| `other` | Altro intervento creativo | Other creative intervention | |
 
 ## Testing Decisions
 
