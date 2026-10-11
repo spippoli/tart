@@ -165,6 +165,11 @@ test('the release writes its version into both project files, without committing
 // Criterion 36.
 
 test('each release attaches compose.yaml, Caddyfile, and .env.example', () => {
+	// Asset names may not start with a dot on GitHub.
+	assert.deepEqual(
+		assets.map(({ name }) => name),
+		['compose.yaml', 'Caddyfile', 'env.example']
+	);
 	const paths = assets.map(({ path }) => new URL(path, import.meta.url));
 	assert.deepEqual(paths.map((path) => basename(path.pathname)), [
 		'compose.yaml',
