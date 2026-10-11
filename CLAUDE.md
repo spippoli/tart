@@ -51,7 +51,7 @@ uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # aft
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
 ```
 
-The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, `SMTP_FROM`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it.
+The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, `SMTP_FROM`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it. The worker runs Procrastinate (`tart.jobs`); its tables come from the Alembic chain, so never run `procrastinate schema --apply`.
 
 Frontend (run in `frontend/`):
 

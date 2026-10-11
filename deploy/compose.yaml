@@ -67,6 +67,8 @@ services:
     image: *api-image
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
+    # Its own memory limit, so that media processing cannot starve `api` and `db`.
+    mem_limit: ${WORKER_MEMORY_LIMIT:-1g}
     environment: *api-environment
     volumes:
       - *config-volume
