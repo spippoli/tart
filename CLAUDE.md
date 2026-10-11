@@ -57,6 +57,14 @@ pnpm test:e2e              # Playwright with axe, against a production build
 pnpm build
 ```
 
+Commit messages (run in `commitlint/`; CI checks every commit of a pull request):
+
+```sh
+pnpm install
+pnpm test                  # tests of the commitlint configuration
+pnpm exec commitlint --from origin/main --to HEAD --verbose   # lint your branch's commits
+```
+
 Full stack (run in `deploy/`; copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` first):
 
 ```sh
