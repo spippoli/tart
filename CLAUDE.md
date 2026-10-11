@@ -43,6 +43,8 @@ uv run pytest tests/test_health.py   # one file
 uv run uvicorn tart.api.app:create_app --factory --reload   # dev server on :8000
 uv run tart migrate        # apply migrations to the database at DATABASE_URL
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
+uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
+uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
 ```
 
 The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup.
@@ -58,8 +60,13 @@ pnpm check                 # svelte-check (type checking)
 pnpm test:unit             # vitest
 pnpm exec playwright install chromium   # once, before e2e
 pnpm test:e2e              # Playwright with axe, against a production build
-pnpm build
+pnpm build                 # fails on a message key missing from any catalogue in messages/
+pnpm api:generate          # regenerate src/lib/api/schema.d.ts from openapi.json
+pnpm check:licences        # dependency licence allow-list (reviews in licences.json)
+pnpm check:assets          # third-party asset manifest (third-party-assets.json)
 ```
+
+The message catalogues are `frontend/messages/{it,en}.json` (Paraglide) and `backend/src/tart/messages/{it,en}.json` (emails). The unit tests of both sides run the missing-key, OpenAPI drift, licence, and asset manifest checks, so CI fails on any of them.
 
 Commit messages (run in `commitlint/`; CI checks every commit of a pull request):
 
