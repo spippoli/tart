@@ -1,0 +1,62 @@
+# Rome's Instance configuration: the reference Instance of TART (Foundations spec,
+# Instance configuration). It holds no secret; secrets and infrastructure come from
+# the environment (deploy/.env.example).
+#
+# LAUNCH VALUE marks a fact only the real Rome Operator has (Foundations spec, Rome's
+# launch values). Until launch it is an obviously fictional placeholder on example.org;
+# replace every one before going live.
+config_version = 1
+
+[identity]
+name = "Archivio dell'arte urbana di Roma"
+description = "Un archivio collaborativo e moderato dell'arte urbana di Roma: murales, graffiti, stencil, poster, sticker e installazioni, comprese le opere che non ci sono più."
+# The logo files are a provisional typographic wordmark (see README.md).
+logo = { light = "identity/logo.light.svg", dark = "identity/logo.dark.svg", alt = "Archivio dell'arte urbana di Roma" }
+favicon = "identity/favicon.svg"
+# Pompeian red.
+accent = { light = "#7A2E1C", dark = "#F0A08C" }
+
+[operator]
+# LAUNCH VALUE: the legal name of the association that operates the archive.
+name = "Associazione da definire (segnaposto, valore di lancio)"
+
+[contacts]
+# LAUNCH VALUE: role addresses on the archive's own domain, each read by at least two people.
+general = "info@example.org"
+dsa = "dsa@example.org"
+dsa_languages = ["it", "en"]
+privacy = "privacy@example.org"
+
+[languages]
+content = "it"
+ui = ["it", "en"]
+
+[geography]
+country = "IT"
+place_name = "Roma"
+time_zone = "Europe/Rome"
+# Roma Capitale with Vatican City included, from OpenStreetMap (ODbL; see geography/README.md).
+boundary = "geography/boundary.geojson"
+# The historic centre.
+default_view = { center = [12.4823, 41.8955], zoom = 12 }
+
+[map]
+attribution = [{ text = "© OpenStreetMap", url = "https://www.openstreetmap.org/copyright" }]
+
+[community]
+registration = "open"
+min_age = 14
+# true at launch; false once at least two Moderators are active (Operator checklist).
+self_approval = true
+draft_expiry_days = 90
+
+[media]
+max_upload_mb = 25
+public_rendition_max_px = 2048
+
+[licenses]
+data = "CC-BY-SA-4.0"
+files = ["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]
+
+[terms]
+version = 1

@@ -1,0 +1,39 @@
+# Rome's Decision message reasons (Contribution and moderation spec), in the order of
+# the review checklist. The platform adds `duplicate` after them; the key is reserved.
+# Keys never change; retire an entry (retired = true) instead of deleting it.
+
+[[entries]]
+key = "people"
+label = { it = "Persone o targhe riconoscibili", en = "Identifiable people or number plates" }
+
+[[entries]]
+key = "file_rights"
+label = { it = "Diritti sui file non chiari", en = "Unclear rights on the files" }
+
+[[entries]]
+key = "attribution"
+label = { it = "Attribuzione non supportata", en = "Unsupported attribution" }
+
+[[entries]]
+key = "unlawful"
+label = { it = "Contenuto non ammesso o illecito", en = "Content not allowed or unlawful" }
+
+[[entries]]
+key = "evidence"
+label = { it = "Prove insufficienti", en = "Insufficient evidence" }
+
+[[entries]]
+key = "location"
+label = { it = "Posizione errata o imprecisa", en = "Wrong or imprecise location" }
+
+[[entries]]
+key = "out_of_scope"
+label = { it = "Fuori dall'ambito dell'archivio", en = "Outside the archive's scope" }
+
+[[entries]]
+key = "incomplete"
+label = { it = "Informazioni mancanti o poco chiare", en = "Missing or unclear information" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro", en = "Other" }

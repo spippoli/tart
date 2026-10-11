@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TART is a collaborative platform for documenting and preserving the history of urban art. The first deployment is Rome, but the software is meant to be reused by independent local communities ("Rome Urban Art Archive — Powered by TART").
 
-The design phase is complete and implementation is under way, ticket by ticket. The monorepo has `backend/` (FastAPI), `frontend/` (SvelteKit), and `deploy/` (Docker Compose); the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
+The design phase is complete and implementation is under way, ticket by ticket. The monorepo has `backend/` (FastAPI), `frontend/` (SvelteKit), `deploy/` (Docker Compose), and `instances/rome/` (Rome's configuration directory, the reference Instance); the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
 
 ## Sources of truth
 
@@ -88,6 +88,12 @@ pnpm test                  # bump rules and notes over throwaway Git repositorie
 ```
 
 Releases are cut only by starting the `Release` workflow (`.github/workflows/release.yml`) on `main`; never tag or push images by hand.
+
+Rome's configuration directory, the reference Instance (run in `instances/rome/geography/`):
+
+```sh
+uv run boundary.py         # rebuild boundary.geojson from OpenStreetMap (Overpass API, ODbL)
+```
 
 Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
 

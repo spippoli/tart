@@ -1,0 +1,27 @@
+# Rome's Notice reasons (Rights and legal actions spec): the platform default keys, in
+# their order, with descriptions shown as help in the report form.
+# Keys never change; retire an entry (retired = true) instead of deleting it.
+
+[[entries]]
+key = "artwork_copyright"
+label = { it = "Diritto d'autore sull'opera raffigurata", en = "Copyright in the depicted artwork" }
+description = { it = "Sei l'autore dell'opera o ne detieni i diritti", en = "You made the artwork or hold its rights" }
+
+[[entries]]
+key = "file_copyright"
+label = { it = "Diritto d'autore sulla foto o sul file", en = "Copyright in the photo or file" }
+description = { it = "La foto o il documento è tuo o ne detieni i diritti", en = "The photo or document is yours or you hold its rights" }
+
+[[entries]]
+key = "personal_data"
+label = { it = "Dati personali", en = "Personal data" }
+description = { it = "Volti, targhe, nomi o altre informazioni su una persona", en = "Faces, number plates, names or other information about a person" }
+
+[[entries]]
+key = "illegal_content"
+label = { it = "Contenuto illecito", en = "Illegal content" }
+description = { it = "Per esempio diffamazione o incitamento all'odio", en = "For example defamation or incitement to hatred" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro", en = "Other" }
