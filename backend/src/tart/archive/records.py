@@ -84,14 +84,18 @@ class Attribution:
 
 @dataclass(frozen=True)
 class CrewMembership:
-    """The Artist holding it is a member of `collective`; one per collective."""
+    """The Artist holding it is a member of `collective`.
+
+    An Artist may hold several memberships in one collective, one per period, when
+    their periods do not overlap; a membership is addressed by collective and period.
+    """
 
     collective: Ref
     period: Period | None = None
 
     @property
-    def key(self) -> Ref:
-        return self.collective
+    def key(self) -> tuple[Ref, Period | None]:
+        return self.collective, self.period
 
 
 class Record:

@@ -177,3 +177,21 @@ class Period:
         end_key = self.end.chronological_key if self.end else None
         if start_key is not None and end_key is not None and start_key > end_key:
             raise ArchiveRuleViolation("period.start_after_end")
+
+    def _bounds(self) -> tuple[datetime | None, datetime | None]:
+        """The chronological keys of the start and the end; `None` is open."""
+        return (
+            self.start.chronological_key if self.start else None,
+            self.end.chronological_key if self.end else None,
+        )
+
+    def overlaps(self, other: Period) -> bool:
+        """Whether the two periods share any instant, comparing chronological keys.
+
+        A missing start or end, or an `unknown` one, is open; equal keys overlap.
+        """
+        start, end = self._bounds()
+        other_start, other_end = other._bounds()
+        ends_before = end is not None and other_start is not None and end < other_start
+        starts_after = start is not None and other_end is not None and other_end < start
+        return not (ends_before or starts_after)

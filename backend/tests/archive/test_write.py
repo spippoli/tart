@@ -490,6 +490,82 @@ def test_criterion_47_a_crew_membership_cycle_through_a_chain_is_rejected(
     assert archive.read(lambda store: store.members_of(a)) == {b, member}
 
 
+def _years(start: int, end: int | None = None) -> Period:
+    return Period(
+        start=UncertainDate(Precision.YEAR, Qualifier.EXACT, date(start, 1, 1)),
+        end=UncertainDate(Precision.YEAR, Qualifier.EXACT, date(end, 1, 1)) if end else None,
+    )
+
+
+def test_criterion_60_an_artist_may_rejoin_a_collective_over_distinct_periods(
+    archive: Archive,
+) -> None:
+    solo, crew = archive.ids(
+        archive.write(
+            Create(New("solo"), Artist("Fictional writer", ArtistKind.INDIVIDUAL)),
+            Create(New("crew"), Artist("Fictional crew", ArtistKind.COLLECTIVE)),
+        )
+    )
+    first, second = CrewMembership(crew, _years(2008, 2011)), CrewMembership(crew, _years(2015))
+
+    archive.write(
+        AddItem(solo, "crew_memberships", first), AddItem(solo, "crew_memberships", second)
+    )
+
+    stored = archive.get(solo)
+    assert isinstance(stored, Artist)
+    assert stored.crew_memberships == (first, second)
+    archive.write(RemoveItem(solo, "crew_memberships", second.key))
+    stored = archive.get(solo)
+    assert isinstance(stored, Artist)
+    assert stored.crew_memberships == (first,)
+
+
+@pytest.mark.parametrize(
+    "period",
+    [
+        _years(2010, 2012),  # overlaps 2008-2011
+        _years(2011, 2013),  # equal keys at 2011
+        _years(2005),  # open-ended from before
+        None,  # no period overlaps every other membership
+    ],
+)
+def test_criterion_60_overlapping_memberships_in_one_collective_are_rejected(
+    archive: Archive, period: Period | None
+) -> None:
+    solo, crew = archive.ids(
+        archive.write(
+            Create(New("solo"), Artist("Fictional writer", ArtistKind.INDIVIDUAL)),
+            Create(New("crew"), Artist("Fictional crew", ArtistKind.COLLECTIVE)),
+        )
+    )
+    archive.write(AddItem(solo, "crew_memberships", CrewMembership(crew, _years(2008, 2011))))
+
+    assert _rejected(archive, AddItem(solo, "crew_memberships", CrewMembership(crew, period))) == (
+        "crew_membership.periods_overlap"
+    )
+
+
+def test_criterion_59_linking_documentation_gives_a_revision_to_the_item_only(
+    archive: Archive,
+) -> None:
+    first, location_id = _new_artwork(archive)
+    second = archive.ids(archive.write(Create(ARTWORK, artwork(location_id))))[0]
+
+    created = archive.write(Create(IMAGE, image(first)))
+    assert [revision.kind for revision in created] == [Kind.DOCUMENTATION_ITEM]
+    item = created[0].record_id
+
+    linked = archive.write(AddItem(item, "artworks", second))
+    unlinked = archive.write(RemoveItem(item, "artworks", first))
+
+    for revisions in (linked, unlinked):
+        assert [revision.record_id for revision in revisions] == [item]
+    assert [
+        len(archive.read(lambda store, a=a: store.revisions_of(a))) for a in (first, second)
+    ] == [1, 1]
+
+
 def test_only_a_collective_has_members(archive: Archive) -> None:
     solo, crew = archive.ids(
         archive.write(
