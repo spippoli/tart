@@ -23,6 +23,8 @@ x-api-environment: &api-environment
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
   SMTP_HOST: ${SMTP_HOST:-}
   SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+  SMTP_FROM: ${SMTP_FROM:-}
   SMTP_USERNAME: ${SMTP_USERNAME:-}
   SMTP_PASSWORD: ${SMTP_PASSWORD:-}
 
@@ -65,6 +67,8 @@ services:
     image: *api-image
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
+    # Its own memory limit, so that media processing cannot starve `api` and `db`.
+    mem_limit: ${WORKER_MEMORY_LIMIT:-1g}
     environment: *api-environment
     volumes:
       - *config-volume

@@ -1,27 +1,30 @@
+"""The `worker` container's process: Procrastinate on PostgreSQL (ADR 0004)."""
+
 import signal
 import subprocess
 import sys
 import time
-from pathlib import Path
+
+from conftest import fetch_value
 
 from tart.cli import main as run_cli
 
 
-def _waiting_for_signal(pid: int) -> bool:
-    # Linux: the kernel function the process sleeps in, once it reaches sigwait.
-    return "sigtimedwait" in Path(f"/proc/{pid}/wchan").read_text()
+def _registered_workers(dsn: str) -> object:
+    return fetch_value(dsn, "SELECT count(*) FROM procrastinate_workers")
 
 
-def test_worker_exits_cleanly_on_sigterm(database: str) -> None:
+def test_the_worker_runs_against_the_migrated_queue_and_stops_on_sigterm(database: str) -> None:
     # Also Foundations criterion 1: with a valid configuration and a complete environment
-    # (conftest), the worker starts and waits.
+    # (conftest), the worker starts and waits for jobs.
     run_cli(["migrate"])
     worker = subprocess.Popen([sys.executable, "-m", "tart.worker"])
-    deadline = time.monotonic() + 10
-    while not _waiting_for_signal(worker.pid):
+    deadline = time.monotonic() + 20
+    while not _registered_workers(database):
         assert worker.poll() is None and time.monotonic() < deadline
-        time.sleep(0.01)
+        time.sleep(0.1)
 
     worker.send_signal(signal.SIGTERM)
 
-    assert worker.wait(timeout=5) == 0
+    assert worker.wait(timeout=10) == 0
+    assert _registered_workers(database) == 0
