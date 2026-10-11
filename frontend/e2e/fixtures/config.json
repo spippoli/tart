@@ -1,0 +1,104 @@
+{
+	"identity": {
+		"name": "Archivio di prova dell'arte urbana",
+		"description": "Un archivio fittizio, usato solo dai test di TART.",
+		"logo": {
+			"light": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"40\" viewBox=\"0 0 120 40\"><rect x=\"2\" y=\"2\" width=\"36\" height=\"36\" fill=\"none\" stroke=\"#2A2521\" stroke-width=\"4\"/><path d=\"M12 12h16M20 12v18\" stroke=\"#2A2521\" stroke-width=\"4\"/></svg>",
+			"dark": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"40\" viewBox=\"0 0 120 40\"><rect x=\"2\" y=\"2\" width=\"36\" height=\"36\" fill=\"none\" stroke=\"#EAE2D5\" stroke-width=\"4\"/><path d=\"M12 12h16M20 12v18\" stroke=\"#EAE2D5\" stroke-width=\"4\"/></svg>",
+			"alt": "Archivio di prova dell'arte urbana"
+		},
+		"favicon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><rect width=\"16\" height=\"16\" fill=\"#F3EEE2\"/><path d=\"M4 3h8M8 3v10\" stroke=\"#7A2E1C\" stroke-width=\"2\"/></svg>",
+		"accent": {
+			"light": "#7A2E1C",
+			"dark": "#F0A08C"
+		}
+	},
+	"operator_name": "Associazione di prova (fittizia)",
+	"contacts": {
+		"general": "info@example.org",
+		"dsa": "dsa@example.org",
+		"dsa_languages": ["it", "en"],
+		"privacy": "privacy@example.org"
+	},
+	"languages": {
+		"content": "it",
+		"ui": ["it", "en"]
+	},
+	"geography": {
+		"country": "IT",
+		"place_name": "Roma",
+		"time_zone": "Europe/Rome",
+		"default_view": {
+			"center": [12.4823, 41.8955],
+			"zoom": 12
+		},
+		"bounds": [12.23, 41.65, 12.86, 42.14]
+	},
+	"map_attribution": [
+		{
+			"text": "© OpenStreetMap",
+			"url": "https://www.openstreetmap.org/copyright"
+		}
+	],
+	"map_tile_origins": ["https://tiles.example.org"],
+	"vocabularies": {
+		"expression_types": [
+			{
+				"key": "mural",
+				"label": {
+					"it": "Murale",
+					"en": "Mural"
+				},
+				"description": null,
+				"retired": false
+			}
+		],
+		"surface_types": [
+			{
+				"key": "wall",
+				"label": {
+					"it": "Muro",
+					"en": "Wall"
+				},
+				"description": null,
+				"retired": false
+			}
+		],
+		"decision_reasons": [
+			{
+				"key": "duplicate",
+				"label": {
+					"it": "Duplicato",
+					"en": "Duplicate"
+				},
+				"description": null,
+				"retired": false
+			}
+		],
+		"notice_reasons": [
+			{
+				"key": "copyright",
+				"label": {
+					"it": "Diritto d'autore",
+					"en": "Copyright"
+				},
+				"description": null,
+				"retired": false
+			}
+		]
+	},
+	"registration": "open",
+	"licenses": {
+		"data": "CC-BY-SA-4.0",
+		"files": ["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"],
+		"data_attribution": null
+	},
+	"terms_version": 1,
+	"texts": {
+		"about": "# Chi siamo\n\nUn archivio **fittizio** per i test della piattaforma.",
+		"editorial_guidelines": "Scrivere in modo neutro e citare le fonti.",
+		"contribution_policy": null,
+		"terms": "Termini d'uso fittizi, usati solo dai test.",
+		"privacy": "Informativa sulla privacy fittizia, usata solo dai test."
+	}
+}

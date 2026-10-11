@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 from tart.config.loader import Instance
+from tart.map.style import external_origins
 
 # Lists rather than tuples: the generated TypeScript client reads them as `number[]`.
 Coordinates = Annotated[list[float], Field(min_length=2, max_length=2)]
@@ -109,6 +110,9 @@ class PublicConfiguration(BaseModel):
     languages: Languages
     geography: Geography
     map_attribution: list[Attribution]
+    map_tile_origins: list[str]
+    """The origins of the map styles' external `https` sources, for the
+    Content-Security-Policy; empty when the map uses only the local basemap."""
     vocabularies: Vocabularies
     registration: Literal["open", "invite", "closed"]
     licenses: Licenses
@@ -144,6 +148,7 @@ def public_configuration(instance: Instance) -> PublicConfiguration:
         map_attribution=[
             Attribution.model_validate(entry.model_dump()) for entry in settings.map.attribution
         ],
+        map_tile_origins=external_origins(instance.map_styles),
         vocabularies=Vocabularies.model_validate(
             {
                 name: [entry.model_dump() for entry in entries]

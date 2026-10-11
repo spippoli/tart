@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TART is a collaborative platform for documenting and preserving the history of urban art. The first deployment is Rome, but the software is meant to be reused by independent local communities ("Rome Urban Art Archive — Powered by TART").
 
-The design phase is complete and implementation is under way, ticket by ticket. The monorepo has `backend/` (FastAPI), `frontend/` (SvelteKit), and `deploy/` (Docker Compose); the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
+The design phase is complete and implementation is under way, ticket by ticket. The monorepo has `backend/` (FastAPI), `frontend/` (SvelteKit), `deploy/` (Docker Compose), and `instances/rome/` (Rome's configuration directory, the reference Instance); the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
 
 ## Sources of truth
 
@@ -46,12 +46,13 @@ uv run tart migrate        # apply migrations to the database at DATABASE_URL
 uv run tart config check   # validate the configuration directory at CONFIG_DIR (default /config)
 uv run tart config check --database   # also the checks against the database at DATABASE_URL
 uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabulary`), for editors
+uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
 ```
 
-The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it.
+The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, `SMTP_FROM`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it. The worker runs Procrastinate (`tart.jobs`); its tables come from the Alembic chain, so never run `procrastinate schema --apply`.
 
 Frontend (run in `frontend/`):
 
@@ -89,12 +90,19 @@ pnpm test                  # bump rules and notes over throwaway Git repositorie
 
 Releases are cut only by starting the `Release` workflow (`.github/workflows/release.yml`) on `main`; never tag or push images by hand.
 
-Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, and `SMTP_HOST`, point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
+Rome's configuration directory, the reference Instance (run in `instances/rome/geography/`):
+
+```sh
+uv run boundary.py         # rebuild boundary.geojson from OpenStreetMap (Overpass API, ODbL)
+```
+
+Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db
 docker compose run --rm api tart migrate   # first start and after pulling migrations
 docker compose run --rm api tart config check --database   # before a deploy
+docker compose run --rm api tart tiles update   # at installation and after a boundary change; Caddy serves /tiles/
 docker compose --profile dev up --build   # also Mailpit, UI on :8025
 docker compose down                    # add -v to drop the volumes
 ```

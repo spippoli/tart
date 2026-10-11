@@ -24,7 +24,10 @@ class Column:
     column: str
 
 
-VOCABULARY_COLUMNS: dict[str, tuple[Column, ...]] = {}
+VOCABULARY_COLUMNS: dict[str, tuple[Column, ...]] = {
+    "expression_types": (Column("artwork", "expression_types"),),
+    "surface_types": (Column("location", "surface_type"),),
+}
 """By vocabulary name, the columns that store its keys (a text or text-array column)."""
 
 TERMS_ACCEPTANCE_COLUMN: Column | None = None

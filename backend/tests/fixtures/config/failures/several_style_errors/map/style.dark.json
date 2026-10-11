@@ -1,0 +1,152 @@
+{
+  "version": 8,
+  "name": "Failure fixture: several errors, dark",
+  "metadata": {
+    "tart:insert-archive-below": "labels",
+    "tart:basemap-schema": 4,
+    "tart:tokens": {
+      "map.paper": "#1E1B18",
+      "map.ink": "#EAE2D5",
+      "marker.ink": "#F6F0E6",
+      "map.label.district": "#C9AE9A",
+      "map.block": "#3A2A25"
+    }
+  },
+  "glyphs": "/map/glyphs/{fontstack}/{range}.pbf",
+  "sprite": "/map/sprites/basemap",
+  "font-faces": {
+    "Sorts Mill Goudy Regular": "/map/fonts/SortsMillGoudy-Regular.ttf",
+    "Sorts Mill Goudy Italic": "/map/fonts/SortsMillGoudy-Italic.ttf",
+    "Sorts Mill Goudy Small Caps": [
+      {
+        "url": "/map/fonts/SortsMillGoudy-Regular.ttf",
+        "unicode-range": [
+          "U+0000-00FF"
+        ]
+      }
+    ]
+  },
+  "sources": {
+    "basemap": {
+      "type": "vector",
+      "url": "pmtiles:///tiles/basemap.pmtiles"
+    },
+    "walls": {
+      "type": "geojson",
+      "data": "/map/overlays/walls.geojson"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#1E1B18"
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "basemap",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#18252B"
+      }
+    },
+    {
+      "id": "parks",
+      "type": "fill",
+      "source": "basemap",
+      "source-layer": "landuse",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "kind"
+          ],
+          "park",
+          "#222A20",
+          "#1E1B18"
+        ]
+      }
+    },
+    {
+      "id": "buildings",
+      "type": "fill",
+      "source": "basemap",
+      "source-layer": "buildings",
+      "paint": {
+        "fill-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          13,
+          "#1E1B18",
+          15,
+          "#3A2A25"
+        ]
+      }
+    },
+    {
+      "id": "rail",
+      "type": "line",
+      "source": "basemap",
+      "source-layer": "roads",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "rail"
+      ],
+      "paint": {
+        "line-color": "#EAE2D5",
+        "line-width": 1
+      }
+    },
+    {
+      "id": "walls",
+      "type": "line",
+      "source": "walls",
+      "paint": {
+        "line-color": "#EAE2D5",
+        "line-width": 3
+      }
+    },
+    {
+      "id": "street-labels",
+      "type": "symbol",
+      "source": "basemap",
+      "source-layer": "roads",
+      "layout": {
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Sorts Mill Goudy Regular"
+        ]
+      },
+      "paint": {
+        "text-color": "#DCD2C5",
+        "text-halo-color": "#1E1B18",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "pois",
+      "type": "symbol",
+      "source": "basemap",
+      "source-layer": "pois",
+      "layout": {
+        "icon-image": "dot"
+      }
+    }
+  ]
+}

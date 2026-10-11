@@ -23,6 +23,8 @@ x-api-environment: &api-environment
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
   SMTP_HOST: ${SMTP_HOST:-}
   SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+  SMTP_FROM: ${SMTP_FROM:-}
   SMTP_USERNAME: ${SMTP_USERNAME:-}
   SMTP_PASSWORD: ${SMTP_PASSWORD:-}
 
@@ -39,8 +41,10 @@ services:
       TART_SITE_ADDRESS: ${TART_SITE_ADDRESS:-localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_DIR:-./config}/map:/srv/config/map:ro
       - caddy-data:/data
       - caddy-config:/config
+      - tiles-data:/srv/tiles:ro
     depends_on:
       - frontend
       - api
@@ -50,6 +54,10 @@ services:
     restart: unless-stopped
     environment:
       ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
+      # The frontend server reads the public Instance configuration from `api`.
+      API_URL: http://api:8000
+    depends_on:
+      - api
 
   api:
     image: *api-image
@@ -57,6 +65,8 @@ services:
     environment: *api-environment
     volumes:
       - *config-volume
+      # Basemap extracts (PMTILES_PATH): `tart tiles update` writes them, Caddy serves them.
+      - tiles-data:/data/tiles
     depends_on:
       db:
         condition: service_healthy
@@ -65,6 +75,8 @@ services:
     image: *api-image
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
+    # Its own memory limit, so that media processing cannot starve `api` and `db`.
+    mem_limit: ${WORKER_MEMORY_LIMIT:-1g}
     environment: *api-environment
     volumes:
       - *config-volume
@@ -91,3 +103,4 @@ volumes:
   caddy-data:
   caddy-config:
   db-data:
+  tiles-data:

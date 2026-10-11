@@ -12,6 +12,8 @@ import asyncpg
 import pytest
 from testcontainers.core.container import DockerContainer
 
+from tart import migrations
+
 # Same image as the `db` service in deploy/compose.yaml; keep the two in step.
 POSTGIS_IMAGE = (
     "postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677"
@@ -27,6 +29,7 @@ ENVIRONMENT = {
     "PUBLIC_BASE_URL": "https://archive.example.org",
     "SESSION_KEY": "test-session-key-0123456789abcdefghijklmnop",
     "SMTP_HOST": "smtp.example.org",
+    "SMTP_FROM": "archive@example.org",
 }
 
 
@@ -125,6 +128,35 @@ def database(postgres_server: str, monkeypatch: pytest.MonkeyPatch) -> str:
     return f"postgresql://{postgres_server}/{name}"
 
 
+@pytest.fixture(scope="session")
+def migrated_template(postgres_server: str) -> str:
+    """The name of a database at the migration head, to copy for each test that needs one."""
+    name = f"template_{uuid.uuid4().hex}"
+    execute(f"postgresql://{postgres_server}/postgres", f'CREATE DATABASE "{name}"')
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setenv("DATABASE_URL", f"postgresql+asyncpg://{postgres_server}/{name}")
+        migrations.upgrade_to_head()
+    return name
+
+
+@pytest.fixture
+def migrated_database(
+    postgres_server: str, migrated_template: str, monkeypatch: pytest.MonkeyPatch
+) -> str:
+    """A new database at the migration head for one test, exported as DATABASE_URL.
+
+    Returns its `postgresql+asyncpg://` URL.
+    """
+    name = f"test_{uuid.uuid4().hex}"
+    execute(
+        f"postgresql://{postgres_server}/postgres",
+        f'CREATE DATABASE "{name}" TEMPLATE "{migrated_template}"',
+    )
+    url = f"postgresql+asyncpg://{postgres_server}/{name}"
+    monkeypatch.setenv("DATABASE_URL", url)
+    return url
+
+
 # An S3-compatible server for the S3 storage adapter's tests: the Versity S3
 # Gateway (Apache-2.0) over a directory in the container.
 S3_IMAGE = (
@@ -155,11 +187,11 @@ def s3_server() -> Iterator[str]:
         endpoint_url = (
             f"http://{container.get_container_host_ip()}:{container.get_exposed_port(7070)}"
         )
-        _wait_for_http(endpoint_url)
+        wait_for_http(endpoint_url)
         yield endpoint_url
 
 
-def _wait_for_http(url: str, timeout: float = 30) -> None:
+def wait_for_http(url: str, timeout: float = 30) -> None:
     deadline = time.monotonic() + timeout
     while True:
         try:

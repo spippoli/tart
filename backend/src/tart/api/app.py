@@ -1,3 +1,5 @@
+import logging
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from importlib.metadata import version
@@ -6,8 +8,13 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
+from tart import tiles
+from tart.api import map_style
+from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
 from tart.startup import start
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -17,6 +24,11 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     configuration = await start()
     app.state.configuration = configuration
     app.state.public_configuration = public_configuration(configuration.instance)
+    # A missing or stale basemap only hides the map: warn, never stop.
+    for warning in tiles.startup_warnings(
+        config_dir(os.environ), configuration.environment.PMTILES_PATH
+    ):
+        logger.warning("basemap: %s", warning)
     yield
 
 
@@ -48,4 +60,5 @@ def create_app() -> FastAPI:
         """The public subset of the Instance configuration, which the frontend caches."""
         return public
 
+    app.include_router(map_style.router)
     return app

@@ -1,0 +1,1 @@
+> **Testo da scrivere.** Questa pagina è un segnaposto: il testo dei termini d'uso non è ancora stato redatto. Finché non lo sarà, questo testo non ha alcun valore e non vincola né l'Operatore né gli utenti.

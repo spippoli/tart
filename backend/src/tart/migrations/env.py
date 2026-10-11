@@ -6,7 +6,16 @@ from alembic import context
 from geoalchemy2 import alembic_helpers
 from sqlalchemy import Connection
 
+import tart.archive_persistence.tables  # noqa: F401  (registers the archive's tables)
 from tart.db import Base, create_engine
+
+
+def _include_object(object_, name, type_, reflected, compare_to) -> bool:
+    # Procrastinate's tables are created from its frozen SQL schema, not from the
+    # models, so autogenerate must not propose dropping them.
+    if type_ == "table" and name and name.startswith("procrastinate_"):
+        return False
+    return alembic_helpers.include_object(object_, name, type_, reflected, compare_to)
 
 
 def _run(connection: Connection) -> None:
@@ -14,7 +23,7 @@ def _run(connection: Connection) -> None:
         connection=connection,
         target_metadata=Base.metadata,
         # GeoAlchemy2's hooks, so that autogenerate handles spatial columns and indexes.
-        include_object=alembic_helpers.include_object,
+        include_object=_include_object,
         process_revision_directives=alembic_helpers.writer,
         render_item=alembic_helpers.render_item,
     )
