@@ -1,8 +1,11 @@
 import asyncio
 import time
+import urllib.error
+import urllib.request
 import uuid
 from collections.abc import Iterator
 
+import aiobotocore.session
 import asyncpg
 import pytest
 from testcontainers.core.container import DockerContainer
@@ -78,3 +81,77 @@ def database(postgres_server: str, monkeypatch: pytest.MonkeyPatch) -> str:
     execute(f"postgresql://{postgres_server}/postgres", f'CREATE DATABASE "{name}"')
     monkeypatch.setenv("DATABASE_URL", f"postgresql+asyncpg://{postgres_server}/{name}")
     return f"postgresql://{postgres_server}/{name}"
+
+
+# An S3-compatible server for the S3 storage adapter's tests: the Versity S3
+# Gateway (Apache-2.0) over a directory in the container.
+S3_IMAGE = (
+    "versity/versitygw:v1.8.0"
+    "@sha256:30292fc2eeacc67a36993b01f7a7a5e3361a19cced0e80c1d71cfa2a4b0a2499"
+)
+S3_ACCESS_KEY = "tart-test"
+S3_SECRET_KEY = "tart-test-secret"
+S3_REGION = "us-east-1"
+
+
+@pytest.fixture(scope="session")
+def s3_server() -> Iterator[str]:
+    """The endpoint URL of an S3-compatible server for the whole session."""
+    container = (
+        DockerContainer(S3_IMAGE)
+        .with_kwargs(entrypoint="sh")
+        .with_command(
+            [
+                "-c",
+                f"mkdir -p /tmp/s3 && exec versitygw --access {S3_ACCESS_KEY} "
+                f"--secret {S3_SECRET_KEY} --region {S3_REGION} posix /tmp/s3",
+            ]
+        )
+        .with_exposed_ports(7070)
+    )
+    with container:
+        endpoint_url = (
+            f"http://{container.get_container_host_ip()}:{container.get_exposed_port(7070)}"
+        )
+        _wait_for_http(endpoint_url)
+        yield endpoint_url
+
+
+def _wait_for_http(url: str, timeout: float = 30) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            urllib.request.urlopen(url).close()
+            return
+        except urllib.error.HTTPError:
+            return  # The server answered, if only to refuse an anonymous request.
+        except OSError:
+            if time.monotonic() > deadline:
+                raise
+            time.sleep(0.2)
+
+
+@pytest.fixture
+def s3_bucket(s3_server: str) -> dict[str, str]:
+    """A new, empty bucket for one test, as the settings of the S3 storage adapter."""
+    settings = {
+        "endpoint_url": s3_server,
+        "region": S3_REGION,
+        "bucket": f"test-{uuid.uuid4().hex}",
+        "access_key_id": S3_ACCESS_KEY,
+        "secret_access_key": S3_SECRET_KEY,
+    }
+
+    async def create() -> None:
+        session = aiobotocore.session.get_session()
+        async with session.create_client(
+            "s3",
+            endpoint_url=settings["endpoint_url"],
+            region_name=settings["region"],
+            aws_access_key_id=settings["access_key_id"],
+            aws_secret_access_key=settings["secret_access_key"],
+        ) as client:
+            await client.create_bucket(Bucket=settings["bucket"])
+
+    asyncio.run(create())
+    return settings

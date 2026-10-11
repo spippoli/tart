@@ -5,6 +5,7 @@ description = "TART: a collaborative, moderated platform for preserving the hist
 license = "PolyForm-Noncommercial-1.0.0"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "aiobotocore==3.9.2",
     "alembic==1.20.0",
     "asyncpg==0.32.0",
     "fastapi==0.143.0",
