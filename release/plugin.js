@@ -28,7 +28,7 @@ export async function analyzeCommits(pluginConfig, context) {
 export function verifyRelease(_pluginConfig, context) {
 	const { lastRelease, nextRelease, env } = context;
 	if (!lastRelease.version) {
-		throw new Error('No release tag found: tag the first commit of the pipeline v0.0.0 first');
+		throw new Error('No release tag found: push the one-time v0.0.0 tag first (ADR 0021)');
 	}
 	const expected = env.TART_RELEASE_VERSION;
 	if (expected && expected !== nextRelease.version) {

@@ -177,7 +177,7 @@ test('a breaking build(deps) commit still gives a breaking bump', async (t) => {
 
 test('without the v0.0.0 tag, nothing is released', async (t) => {
 	const repo = repository(t, { tag: null }).commit('feat: record a history event');
-	await assert.rejects(dryRun(repo), /tag the first commit of the pipeline v0\.0\.0/);
+	await assert.rejects(dryRun(repo), /push the one-time v0\.0\.0 tag first/);
 });
 
 test('the version is a step output for the workflow', async (t) => {
