@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/map/style/{theme}.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Map Style
+         * @description The map style of one theme, revalidated on every use (`no-cache` with an ETag).
+         */
+        get: operations["map_style_api_map_style__theme__json_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -86,6 +106,11 @@ export interface components {
             /** Bounds */
             bounds: number[];
         };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** Identity */
         Identity: {
             /** Name */
@@ -132,6 +157,8 @@ export interface components {
             geography: components["schemas"]["Geography"];
             /** Map Attribution */
             map_attribution: components["schemas"]["Attribution"][];
+            /** Map Tile Origins */
+            map_tile_origins: string[];
             vocabularies: components["schemas"]["Vocabularies"];
             /**
              * Registration
@@ -158,6 +185,19 @@ export interface components {
             terms: string;
             /** Privacy */
             privacy: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /**
          * Vocabularies
@@ -233,6 +273,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicConfiguration"];
+                };
+            };
+        };
+    };
+    map_style_api_map_style__theme__json_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme: "light" | "dark";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The style, with absolute asset URLs and the current basemap extract */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description The style has not changed since the ETag sent */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The style uses the local basemap, and there is no extract yet */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        code: "tiles_missing";
+                    };
                 };
             };
         };
