@@ -1,1 +1,4 @@
 pnpm-lock.yaml
+# Files the inlang SDK writes next to settings.json
+/project.inlang/*
+!/project.inlang/settings.json

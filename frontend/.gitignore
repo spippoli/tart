@@ -4,6 +4,9 @@ node_modules/
 /.svelte-kit/
 /build/
 
+# Paraglide output, compiled from messages/ by the Vite plugin
+/src/lib/paraglide/
+
 # Test output
 /coverage/
 /test-results/

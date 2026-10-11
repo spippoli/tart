@@ -1,0 +1,4 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"error_unknown": "An unexpected error occurred. Please try again later."
+}
