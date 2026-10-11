@@ -1,4 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { applyAction } from '$app/forms';
+	import {
+		PASSKEY_CANCELLED,
+		callAction,
+		passkeysSupported,
+		usePasskey
+	} from '#lib/auth/passkey.ts';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale, localizeHref } from '#lib/paraglide/runtime.js';
 	import PageTitle from '#lib/shell/PageTitle.svelte';
@@ -31,16 +39,54 @@
 		return format.format(Math.ceil(seconds / 3600), 'hour');
 	}
 
+	// Passkeys need the browser's WebAuthn support, known only once the page runs.
+	let canUsePasskey = $state(false);
+	onMount(() => {
+		canUsePasskey = passkeysSupported();
+	});
+	let passkeyBusy = $state(false);
+	let passkeyError = $state<string>();
+
+	async function signInWithPasskey() {
+		passkeyBusy = true;
+		passkeyError = undefined;
+		try {
+			const options = await callAction<{ options: PublicKeyCredentialRequestOptionsJSON }>(
+				'passkeyOptions'
+			);
+			if (options.type !== 'success' || !options.data?.options) {
+				passkeyError = 'unknown';
+				return;
+			}
+			const credential = await usePasskey(options.data.options);
+			if (credential === null) {
+				passkeyError = PASSKEY_CANCELLED;
+				return;
+			}
+			// A redirect signs in and goes on; a failure sets `form` with its error code.
+			await applyAction(await callAction('passkeySignIn', { credential, next: data.next ?? '' }));
+		} catch {
+			passkeyError = 'unknown';
+		} finally {
+			passkeyBusy = false;
+		}
+	}
+
+	const errorCode = $derived(passkeyError ?? form?.error);
+	const passkeyFailure = $derived(
+		passkeyError !== undefined || (errorCode?.startsWith('passkey_') ?? false)
+	);
+
 	const errorText = $derived.by(() => {
-		if (!form?.error) return undefined;
-		switch (form.error) {
+		if (!errorCode) return undefined;
+		switch (errorCode) {
 			case 'email_invalid':
 				return m.sign_in_error_email_invalid();
 			case 'code_invalid':
 				return m.sign_in_error_code_invalid();
 			case 'rate_limited':
 				return m.sign_in_error_rate_limited({
-					when: waitText('retryAfter' in form ? Number(form.retryAfter) : 60)
+					when: waitText(form && 'retryAfter' in form ? Number(form.retryAfter) : 60)
 				});
 			case 'age_not_confirmed':
 				return m.sign_in_error_age_not_confirmed({ age: data.minAge });
@@ -50,6 +96,10 @@
 				return m.sign_in_error_display_name_control_characters();
 			case 'display_name_reserved':
 				return m.sign_in_error_display_name_reserved();
+			case 'passkey_invalid':
+				return m.sign_in_error_passkey_invalid();
+			case PASSKEY_CANCELLED:
+				return m.sign_in_error_passkey_cancelled();
 			default:
 				return m.error_unknown();
 		}
@@ -72,7 +122,7 @@
 	{#if step === 'email'}
 		<p>{m.sign_in_intro()}</p>
 		<p>{registrationText()}</p>
-		{@render error('email-error')}
+		{#if !passkeyFailure}{@render error('email-error')}{/if}
 		<form method="post" action="?/request{query}">
 			<label for="email">{m.sign_in_email_label()}</label>
 			<input
@@ -82,8 +132,8 @@
 				autocomplete="email"
 				required
 				value={email}
-				aria-invalid={errorText ? 'true' : undefined}
-				aria-describedby={errorText ? 'email-error' : undefined}
+				aria-invalid={errorText && !passkeyFailure ? 'true' : undefined}
+				aria-describedby={errorText && !passkeyFailure ? 'email-error' : undefined}
 			/>
 			<!-- The honeypot: people leave it empty (Foundations spec, spam protection). -->
 			<div class="honeypot">
@@ -92,6 +142,16 @@
 			</div>
 			<button type="submit">{m.sign_in_send_code()}</button>
 		</form>
+		{#if canUsePasskey}
+			<section aria-labelledby="passkey-heading">
+				<h2 id="passkey-heading">{m.sign_in_passkey_heading()}</h2>
+				<p>{m.sign_in_passkey_intro()}</p>
+				{#if passkeyFailure}{@render error('passkey-error')}{/if}
+				<button type="button" onclick={signInWithPasskey} disabled={passkeyBusy}>
+					{m.sign_in_passkey_submit()}
+				</button>
+			</section>
+		{/if}
 	{:else if step === 'code'}
 		<p>{m.sign_in_code_sent({ email })}</p>
 		{@render error('code-error')}

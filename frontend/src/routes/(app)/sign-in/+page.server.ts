@@ -9,6 +9,8 @@ import type { Actions, PageServerLoad } from './$types';
  * Sign-in by email code (Foundations spec, 2): the address, then the code, then, for
  * an address without a User, the registration step. Each step is a form action that
  * calls the API on the browser's behalf, so the page works without JavaScript.
+ * Signing in with a passkey needs JavaScript: the page calls `passkeyOptions`, lets
+ * the browser use a passkey, and posts it to `passkeySignIn` (`#lib/auth/passkey.ts`).
  */
 
 export type Step = 'email' | 'code' | 'register';
@@ -96,8 +98,35 @@ async function verifyCode(event: RequestEvent, registering: boolean) {
 	});
 }
 
+async function passkeyOptions(event: RequestEvent) {
+	const { data } = await api().POST('/api/auth/passkey/options', { headers: onBehalfOf(event) });
+	if (!data) return fail(500, { step: 'email' as Step, error: 'unknown' });
+	return { options: data as unknown as PublicKeyCredentialRequestOptionsJSON };
+}
+
+async function passkeySignIn(event: RequestEvent) {
+	const form = await event.request.formData();
+	let credential: Record<string, unknown>;
+	try {
+		credential = JSON.parse(field(form, 'credential'));
+	} catch {
+		return fail(400, { step: 'email' as Step, error: 'passkey_invalid' });
+	}
+	const { data, error, response } = await api().POST('/api/auth/passkey/verify', {
+		body: { credential },
+		headers: onBehalfOf(event)
+	});
+	if (data?.outcome === 'signed_in') {
+		relaySessionCookie(response, event.cookies);
+		redirect(303, nextPage(event, form));
+	}
+	return fail(400, { step: 'email' as Step, error: errorCode(error) });
+}
+
 export const actions: Actions = {
 	request: requestCode,
+	passkeyOptions,
+	passkeySignIn,
 	verify: (event) => verifyCode(event, false),
 	register: (event) => verifyCode(event, true),
 	signOut: async (event) => {

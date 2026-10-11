@@ -9,9 +9,12 @@
  * are Users from the start, any other address registers; `limitata@…` is rate
  * limited; the session token is the address. It refuses a state-changing request
  * without the CSRF header or the client IP, as the API would not know the IP.
+ * Passkeys are kept by credential id and checked for nothing else: the browser's
+ * virtual authenticator makes them, and the API's own tests verify them.
  *
  *     node e2e/mock-api.ts [port]
  */
+import { createHash, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
@@ -29,10 +32,24 @@ function isPreset(email: string) {
 	return local.startsWith('persona') || local.startsWith('moderatrice');
 }
 
-function sessionUser(request: IncomingMessage) {
+interface Passkey {
+	id: number;
+	name: string;
+	created_at: string;
+	credentialId: string;
+	email: string;
+}
+const passkeys: Passkey[] = [];
+let nextPasskeyId = 1;
+
+function sessionEmail(request: IncomingMessage): string | null {
 	const token = /(?:^|;\s*)tart_session=([^;]+)/.exec(request.headers.cookie ?? '')?.[1];
-	if (!token) return null;
-	const email = decodeURIComponent(token);
+	return token ? decodeURIComponent(token) : null;
+}
+
+function sessionUser(request: IncomingMessage) {
+	const email = sessionEmail(request);
+	if (!email) return null;
 	if (!users.has(email) && isPreset(email)) {
 		users.set(email, {
 			display_name: email.startsWith('moderatrice') ? 'Moderatrice di prova' : 'Persona di prova',
@@ -64,8 +81,18 @@ async function auth(request: IncomingMessage, response: ServerResponse, path: st
 	if (path === '/api/auth/session' && request.method === 'GET') {
 		return send(response, 200, { user: sessionUser(request) });
 	}
+	if (path === '/api/auth/passkeys' && request.method === 'GET') {
+		const email = sessionUser(request) && sessionEmail(request);
+		if (!email) return send(response, 401, { code: 'sign_in_required' });
+		const own = passkeys.filter((key) => key.email === email);
+		return send(
+			response,
+			200,
+			own.map(({ id, name, created_at }) => ({ id, name, created_at }))
+		);
+	}
 	if (
-		request.method !== 'POST' ||
+		(request.method !== 'POST' && request.method !== 'DELETE') ||
 		!request.headers['x-tart-request'] ||
 		!request.headers['x-tart-client-ip']
 	) {
@@ -73,6 +100,7 @@ async function auth(request: IncomingMessage, response: ServerResponse, path: st
 	}
 	if (path === '/api/auth/sign-out') return send(response, 204, undefined, signedIn(''));
 	const body = await readJson(request);
+	if (path.startsWith('/api/auth/passkey')) return passkey(request, response, path, body);
 	const email = String(body.email ?? '').toLowerCase();
 	if (path === '/api/auth/code') {
 		if (!email.includes('@')) return send(response, 400, { code: 'email_invalid' });
@@ -98,6 +126,76 @@ async function auth(request: IncomingMessage, response: ServerResponse, path: st
 		}
 		users.set(email, { display_name: name, moderator: false, language: body.language });
 		return send(response, 200, { outcome: 'signed_in' }, signedIn(email));
+	}
+	send(response, 404);
+}
+
+const challenge = () => randomBytes(32).toString('base64url');
+
+async function passkey(
+	request: IncomingMessage,
+	response: ServerResponse,
+	path: string,
+	body: Record<string, unknown>
+) {
+	if (path === '/api/auth/passkey/options') {
+		return send(response, 200, {
+			challenge: challenge(),
+			timeout: 300000,
+			rpId: 'localhost',
+			allowCredentials: [],
+			userVerification: 'required'
+		});
+	}
+	if (path === '/api/auth/passkey/verify') {
+		const credential = body.credential as { rawId?: string } | undefined;
+		const found = passkeys.find((key) => key.credentialId === credential?.rawId);
+		if (!found) return send(response, 400, { code: 'passkey_invalid' });
+		return send(response, 200, { outcome: 'signed_in' }, signedIn(found.email));
+	}
+	const email = sessionUser(request) && sessionEmail(request);
+	if (!email) return send(response, 401, { code: 'sign_in_required' });
+	if (path === '/api/auth/passkeys/options') {
+		return send(response, 200, {
+			rp: { id: 'localhost', name: 'Archivio di prova' },
+			user: {
+				// WebAuthn allows at most 64 bytes.
+				id: createHash('sha256').update(email).digest('base64url'),
+				name: email,
+				displayName: email
+			},
+			challenge: challenge(),
+			pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+			timeout: 300000,
+			excludeCredentials: passkeys
+				.filter((key) => key.email === email)
+				.map((key) => ({ type: 'public-key', id: key.credentialId })),
+			authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+			attestation: 'none'
+		});
+	}
+	if (path === '/api/auth/passkeys' && request.method === 'POST') {
+		const name = String(body.name ?? '').trim();
+		if (name.length < 1 || name.length > 40) {
+			return send(response, 400, { code: 'passkey_name_length' });
+		}
+		const credential = body.credential as { rawId: string };
+		const added = {
+			id: nextPasskeyId++,
+			name,
+			created_at: new Date().toISOString(),
+			credentialId: credential.rawId,
+			email
+		};
+		passkeys.push(added);
+		return send(response, 201, { id: added.id, name, created_at: added.created_at });
+	}
+	const removal = /^\/api\/auth\/passkeys\/(\d+)$/.exec(path);
+	if (removal && request.method === 'DELETE') {
+		const index = passkeys.findIndex((key) => key.id === Number(removal[1]) && key.email === email);
+		if (index < 0) return send(response, 404, { code: 'passkey_not_found' });
+		passkeys.splice(index, 1);
+		return send(response, 204);
 	}
 	send(response, 404);
 }
