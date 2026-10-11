@@ -75,3 +75,28 @@ def test_classifiers_stand_in_for_a_missing_licence_expression() -> None:
     )
 
     assert dependency.licence == "MIT"
+
+
+@pytest.mark.parametrize(
+    ("licence_field", "classifiers", "expected"),
+    [
+        # Free text whose words happen to look like SPDX ids is not an expression.
+        ("Apache 2.0", ["License :: OSI Approved :: Apache Software License"], "Apache-2.0"),
+        ("Dual License", ["License :: OSI Approved :: Apache Software License"], "Apache-2.0"),
+        # A well-known licence name with no classifier to fall back on.
+        ("Apache License 2.0", [], "Apache-2.0"),
+        ("Apache-2.0", [], "Apache-2.0"),
+    ],
+)
+def test_a_free_text_licence_field_is_read_as_its_licence(
+    licence_field: str, classifiers: list[str], expected: str
+) -> None:
+    dependency = Dependency.from_metadata(
+        name="pkg",
+        version="1.0",
+        expression=None,
+        licence_field=licence_field,
+        classifiers=classifiers,
+    )
+
+    assert dependency.licence == expected
