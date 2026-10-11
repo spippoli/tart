@@ -1,6 +1,6 @@
 """Prints the API's OpenAPI schema, from which the frontend generates its client (ADR 0004).
 
-    uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json
+uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json
 """
 
 import json
