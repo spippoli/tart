@@ -41,3 +41,36 @@ def test_an_unknown_bound_is_not_compared() -> None:
     period = Period(start=UncertainDate.unknown(), end=_year(2012))
 
     assert period.end == _year(2012)
+
+
+def _period(start: int | None, end: int | None) -> Period:
+    return Period(
+        start=_year(start) if start is not None else None,
+        end=_year(end) if end is not None else None,
+    )
+
+
+@pytest.mark.parametrize(
+    ("first", "second", "overlap"),
+    [
+        ((2010, 2012), (2014, 2016), False),
+        ((2014, 2016), (2010, 2012), False),
+        ((2010, 2014), (2014, 2016), True),  # equal keys overlap
+        ((2010, 2015), (2012, 2013), True),
+        ((2010, None), (2016, 2018), True),  # open-ended: everything after its start
+        ((2016, None), (2010, 2012), False),
+        ((None, 2012), (2010, 2011), True),
+        ((None, 2012), (2014, None), False),
+    ],
+)
+def test_periods_overlap_by_chronological_key(
+    first: tuple[int | None, int | None], second: tuple[int | None, int | None], overlap: bool
+) -> None:
+    assert _period(*first).overlaps(_period(*second)) is overlap
+    assert _period(*second).overlaps(_period(*first)) is overlap
+
+
+def test_an_unknown_end_is_open() -> None:
+    unknown_end = Period(start=_year(2010), end=UncertainDate.unknown())
+
+    assert unknown_end.overlaps(_period(2016, 2018))

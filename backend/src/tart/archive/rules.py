@@ -127,11 +127,26 @@ def check_record(
             if record.geometry.kind is not GeometryKind.POLYGON:
                 raise ArchiveRuleViolation("area.geometry_not_polygon")
         case Artist():
-            pass
+            _check_crew_periods(record)
         case Source():
             _url(record.url, "source.url_invalid")
         case DocumentationItem():
             _check_documentation_item(record, before, rules)
+
+
+def _check_crew_periods(record: Artist) -> None:
+    """Memberships in the same collective may repeat only over periods that do not overlap."""
+    memberships = record.crew_memberships
+    for index, membership in enumerate(memberships):
+        for other in memberships[index + 1 :]:
+            if other.collective != membership.collective:
+                continue
+            if (
+                membership.period is None
+                or other.period is None
+                or membership.period.overlaps(other.period)
+            ):
+                raise ArchiveRuleViolation("crew_membership.periods_overlap")
 
 
 def _check_artwork(record: Artwork, before: Record | None, rules: InstanceRules) -> None:

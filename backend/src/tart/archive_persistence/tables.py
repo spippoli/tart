@@ -191,10 +191,11 @@ artist_area = Table(
 crew_membership = Table(
     "crew_membership",
     metadata,
+    # One Artist may hold several memberships in one collective, over distinct periods.
     Column("member_id", BigInteger, _link("artist.id"), primary_key=True),
-    Column("collective_id", BigInteger, _link("artist.id"), primary_key=True),
+    Column("collective_id", BigInteger, _link("artist.id"), nullable=False),
     Column("period", JSONB),
-    Column("position", Integer, nullable=False),
+    Column("position", Integer, primary_key=True),
     CheckConstraint("member_id <> collective_id", name="not_own_member"),
     Index("ix_crew_membership_collective_id", "collective_id"),
 )
