@@ -4,12 +4,12 @@
 		"npm": {
 			"licence": "Artistic-2.0",
 			"tier": "permissive",
-			"reason": "Installed only because semantic-release depends on @semantic-release/npm; the npm plugin is not configured, so npm never runs, and it is never distributed. Needs a person's confirmation of the tier."
+			"reason": "Installed only because semantic-release depends on @semantic-release/npm; the npm plugin is not configured, so npm never runs, and it is never distributed. Admitted for CI-only tools by ADR 0011 §8."
 		},
 		"spdx-exceptions": {
 			"licence": "CC-BY-3.0",
 			"tier": "permissive",
-			"reason": "A data list of SPDX licence exceptions, read by semantic-release's tooling in CI; never distributed."
+			"reason": "A data list of SPDX licence exceptions, read by semantic-release's tooling in CI; never distributed. Admitted for CI-only tools by ADR 0011 §8."
 		},
 		"spdx-license-ids": {
 			"licence": "CC0-1.0",
