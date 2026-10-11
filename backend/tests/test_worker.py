@@ -2,11 +2,20 @@ import signal
 import subprocess
 import sys
 import time
+from pathlib import Path
+
+
+def _waiting_for_signal(pid: int) -> bool:
+    # Linux: the kernel function the process sleeps in, once it reaches sigwait.
+    return "sigtimedwait" in Path(f"/proc/{pid}/wchan").read_text()
 
 
 def test_worker_exits_cleanly_on_sigterm() -> None:
     worker = subprocess.Popen([sys.executable, "-m", "tart.worker"])
-    time.sleep(0.5)
+    deadline = time.monotonic() + 10
+    while not _waiting_for_signal(worker.pid):
+        assert worker.poll() is None and time.monotonic() < deadline
+        time.sleep(0.01)
 
     worker.send_signal(signal.SIGTERM)
 
