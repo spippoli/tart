@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TART is a collaborative platform for documenting and preserving the history of urban art. The first deployment is Rome, but the software is meant to be reused by independent local communities ("Rome Urban Art Archive — Powered by TART").
 
-The design phase is complete and the repository is entering implementation. There is no source code yet; the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
+The design phase is complete and implementation is under way, ticket by ticket. The monorepo has `backend/` (FastAPI), `frontend/` (SvelteKit), and `deploy/` (Docker Compose); the MVP tech stack is decided in `docs/adr/0004-mvp-tech-stack.md` and `docs/adr/0005-passwordless-in-app-auth.md`.
 
 ## Sources of truth
 
@@ -28,7 +28,42 @@ When they disagree, the earlier one wins:
 
 ## Commands
 
-None yet. The ticket "Monorepo scaffold and development stack" adds the build, lint, and test commands for `backend/`, `frontend/`, and `deploy/` here.
+Versions are pinned: Python 3.14 with uv 0.13, Node 24 LTS with pnpm 11 (`packageManager` in `frontend/package.json`). CI (`.github/workflows/ci.yml`) runs the lint and test commands below on every pull request.
+
+Backend (run in `backend/`):
+
+```sh
+uv sync                    # install, including dev tools
+uv run ruff check .        # lint
+uv run ruff format .       # format (CI runs `--check`)
+uv run pytest              # all tests
+uv run pytest tests/test_health.py   # one file
+uv run uvicorn tart.api.app:create_app --factory --reload   # dev server on :8000
+```
+
+Frontend (run in `frontend/`):
+
+```sh
+pnpm install
+pnpm dev                   # dev server
+pnpm lint                  # prettier --check and eslint
+pnpm format                # prettier --write
+pnpm check                 # svelte-check (type checking)
+pnpm test:unit             # vitest
+pnpm exec playwright install chromium   # once, before e2e
+pnpm test:e2e              # Playwright with axe, against a production build
+pnpm build
+```
+
+Full stack (run in `deploy/`; copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` first):
+
+```sh
+docker compose up --build              # caddy, frontend, api, worker, db
+docker compose --profile dev up --build   # also Mailpit, UI on :8025
+docker compose down                    # add -v to drop the volumes
+```
+
+Caddy serves `https://localhost` with a local certificate and routes `/api/*` to `api`, everything else to `frontend`; `GET /api/health` answers `ok`.
 
 ## Language rules (mandatory)
 
