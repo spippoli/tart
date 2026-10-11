@@ -2,3 +2,6 @@ pnpm-lock.yaml
 # Files the inlang SDK writes next to settings.json
 /project.inlang/*
 !/project.inlang/settings.json
+# Generated from the backend schema; see scripts/api-schema.ts
+src/lib/api/openapi.json
+src/lib/api/schema.d.ts
