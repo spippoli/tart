@@ -1,4 +1,5 @@
-"""`/api/auth/*`: sign-in by email code, registration, sessions (Foundations spec, 2).
+"""`/api/auth/*`: sign-in by email code or passkey, registration, the signed-in
+User's passkeys, sessions (Foundations spec, 2).
 
 Every answer to the code request is the same whatever the address; refusals carry
 a translatable error code, `{"code": ...}`.
@@ -7,7 +8,7 @@ a translatable error code, `{"code": ...}`.
 import math
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response
 from fastapi.responses import JSONResponse
@@ -24,9 +25,11 @@ from tart.auth import (
     Refused,
     Registration,
     RegistrationRequired,
+    passkeys,
     sessions,
 )
 from tart.auth.built_in import BuiltInAuthentication
+from tart.auth.passkeys import RelyingParty
 from tart.auth.sessions import COOKIE, SessionUser
 from tart.config import Configuration
 
@@ -37,6 +40,7 @@ CLIENT_IP_HEADER = "X-Tart-Client-IP"
 frontend's server from the same header. `X-Forwarded-For` is never read."""
 RATE_LIMITED = "rate_limited"
 SIGN_IN_REQUIRED = "sign_in_required"
+PASSKEY_NOT_FOUND = "passkey_not_found"
 
 Clock = Callable[[], datetime]
 
@@ -80,6 +84,9 @@ def get_authentication(
         registration=settings.community.registration,
         ui_languages=settings.languages.ui,
         catalogue=request.app.state.catalogue,
+        relying_party=RelyingParty.for_site(
+            str(configuration.environment.PUBLIC_BASE_URL), settings.identity.name
+        ),
     )
 
 
@@ -258,3 +265,107 @@ async def sign_out_everywhere(
     async with engine.begin() as connection:
         await sessions.revoke_all(connection, user.id)
     _clear_session_cookie(response)
+
+
+def _sign_in_required() -> JSONResponse:
+    return JSONResponse({"code": SIGN_IN_REQUIRED}, status_code=401)
+
+
+class PasskeyCredential(BaseModel):
+    credential: dict[str, Any]
+    """The browser's `PublicKeyCredential`, in WebAuthn's JSON form (`toJSON()`)."""
+
+
+@router.post("/passkey/options")
+async def passkey_sign_in_options(
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> dict[str, Any]:
+    """WebAuthn options for signing in with a passkey of this site, valid 5 minutes."""
+    return await authentication.passkey_sign_in_options(clock())
+
+
+@router.post("/passkey/verify", responses={400: {"model": Error}})
+async def passkey_sign_in(
+    body: PasskeyCredential,
+    response: Response,
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> Verified:
+    """Sign in with the passkey the browser used; any failure is `passkey_invalid`."""
+    outcome = await authentication.sign_in_with_passkey(body.credential, clock())
+    if isinstance(outcome, Refused):
+        return JSONResponse({"code": outcome.code}, status_code=400)  # type: ignore[return-value]
+    _set_session_cookie(response, outcome.session_token)
+    return Verified(outcome="signed_in")
+
+
+class PasskeySummary(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+
+
+class NewPasskey(PasskeyCredential):
+    name: str
+    """1 to 40 characters after trimming, no control characters."""
+
+
+@router.get("/passkeys", responses={401: {"model": Error}})
+async def list_passkeys(
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+) -> list[PasskeySummary]:
+    """The signed-in User's passkeys, oldest first; never any key material."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    async with engine.begin() as connection:
+        found = await passkeys.list_for(connection, user.id)
+    return [PasskeySummary(id=key.id, name=key.name, created_at=key.created_at) for key in found]
+
+
+@router.post("/passkeys/options", responses={401: {"model": Error}})
+async def passkey_registration_options(
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> dict[str, Any]:
+    """WebAuthn options for adding a passkey to the signed-in User, valid 5 minutes."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    return await authentication.passkey_registration_options(user.id, clock())
+
+
+@router.post("/passkeys", status_code=201, responses={400: {"model": Error}, 401: {"model": Error}})
+async def add_passkey(
+    body: NewPasskey,
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> PasskeySummary:
+    """Add the passkey the browser created from the options."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    outcome = await authentication.register_passkey(user.id, body.name, body.credential, clock())
+    if isinstance(outcome, Refused):
+        return JSONResponse({"code": outcome.code}, status_code=400)  # type: ignore[return-value]
+    return PasskeySummary(id=outcome.id, name=outcome.name, created_at=outcome.created_at)
+
+
+@router.delete(
+    "/passkeys/{passkey_id}",
+    status_code=204,
+    responses={401: {"model": Error}, 404: {"model": Error}},
+)
+async def remove_passkey(
+    passkey_id: int,
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+) -> None:
+    """Remove one of the signed-in User's passkeys."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    async with engine.begin() as connection:
+        removed = await passkeys.remove(connection, user.id, passkey_id)
+    if not removed:
+        return JSONResponse({"code": PASSKEY_NOT_FOUND}, status_code=404)  # type: ignore[return-value]

@@ -1,4 +1,5 @@
-"""The built-in authentication: a one-time code by email (Foundations spec, 2. Sign-in).
+"""The built-in authentication: a one-time code by email, and passkeys
+(`tart.auth.passkeys`) once signed in (Foundations spec, 2. Sign-in).
 
 The code request answers the same whatever the address, in every `registration`
 mode, so that nobody learns which addresses have accounts: a User or an address
@@ -10,6 +11,7 @@ same limits. Emails are deferred to the `worker` once the transaction is committ
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
 from procrastinate import App
 from sqlalchemy import delete, insert, select, update
@@ -29,8 +31,10 @@ from tart.auth import (
     Refused,
     RegistrationRequired,
     SignedIn,
+    passkeys,
     sessions,
 )
+from tart.auth.passkeys import PASSKEY_INVALID, Passkey, RelyingParty
 from tart.auth.tables import sign_in_code, user_account
 from tart.auth.tokens import keyed_hash, new_code, same
 from tart.auth.users import display_name_problem, normalise_email
@@ -66,6 +70,7 @@ class BuiltInAuthentication:
     """`community.registration`: `open`, `invite`, or `closed`."""
     ui_languages: Sequence[str]
     catalogue: Catalogue
+    relying_party: RelyingParty
 
     def _may_register(self, email: str) -> bool:
         # Under `invite`, the Invitations ticket admits an address with a pending
@@ -203,4 +208,34 @@ class BuiltInAuthentication:
                 .returning(user_account.c.id)
             )
             await connection.execute(used_up)
+            return SignedIn(await sessions.create(connection, user_id, now, self.key))
+
+    async def passkey_registration_options(self, user_id: int, now: datetime) -> dict[str, Any]:
+        async with self.engine.begin() as connection:
+            return await passkeys.registration_options(
+                connection, self.relying_party, user_id, now, self.key
+            )
+
+    async def register_passkey(
+        self, user_id: int, name: str, credential: dict[str, Any], now: datetime
+    ) -> Passkey | Refused:
+        async with self.engine.begin() as connection:
+            outcome = await passkeys.register(
+                connection, self.relying_party, user_id, name, credential, now, self.key
+            )
+        return Refused(outcome) if isinstance(outcome, str) else outcome
+
+    async def passkey_sign_in_options(self, now: datetime) -> dict[str, Any]:
+        async with self.engine.begin() as connection:
+            return await passkeys.sign_in_options(connection, self.relying_party, now, self.key)
+
+    async def sign_in_with_passkey(
+        self, credential: dict[str, Any], now: datetime
+    ) -> SignedIn | Refused:
+        async with self.engine.begin() as connection:
+            user_id = await passkeys.authenticate(
+                connection, self.relying_party, credential, now, self.key
+            )
+            if user_id is None:
+                return Refused(PASSKEY_INVALID)
             return SignedIn(await sessions.create(connection, user_id, now, self.key))

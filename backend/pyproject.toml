@@ -15,6 +15,7 @@ dependencies = [
     "pydantic==2.14.0",
     "sqlalchemy[asyncio]==2.1.4",
     "uvicorn==0.54.0",
+    "webauthn==3.0.1",
 ]
 
 [project.scripts]
