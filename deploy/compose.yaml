@@ -1,0 +1,74 @@
+# Reference topology (ADR 0004). Start with `docker compose up --build`;
+# add `--profile dev` for Mailpit.
+name: tart
+
+services:
+  caddy:
+    image: caddy:2.11.7-alpine
+    restart: unless-stopped
+    ports:
+      - "${TART_HTTP_PORT:-80}:80"
+      - "${TART_HTTPS_PORT:-443}:443"
+    environment:
+      TART_SITE_ADDRESS: ${TART_SITE_ADDRESS:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - api
+
+  frontend:
+    build: ../frontend
+    restart: unless-stopped
+    environment:
+      ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
+
+  api:
+    build: ../backend
+    image: tart-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    image: tart-backend
+    restart: unless-stopped
+    command: ["python", "-m", "tart.worker"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
+    depends_on:
+      api:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgis/postgis:18-3.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tart}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-tart}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31.5
+    profiles: [dev]
+    ports:
+      - "8025:8025"
+
+volumes:
+  caddy-data:
+  caddy-config:
+  db-data:
