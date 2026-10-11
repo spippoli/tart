@@ -1,0 +1,5 @@
+{
+	"$comment": "Third-party assets vendored into the repository (ADR 0016 §3); checked by scripts/assets.ts. Paths are relative to the repository root. Each entry: path, licence (SPDX), source, credit, and reservedFontName (string or null) for a font.",
+	"directories": [],
+	"assets": []
+}
