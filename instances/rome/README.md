@@ -38,5 +38,21 @@ are not here yet: Rome's style comes with the Discovery tickets.
 
 ## Licences
 
-The TART software licence does not cover this directory. The boundary in
-`geography/` is OpenStreetMap data under the ODbL (see `geography/README.md`).
+The content of this directory (`instance.toml`, the vocabularies, the texts, the
+identity files, and the map style files when they arrive) is licensed under
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
+(SPDX `CC-BY-4.0`), so that another Instance can start from it. Credit it as "Rome
+Urban Art Archive configuration, from the TART repository". CC BY covers copyright
+only: it grants no right to use the archive's name or logo as the identity of
+another archive.
+
+Two exceptions:
+
+- `geography/boundary.geojson` is OpenStreetMap data under the ODbL (see
+  `geography/README.md`).
+- The scripts in `geography/` (`boundary.py`, `boundary.overpassql`) are software,
+  under the TART software licence (`LICENSE` at the repository root).
+
+The TART software licence does not cover the rest of this directory, and the Data
+licence of the archive's records (`licenses.data` in `instance.toml`) is a separate
+choice.
