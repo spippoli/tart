@@ -70,6 +70,8 @@ class Instance:
     identity: Identity
     bounds: tuple[float, float, float, float]
     """The boundary's bounding box: west, south, east, north."""
+    boundary: Mapping[str, Any]
+    """The boundary as a GeoJSON Polygon or MultiPolygon geometry."""
 
 
 @dataclass(frozen=True)
@@ -153,7 +155,8 @@ def _positions(geometry: dict[str, Any]) -> list[list[float]]:
 
 def _read_boundary(
     directory: Path, issues: list[Issue]
-) -> tuple[float, float, float, float] | None:
+) -> tuple[dict[str, Any], tuple[float, float, float, float]] | None:
+    """The boundary geometry and its bounding box."""
     text = _read_text(directory, BOUNDARY, issues, required=True)
     if text is None:
         return None
@@ -178,7 +181,7 @@ def _read_boundary(
             )
         )
         return None
-    return min(longitudes), min(latitudes), max(longitudes), max(latitudes)
+    return geojson, (min(longitudes), min(latitudes), max(longitudes), max(latitudes))
 
 
 def _enabled_ui_languages(raw: dict[str, Any] | None) -> tuple[str, ...]:
@@ -217,12 +220,13 @@ def load_instance(directory: Path) -> Instance:
         logo_dark=_read_svg(directory, LOGO_DARK, issues),
         favicon=_read_svg(directory, FAVICON, issues),
     )
-    bounds = _read_boundary(directory, issues)
+    boundary = _read_boundary(directory, issues)
 
     if issues:
         raise ConfigurationError(issues)
-    assert settings is not None and bounds is not None
-    return Instance(settings, vocabularies, texts, identity, bounds)
+    assert settings is not None and boundary is not None
+    geometry, bounds = boundary
+    return Instance(settings, vocabularies, texts, identity, bounds, geometry)
 
 
 def load_environment(environ: Mapping[str, str]) -> Environment:
