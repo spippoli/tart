@@ -1,0 +1,19 @@
+## Operator actions
+
+{{#if noteGroups}}
+{{#each noteGroups}}
+{{#each notes}}
+* {{#if commit.scope}}**{{commit.scope}}:** {{/if}}{{text}}
+{{/each}}
+{{/each}}
+{{else}}
+Only `tart upgrade {{version}}` is needed.
+{{/if}}
+{{#each commitGroups}}
+
+## {{title}}
+
+{{#each commits}}
+{{> commit root=@root}}
+{{/each}}
+{{/each}}
