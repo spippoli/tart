@@ -30,6 +30,7 @@ from typing import Any
 
 from tart.config import load_instance
 from tart.config.instance import BOUNDARY
+from tart.map.style import BASEMAP_SCHEMA, STYLE_FILES, uses_basemap
 
 BUFFER_METRES = 2000
 """The extract covers the boundary buffered by this distance (platform constant)."""
@@ -38,11 +39,6 @@ DEFAULT_SOURCE = "https://build.protomaps.com"
 """Where the Protomaps daily builds live, as `<source>/YYYYMMDD.pmtiles`."""
 BUILDS_URL = "https://build-metadata.protomaps.dev/builds.json"
 """The list of Protomaps daily builds, read to find the latest one."""
-
-SYMBOLIC_URL = "pmtiles:///tiles/basemap.pmtiles"
-"""How a style refers to the local basemap (ADR 0009)."""
-SCHEMA_KEY = "tart:basemap-schema"
-STYLES = ("map/style.light.json", "map/style.dark.json")
 
 MANIFEST = "manifest.json"
 PMTILES_PROGRAM = "pmtiles"
@@ -189,21 +185,17 @@ class _StyleBasemap:
 def _style_basemap(config_directory: Path) -> _StyleBasemap:
     uses_local = False
     schemas: set[int] = set()
-    for file in STYLES:
+    for file in STYLE_FILES.values():
         try:
             style = json.loads((config_directory / file).read_text(encoding="utf-8"))
         except OSError, ValueError:
             continue  # The configuration loader reports a missing or broken style.
         if not isinstance(style, dict):
             continue
-        sources = style.get("sources")
-        if isinstance(sources, dict) and any(
-            isinstance(source, dict) and source.get("url") == SYMBOLIC_URL
-            for source in sources.values()
-        ):
+        if uses_basemap(style):
             uses_local = True
         metadata = style.get("metadata")
-        schema = metadata.get(SCHEMA_KEY) if isinstance(metadata, dict) else None
+        schema = metadata.get(BASEMAP_SCHEMA) if isinstance(metadata, dict) else None
         if isinstance(schema, int) and not isinstance(schema, bool):
             schemas.add(schema)
     return _StyleBasemap(uses_local, frozenset(schemas))
@@ -213,12 +205,12 @@ def _declared_schema(config_directory: Path) -> int:
     schemas = _style_basemap(config_directory).schemas
     if not schemas:
         raise TilesError(
-            f"the map styles declare no metadata.{SCHEMA_KEY}: set it to the Protomaps "
+            f"the map styles declare no metadata.{BASEMAP_SCHEMA}: set it to the Protomaps "
             "major the styles are written for"
         )
     if len(schemas) > 1:
         raise TilesError(
-            f"the light and dark map styles declare different metadata.{SCHEMA_KEY} "
+            f"the light and dark map styles declare different metadata.{BASEMAP_SCHEMA} "
             f"values: {', '.join(map(str, sorted(schemas)))}"
         )
     return next(iter(schemas))
@@ -254,7 +246,7 @@ def current_extract(tiles_directory: Path) -> Manifest | None:
     try:
         data = json.loads((tiles_directory / MANIFEST).read_text(encoding="utf-8"))
         manifest = Manifest(**data)
-    except OSError, ValueError, TypeError:
+    except OSError, ValueError, TypeError, RecursionError:
         return None
     if not _EXTRACT.match(manifest.file) or not (tiles_directory / manifest.file).is_file():
         return None
@@ -334,7 +326,7 @@ def update(
             raise TilesError(
                 f"the extract from {source_url} has schema {version}, but the map styles "
                 f"declare major {expected}: choose a build of that major with --build, or "
-                f"update the styles and metadata.{SCHEMA_KEY}"
+                f"update the styles and metadata.{BASEMAP_SCHEMA}"
             )
         previous = current_extract(tiles_directory)
         os.replace(partial, tiles_directory / name)

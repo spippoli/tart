@@ -24,6 +24,7 @@ from fastapi.testclient import TestClient
 from tart import tiles
 from tart.api.app import create_app
 from tart.cli import main as run_cli
+from tart.map.style import BASEMAP_SCHEMA, BASEMAP_URL, STYLE_FILES
 
 BOUNDARY = (12.40, 41.85, 12.56, 41.95)
 """The valid fixture's boundary: west, south, east, north."""
@@ -62,7 +63,7 @@ def protomaps_extract(path: Path, version: str) -> Path:
 
 def use_local_basemap(directory: Path, schema: int = 4) -> None:
     """Make both styles use the symbolic local basemap and declare `schema`."""
-    for file in tiles.STYLES:
+    for file in STYLE_FILES.values():
         path = directory / file
         path.parent.mkdir(parents=True, exist_ok=True)
         style = (
@@ -70,13 +71,13 @@ def use_local_basemap(directory: Path, schema: int = 4) -> None:
             if path.exists()
             else {"version": 8, "sources": {}, "layers": []}
         )
-        style.setdefault("metadata", {})[tiles.SCHEMA_KEY] = schema
-        style["sources"]["protomaps"] = {"type": "vector", "url": tiles.SYMBOLIC_URL}
+        style.setdefault("metadata", {})[BASEMAP_SCHEMA] = schema
+        style["sources"]["protomaps"] = {"type": "vector", "url": BASEMAP_URL}
         path.write_text(json.dumps(style), encoding="utf-8")
 
 
 def use_external_tiles(directory: Path) -> None:
-    for file in tiles.STYLES:
+    for file in STYLE_FILES.values():
         path = directory / file
         path.parent.mkdir(parents=True, exist_ok=True)
         style = (
@@ -84,7 +85,7 @@ def use_external_tiles(directory: Path) -> None:
             if path.exists()
             else {"version": 8, "sources": {}, "layers": []}
         )
-        style.get("metadata", {}).pop(tiles.SCHEMA_KEY, None)
+        style.get("metadata", {}).pop(BASEMAP_SCHEMA, None)
         style["sources"] = {
             "external": {"type": "vector", "url": "pmtiles://https://tiles.example.org/a.pmtiles"}
         }
@@ -307,7 +308,7 @@ def test_ac_46_a_style_without_a_basemap_schema_is_refused(
 
     assert update("--build", "20261011") == 1
 
-    assert tiles.SCHEMA_KEY in capsys.readouterr().err
+    assert BASEMAP_SCHEMA in capsys.readouterr().err
     assert pmtiles.calls == []
 
 
@@ -368,6 +369,19 @@ def test_ac_47_no_warning_for_a_current_extract(
     assert update("--build", "20261011") == 0
 
     assert tiles.startup_warnings(config, tiles_dir) == []
+
+
+def test_ac_47_warns_on_a_missing_extract_named_in_a_tiles_array(
+    config: Path, tiles_dir: Path
+) -> None:
+    for file in STYLE_FILES.values():
+        path = config / file
+        style = json.loads(path.read_text(encoding="utf-8"))
+        style["sources"]["basemap"] = {"type": "vector", "tiles": [BASEMAP_URL]}
+        path.write_text(json.dumps(style), encoding="utf-8")
+
+    [warning] = tiles.startup_warnings(config, tiles_dir)
+    assert "missing" in warning
 
 
 def test_ac_47_no_check_applies_to_external_tiles(config: Path, tiles_dir: Path) -> None:
