@@ -33,8 +33,12 @@ font.
 
 ## Map
 
-The map style files (`map/style.light.json`, `map/style.dark.json`) and their assets
-are not here yet: Rome's style comes with the Discovery tickets.
+**Placeholder.** The map style files (`map/style.light.json`, `map/style.dark.json`)
+and their assets in `map/` are a provisional copy of the tests' fixture style, there
+only so that this directory passes the map style rules: the font, glyph, and sprite
+files are empty, and the map would not render. Rome's real style, the ADR 0017
+reference style with its fonts and the walls and archaeology overlay, replaces them
+in [#144](https://github.com/spippoli/tart/issues/144).
 
 ## Licences
 
