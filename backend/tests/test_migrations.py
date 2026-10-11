@@ -1,9 +1,15 @@
+import asyncio
 import subprocess
 
+from alembic.autogenerate import compare_metadata
+from alembic.runtime.migration import MigrationContext
 from conftest import fetch_value
+from sqlalchemy import Connection
 
 from tart import migrations
 from tart.cli import main as run_cli
+from tart.db import create_engine
+from tart.migrations.metadata import include_object, metadata
 
 
 def _revision(dsn: str) -> object:
@@ -45,3 +51,19 @@ def test_no_migration_implements_downgrade() -> None:
         assert not hasattr(module, "downgrade"), module.__file__
     # The template that `alembic revision` renders new migrations from.
     assert "downgrade" not in migrations.TEMPLATE.read_text()
+
+
+def test_the_migrations_create_the_tables_the_code_declares(migrated_database: str) -> None:
+    def differences(connection: Connection) -> list[object]:
+        context = MigrationContext.configure(connection, opts={"include_object": include_object})
+        return compare_metadata(context, metadata())
+
+    async def run() -> list[object]:
+        engine = create_engine(migrated_database)
+        try:
+            async with engine.connect() as connection:
+                return await connection.run_sync(differences)
+        finally:
+            await engine.dispose()
+
+    assert asyncio.run(run()) == []

@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { chooseLanguage, LANGUAGE_COOKIE, textDirection } from '#lib/i18n/language.ts';
+import { api, onBehalfOf, SESSION_COOKIE } from '#lib/server/api.ts';
 import { readInstanceConfig } from '#lib/server/config.ts';
 import { createContentSecurityPolicyHandle } from '#lib/server/content-security-policy.ts';
 import {
@@ -58,8 +59,25 @@ const resolveLanguage: Handle = async ({ event, resolve }) => {
 	);
 };
 
+/**
+ * The signed-in User of every request, from the API, which reads the session and the
+ * roles afresh each time: a revoked session or role takes effect on the next page.
+ */
+const resolveSession: Handle = async ({ event, resolve }) => {
+	event.locals.user = null;
+	if (event.cookies.get(SESSION_COOKIE)) {
+		const { data, response } = await api().GET('/api/auth/session', {
+			headers: onBehalfOf(event)
+		});
+		if (data === undefined) throw new Error(`GET /api/auth/session answered ${response.status}`);
+		event.locals.user = data.user ?? null;
+	}
+	return resolve(event);
+};
+
 /** Every response carries the Content-Security-Policy, with the external map tile origins. */
 export const handle = sequence(
 	createContentSecurityPolicyHandle(readInstanceConfig),
+	resolveSession,
 	resolveLanguage
 );

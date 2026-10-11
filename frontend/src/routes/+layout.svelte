@@ -40,6 +40,7 @@
 		contentLanguage={data.contentLanguage}
 		enabledLanguages={data.enabledLanguages}
 		locale={data.locale}
+		user={data.user}
 	/>
 	<main id="main" tabindex="-1">
 		{@render children()}

@@ -5,6 +5,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { deLocalizeHref, localizeHref, type Locale } from '#lib/paraglide/runtime.js';
 	import { textDirection } from '#lib/i18n/language.ts';
+	import { signInHref } from '#lib/auth/next.ts';
 	import type { PublicConfiguration } from '#lib/server/instance-config.ts';
 	import LanguageSwitcher from './LanguageSwitcher.svelte';
 	import { svgDataUrl } from './svg';
@@ -13,21 +14,26 @@
 		identity,
 		contentLanguage,
 		enabledLanguages,
-		locale
+		locale,
+		user
 	}: {
 		identity: PublicConfiguration['identity'];
 		contentLanguage: string;
 		enabledLanguages: string[];
 		locale: Locale;
+		/** The signed-in User, or null. */
+		user: { displayName: string; moderator: boolean } | null;
 	} = $props();
 
-	const sections = [
+	const sections = $derived([
 		{ route: '/', label: m.nav_explore },
 		{ route: '/archive', label: m.nav_archive },
 		{ route: '/artists', label: m.nav_artists },
 		{ route: '/contribute', label: m.nav_contribute },
+		// Shown only to Moderators; the page checks the role on every request anyway.
+		...(user?.moderator ? [{ route: '/moderation', label: m.nav_moderation }] : []),
 		{ route: '/about', label: m.nav_about }
-	];
+	]);
 
 	const route = $derived(deLocalizeHref(page.url.pathname));
 	const isCurrent = (section: string) =>
@@ -101,9 +107,24 @@
 
 		<LanguageSwitcher enabled={enabledLanguages} current={locale} />
 
-		<div class="user-menu">
-			<a href={localizeHref('/sign-in')}>{m.user_menu_sign_in()}</a>
-		</div>
+		{#if user}
+			<nav class="user-menu" aria-label={m.user_menu_label()}>
+				<!-- A display name is the User's own text, in no particular language. -->
+				<span class="user-name"
+					>{m.user_menu_signed_in_as()} <bdi lang="">{user.displayName}</bdi></span
+				>
+				<a href={localizeHref('/account')} aria-current={isCurrent('/account') ? 'page' : undefined}
+					>{m.user_menu_account()}</a
+				>
+				<form method="post" action="{localizeHref('/sign-in')}?/signOut">
+					<button type="submit">{m.user_menu_sign_out()}</button>
+				</form>
+			</nav>
+		{:else}
+			<div class="user-menu">
+				<a href={signInHref(page.url)}>{m.user_menu_sign_in()}</a>
+			</div>
+		{/if}
 	</div>
 </header>
 
@@ -170,6 +191,17 @@
 
 	.sections a[aria-current='page'] {
 		font-weight: 700;
+	}
+
+	.user-menu {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 1rem;
+	}
+
+	.user-name {
+		color: var(--text-muted);
 	}
 
 	.search {
