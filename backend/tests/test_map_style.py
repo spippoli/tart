@@ -7,7 +7,10 @@ the HTTP API with a PMTiles directory per test.
 """
 
 import json
+import shutil
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
 from conftest import ENVIRONMENT, VALID_CONFIG, config_fixture
@@ -79,6 +82,17 @@ def _issues(directory: Path) -> list[tuple[str, str]]:
     return [(issue.file, issue.key) for issue in raised.value.issues]
 
 
+def _with_light_style(tmp_path: Path, change: Callable[[dict[str, Any]], None]) -> Path:
+    """The valid configuration, with `change` applied to its light style."""
+    directory = tmp_path / "config"
+    shutil.copytree(VALID_CONFIG, directory)
+    path = directory / LIGHT
+    style = json.loads(path.read_text(encoding="utf-8"))
+    change(style)
+    path.write_text(json.dumps(style), encoding="utf-8")
+    return directory
+
+
 def _check(directory: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     monkeypatch.setenv("CONFIG_DIR", str(directory))
     return run_cli(["config", "check"])
@@ -129,7 +143,8 @@ def test_criterion_44_startup_and_config_check_report_every_style_error(
 
 
 def test_criterion_44_an_overlay_over_1_mb_fails_validation(tmp_path: Path) -> None:
-    directory = config_fixture("no_general_contact", tmp_path)
+    directory = tmp_path / "config"
+    shutil.copytree(VALID_CONFIG, directory)
     overlay = directory / "map" / "overlays" / "walls.geojson"
     features = [
         {
@@ -143,6 +158,46 @@ def test_criterion_44_an_overlay_over_1_mb_fails_validation(tmp_path: Path) -> N
     assert overlay.stat().st_size > 1024 * 1024
 
     assert _issues(directory) == [(LIGHT, "sources.walls.data"), (DARK, "sources.walls.data")]
+
+
+@pytest.mark.parametrize("halo", ["transparent", "rgba(243, 238, 226, 0.5)"])
+def test_criterion_44_a_label_halo_that_is_not_opaque_fails_validation(
+    halo: str, tmp_path: Path
+) -> None:
+    def change(style: dict[str, Any]) -> None:
+        style["layers"][6]["paint"]["text-halo-color"] = halo
+
+    assert _issues(_with_light_style(tmp_path, change)) == [
+        (LIGHT, "layers[6].paint.text-halo-color")
+    ]
+
+
+def test_a_deeply_nested_style_is_reported_not_raised(tmp_path: Path) -> None:
+    directory = tmp_path / "config"
+    shutil.copytree(VALID_CONFIG, directory)
+    (directory / LIGHT).write_text("[" * 100_000 + "]" * 100_000, encoding="utf-8")
+
+    issues = _issues(directory)
+
+    assert issues[0] == (LIGHT, "")
+
+
+def test_a_deeply_nested_fill_expression_is_reported_not_raised(tmp_path: Path) -> None:
+    def change(style: dict[str, Any]) -> None:
+        colour: Any = "#C5D7DE"
+        for _ in range(5_000):  # Deeper than Python's recursion limit.
+            colour = ["coalesce", colour]
+        style["layers"][1]["paint"]["fill-color"] = colour
+
+    assert _issues(_with_light_style(tmp_path, change)) == [(LIGHT, "layers[1].paint.fill-color")]
+
+
+def test_a_symbolic_link_under_map_fails_validation(tmp_path: Path) -> None:
+    directory = tmp_path / "config"
+    shutil.copytree(VALID_CONFIG, directory)
+    (directory / "map" / "keys").symlink_to("/data")
+
+    assert _issues(directory) == [("map/keys", "")]
 
 
 def test_criterion_63_the_messages_name_the_rule(tmp_path: Path) -> None:
@@ -275,15 +330,19 @@ def test_criterion_70_the_etag_changes_after_tart_tiles_update(tmp_path: Path) -
     "manifest",
     [
         None,
+        # A manifest too deeply nested to read.
+        "[" * 100_000 + "]" * 100_000,
         # The manifest names a file that is gone, or one outside the extracts.
         {**MANIFEST, "file": "basemap-20261001.pmtiles"},
         {**MANIFEST, "file": "../secrets.pmtiles"},
     ],
 )
 def test_criterion_70_without_an_extract_the_style_answers_503_tiles_missing(
-    tmp_path: Path, manifest: dict[str, str] | None
+    tmp_path: Path, manifest: dict[str, str] | str | None
 ) -> None:
-    if manifest is not None:
+    if isinstance(manifest, str):
+        (tmp_path / "manifest.json").write_text(manifest)
+    elif manifest is not None:
         (tmp_path / "manifest.json").write_text(json.dumps(manifest))
 
     response = _client(VALID_CONFIG, tmp_path).get("/api/map/style/light.json")
@@ -326,3 +385,37 @@ def test_criterion_48_external_https_tile_origins_are_public(tmp_path: Path) -> 
         "https://tiles.example.org",
     ]
     assert public_configuration(load_instance(VALID_CONFIG)).map_tile_origins == []
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://tiles.example.org; script-src *",
+        "https://reader:secret@tiles.example.org/fictional-city.pmtiles",
+        "https://*.example.org/{z}/{x}/{y}.png",
+        "https://tiles.example.org:99999/fictional-city.pmtiles",
+        "pmtiles://https://tiles example.org/fictional-city.pmtiles",
+    ],
+)
+def test_criterion_48_a_source_url_unfit_for_the_policy_fails_validation(
+    url: str, tmp_path: Path
+) -> None:
+    def change(style: dict[str, Any]) -> None:
+        style["sources"]["basemap"]["url"] = url
+
+    assert (LIGHT, "sources.basemap.url") in _issues(_with_light_style(tmp_path, change))
+
+
+def test_criterion_48_an_internationalised_host_is_named_in_ascii(tmp_path: Path) -> None:
+    def change(style: dict[str, Any]) -> None:
+        style["sources"]["basemap"]["url"] = "pmtiles://https://mappe.città.example/roma.pmtiles"
+        del style["metadata"]["tart:basemap-schema"]
+
+    directory = _with_light_style(tmp_path, change)
+    dark = json.loads((directory / DARK).read_text(encoding="utf-8"))
+    dark["sources"]["basemap"]["url"] = "pmtiles://https://mappe.città.example/roma.pmtiles"
+    (directory / DARK).write_text(json.dumps(dark), encoding="utf-8")
+
+    assert public_configuration(load_instance(directory)).map_tile_origins == [
+        "https://mappe.xn--citt-3na.example"
+    ]

@@ -9,6 +9,7 @@ and every failure reported, each with the style file and the dotted key it conce
 """
 
 import json
+import re
 from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
@@ -104,13 +105,18 @@ def _outputs(value: Any) -> Iterator[Any] | None:
     return iter(outputs)
 
 
-def _colours(value: Any, key: str, issues: _Issues) -> list[str] | None:
-    """The opaque `#RRGGBB` colours a property can take; `None` after reporting an issue.
+def _colours(value: Any, key: str, issues: _Issues, *, opaque: bool = False) -> list[str] | None:
+    """The `#RRGGBB` colours a property can take; `None` after reporting an issue.
 
     A fully transparent colour draws nothing and is left out; a translucent one is
-    checked as if it were opaque.
+    checked as if it were opaque. With `opaque`, any colour that is not fully opaque is
+    an issue: what shows through it is unknown, so no contrast can be checked against it.
     """
-    outputs = _outputs(value)
+    try:
+        outputs = _outputs(value)
+    except RecursionError:
+        issues.add(key, "is nested too deeply")
+        return None
     if outputs is None:
         issues.add(
             key,
@@ -126,6 +132,9 @@ def _colours(value: Any, key: str, issues: _Issues) -> list[str] | None:
             issues.add(key, f"{json.dumps(output)} is not a colour")
             return None
         colour, alpha = parsed
+        if opaque and alpha < 1:
+            issues.add(key, f"{json.dumps(output)} must be opaque, so that contrast can be checked")
+            return None
         if alpha > 0:
             colours.append(colour)
     return colours
@@ -193,9 +202,8 @@ def _check_metadata(style: dict[str, Any], issues: _Issues) -> None:
                 "must not be set: the accent comes from instance.toml (identity.accent)",
             )
 
-    uses_basemap = any(url == BASEMAP_URL for _, url in _source_urls(style))
     schema = metadata.get(BASEMAP_SCHEMA)
-    if uses_basemap and schema is None:
+    if uses_basemap(style) and schema is None:
         issues.add(f"metadata.{BASEMAP_SCHEMA}", f"is required when a source uses {BASEMAP_URL}")
     elif schema is not None and (not isinstance(schema, int) or isinstance(schema, bool)):
         issues.add(f"metadata.{BASEMAP_SCHEMA}", "must be the Protomaps schema major, an integer")
@@ -278,11 +286,29 @@ def _source_urls(style: dict[str, Any]) -> Iterator[tuple[str, str]]:
                         yield f"sources.{source_id}.{name}[{index}]", url
 
 
-def _https_url(url: str) -> str | None:
-    """The `https` URL a source loads, also behind the `pmtiles://` protocol."""
-    url = url.removeprefix("pmtiles://")
-    parts = urlsplit(url)
-    return url if parts.scheme == "https" and parts.netloc else None
+_HOST = re.compile(r"[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*")
+
+
+def uses_basemap(style: dict[str, Any]) -> bool:
+    """Whether a source of the style loads the local basemap, at the symbolic URL."""
+    return any(url == BASEMAP_URL for _, url in _source_urls(style))
+
+
+def _https_origin(url: str) -> str | None:
+    """The origin of the `https` URL a source loads, also behind `pmtiles://`, or `None`.
+
+    The origin goes into the Content-Security-Policy, so it is rebuilt from a host name
+    (IDNA-encoded) and a port, and a URL with user info or any other host is refused.
+    """
+    parts = urlsplit(url.removeprefix("pmtiles://"))
+    try:
+        port = parts.port
+        host = (parts.hostname or "").encode("idna").decode("ascii")
+    except ValueError:  # Also a UnicodeError from the IDNA codec.
+        return None
+    if parts.scheme != "https" or "@" in parts.netloc or not _HOST.fullmatch(host):
+        return None
+    return f"https://{host}" if port is None else f"https://{host}:{port}"
 
 
 def _check_sources(directory: Path, style: dict[str, Any], issues: _Issues) -> None:
@@ -301,8 +327,10 @@ def _check_sources(directory: Path, style: dict[str, Any], issues: _Issues) -> N
                     "an overlay may be at most 1 MB",
                 )
     for key, url in _source_urls(style):
-        if url != BASEMAP_URL and _https_url(url) is None:
-            issues.add(key, f"{url!r} must be {BASEMAP_URL} or an absolute https URL")
+        if url != BASEMAP_URL and _https_origin(url) is None:
+            issues.add(
+                key, f"{url!r} must be {BASEMAP_URL} or an absolute https URL with a host name"
+            )
 
 
 def _layers(style: dict[str, Any]) -> list[dict[str, Any]]:
@@ -363,7 +391,7 @@ def _check_layers(style: dict[str, Any], against: list[tuple[str, str]], issues:
                     f"{TEXT_MIN_CONTRAST:g}:1 against their text",
                 )
                 continue
-            halos = _colours(paint["text-halo-color"], halo_key, issues)
+            halos = _colours(paint["text-halo-color"], halo_key, issues, opaque=True)
             for text in texts or []:
                 for halo in halos or []:
                     ratio = contrast_ratio(text, halo)
@@ -404,6 +432,9 @@ def _read(directory: Path, file: str, issues: _Issues) -> dict[str, Any] | None:
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
         issues.add("", f"is not valid JSON: {error}")
         return None
+    except RecursionError:
+        issues.add("", "is nested too deeply")
+        return None
     if not isinstance(style, dict):
         issues.add("", "must hold a style object")
         return None
@@ -431,6 +462,19 @@ def _check_parity(styles: Mapping[str, dict[str, Any]], issues: _Issues) -> None
             )
 
 
+def _symbolic_links(directory: Path) -> list[tuple[str, str, str]]:
+    """Every symbolic link under `map/`, as an issue.
+
+    Caddy serves that directory as it is, and would follow a link out of it.
+    """
+    message = "must not be a symbolic link: Caddy serves map/ and would follow it"
+    return [
+        (path.relative_to(directory).as_posix(), "", message)
+        for path in sorted((directory / "map").rglob("*"))
+        if path.is_symlink()
+    ]
+
+
 def read_styles(
     directory: Path, accents: Mapping[str, str | None]
 ) -> tuple[dict[str, dict[str, Any]], list[tuple[str, str, str]]]:
@@ -441,7 +485,7 @@ def read_styles(
     Returns the styles by theme and the issues as (file, key, message).
     """
     styles: dict[str, dict[str, Any]] = {}
-    found: list[tuple[str, str, str]] = []
+    found = _symbolic_links(directory)
     for theme, file in STYLE_FILES.items():
         issues = _Issues()
         style = _read(directory, file, issues)
@@ -461,8 +505,7 @@ def external_origins(styles: Mapping[str, dict[str, Any]]) -> list[str]:
     origins = set()
     for style in styles.values():
         for _, url in _source_urls(style):
-            https = _https_url(url)
-            if https is not None:
-                parts = urlsplit(https)
-                origins.add(f"{parts.scheme}://{parts.netloc}")
+            origin = _https_origin(url)
+            if origin is not None:
+                origins.add(origin)
     return sorted(origins)
