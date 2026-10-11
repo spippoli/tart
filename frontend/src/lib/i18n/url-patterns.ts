@@ -19,6 +19,7 @@ const pages: Record<string, Record<PlatformLanguage, string>> = {
 	'/contribute': { it: '/contribuisci', en: '/contribute' },
 	'/sign-in': { it: '/accedi', en: '/sign-in' },
 	'/account': { it: '/account', en: '/account' },
+	'/moderation': { it: '/moderazione', en: '/moderation' },
 	'/about': { it: '/informazioni', en: '/about' },
 	'/about/guidelines': { it: '/informazioni/linee-guida', en: '/about/guidelines' },
 	'/about/contribution-policy': {

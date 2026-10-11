@@ -38,6 +38,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Code
+         * @description Send a one-time code to the address, or what the address gets instead; the
+         *     answer never says which addresses have accounts.
+         */
+        post: operations["request_code_api_auth_code_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/code/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Code
+         * @description Check the code: sign in, ask for the registration step (send it again with the
+         *     code and `registration`), or refuse with an error code.
+         */
+        post: operations["verify_code_api_auth_code_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Session
+         * @description The signed-in User, or null; the frontend's server asks on every page.
+         */
+        get: operations["session_api_auth_session_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign Out
+         * @description End this session.
+         */
+        post: operations["sign_out_api_auth_sign_out_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sign-out-everywhere": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign Out Everywhere
+         * @description End every session of the signed-in User, this one included.
+         */
+        post: operations["sign_out_everywhere_api_auth_sign_out_everywhere_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/map/style/{theme}.json": {
         parameters: {
             query?: never;
@@ -76,6 +178,28 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** CodeAttemptBody */
+        CodeAttemptBody: {
+            /** Email */
+            email: string;
+            /** Code */
+            code: string;
+            /** Language */
+            language: string;
+            registration?: components["schemas"]["RegistrationBody"] | null;
+        };
+        /** CodeRequestBody */
+        CodeRequestBody: {
+            /** Email */
+            email: string;
+            /** Language */
+            language: string;
+            /**
+             * Website
+             * @default
+             */
+            website: string;
+        };
         /** Contacts */
         Contacts: {
             /** General */
@@ -93,6 +217,11 @@ export interface components {
             center: number[];
             /** Zoom */
             zoom: number;
+        };
+        /** Error */
+        Error: {
+            /** Code */
+            code: string;
         };
         /** Geography */
         Geography: {
@@ -165,10 +294,44 @@ export interface components {
              * @enum {string}
              */
             registration: "open" | "invite" | "closed";
+            /** Min Age */
+            min_age: number;
             licenses: components["schemas"]["Licenses"];
             /** Terms Version */
             terms_version: number;
             texts: components["schemas"]["Texts"];
+        };
+        /** RateLimitedError */
+        RateLimitedError: {
+            /**
+             * Code
+             * @constant
+             */
+            code: "rate_limited";
+            /** Retry After */
+            retry_after: number;
+        };
+        /** RegistrationBody */
+        RegistrationBody: {
+            /** Display Name */
+            display_name: string;
+            /** Age Confirmed */
+            age_confirmed: boolean;
+        };
+        /** SessionState */
+        SessionState: {
+            user: components["schemas"]["SignedInUser"] | null;
+        };
+        /** SignedInUser */
+        SignedInUser: {
+            /** Number */
+            number: number;
+            /** Display Name */
+            display_name: string;
+            /** Preferred Language */
+            preferred_language: string;
+            /** Moderator */
+            moderator: boolean;
         };
         /**
          * Texts
@@ -198,6 +361,14 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** Verified */
+        Verified: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "signed_in" | "registration_required";
         };
         /**
          * Vocabularies
@@ -273,6 +444,199 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicConfiguration"];
+                };
+            };
+        };
+    };
+    request_code_api_auth_code_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateLimitedError"];
+                };
+            };
+        };
+    };
+    verify_code_api_auth_code_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeAttemptBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Verified"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    session_api_auth_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sign_out_api_auth_sign_out_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sign_out_everywhere_api_auth_sign_out_everywhere_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

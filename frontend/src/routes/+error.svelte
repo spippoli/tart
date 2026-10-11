@@ -11,7 +11,13 @@
 		410: { title: m.error_410_title, text: m.error_410_text }
 	};
 
-	const message = $derived(known[page.status] ?? { title: m.error_title, text: m.error_unknown });
+	const reasons = { moderator_only: m.error_403_moderator_text };
+
+	const message = $derived.by(() => {
+		const frame = known[page.status] ?? { title: m.error_title, text: m.error_unknown };
+		const reason = page.error?.reason;
+		return reason ? { ...frame, text: reasons[reason] } : frame;
+	});
 </script>
 
 <PageTitle title={message.title()} />
