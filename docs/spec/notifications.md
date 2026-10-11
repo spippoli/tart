@@ -98,7 +98,7 @@ Each row is one email kind. "Mandatory" emails cannot be turned off. Content col
 
 | Email | Trigger | Recipient | Opt-out | Content |
 |---|---|---|---|---|
-| Changes requested | A Moderator sets the Submission to **changes requested** | The Submitter | Optional ("Updates on my Submissions") | The **Decision message**; link to the Submission page |
+| Changes requested | A Moderator sets the Submission to **changes requested** | The Submitter | Optional ("Updates on my Submissions") | The **Decision message**; the date on which the Submission is retracted if no one responds ([Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96)); link to the Submission page |
 | Approved | A Moderator approves the Submission | The Submitter | Optional ("Updates on my Submissions") | Link to the published record |
 | Rejected | A Moderator rejects the Submission | The Submitter | Mandatory | The Decision message, given as the Art. 17 statement of reasons ([Statement of reasons](#statement-of-reasons)); link to the Submission page |
 | Outdated | An open Submission (**submitted** or **changes requested**) becomes **Outdated** | The Submitter | Optional ("Updates on my Submissions") | That the Submission must be revised before it can be approved; link to the Submission page |
