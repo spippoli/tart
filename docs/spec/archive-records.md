@@ -163,6 +163,7 @@ Every record kind has a public page at a stable URL. The Artwork page is the mos
   - `after X`: earliest the day after X ends, latest the date of the Submission;
   - `unknown`: both bounds open;
   - no latest bound is ever later than the date of the Submission; this also truncates `circa`.
+  - a date that would start after the date of the Submission (`2030` entered today, or `after X` where X ends on the Submission date) is rejected: its range would be empty.
 - The range is used only for filtering by overlap ([Discovery](discovery.md)). Ordering uses the chronological key below.
 - **Chronological key**: the midpoint of the base range of the entered values, ignoring the widening of `circa`: `2016` and `c. 2016` → mid-2016; `2014–2015` → end of 2014; `before X` → the start of X; `after X` → the end of X. Ties are broken by the later approval (the Revision timestamp), then by id, so information approved later wins. An `unknown` date has no key. The same key orders the Condition derivation, the Timeline, the stratigraphy, and first and last documentation, in both directions.
 - It is used for: the Observed date of Documentation items and History events, the date of a Creation event, the date of a Source, and the two ends of a period.
@@ -483,7 +484,7 @@ A Revision's content is shown as a **change list**, never as a snapshot of the w
 **Physical history and Uncertain dates**
 
 38. The History event type vocabulary is exactly the nine types of Physical history, and each condition-changing type sets the Condition in its table.
-39. The derived range matches the rules of Uncertain date for every precision × qualifier, including open bounds for `before` and `unknown`, `after` closed at the Submission date, and no latest bound after the Submission date; a second value is rejected unless the qualifier is `exact`.
+39. The derived range matches the rules of Uncertain date for every precision × qualifier, including open bounds for `before` and `unknown`, `after` closed at the Submission date, and no latest bound after the Submission date; a date starting after the Submission date is rejected; a second value is rejected unless the qualifier is `exact`.
 40. Of two condition-changing events with equal chronological keys, the later-approved one sets the Condition; an `unknown`-dated event never overrides a dated one.
 41. A Submission that would leave an Artwork with no condition-changing History event is rejected with a stable error code; an Artwork whose condition-changing events are all non-public shows `unknown` with "state not documented".
 42. Changing an Artwork's Location creates no History event, and the Artwork leaves its former Location's stratigraphy.
