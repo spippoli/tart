@@ -18,6 +18,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 | [0016](../adr/0016-licence-policy-for-map-assets-and-data.md) | CI allow-list for asset packages and the third-party asset manifest; map attribution list; Operator documentation requires the OpenStreetMap attribution; tile extract and overlays are Instance data under the ODbL |
 | [0018](../adr/0018-merge-as-reconciling-multi-record-submission.md) | Merged and duplicate-retired ids keep resolving to the surviving record |
 | [0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md) | `pg_dump` into restic and encrypted `rclone sync --backup-dir` of media; backups never rewritten; the **Erasure log** replayed on every restore; `tart upgrade` with a pre-upgrade backup; forward-only migrations; rollback by restore; `api` and `worker` refuse to start on a revision mismatch |
+| [0021](../adr/0021-release-automation-and-versioning.md) | One platform version; semantic-release on a manual workflow; images built before the tag; a breaking commit means Operator action and becomes the "Operator actions" notes; `0.x` until launch; exact-version multi-architecture images; production and development Compose files; commitlint and required checks |
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Data dump, Licensor, Content language, UI language, User, Moderator, Moderation note, Submission, Submission log, Archive record, Revision, Artwork, Artist, Location, Site, Area, Series, Source, Documentation item, Creator credit, Rights basis, History event, Claim, Attribution, Crew membership, Uncertain date, Merge, Duplicate retirement, Withdrawal, Redaction, Reinstatement, Purge, Erasure log, Notice.
 
@@ -102,13 +103,13 @@ The Operator produces a Data dump with `tart dump`: a zip of the current public 
 - This spec owns the release channel, `tart upgrade`, the startup revision guard's behaviour for Operators, the `backup` service and `tart backup`, the Erasure log's replay on restore, health checks and alerting, log rules, failed-job handling, the Data dump, the Operator compliance checklist, and the Operator documentation that carries them.
 - It does not own what writes to the Erasure log or what a Purge leaves behind: Purge and account deletion are specified by [Rights and legal actions](rights-and-legal-actions.md); this spec only requires that each writes an Erasure log entry and replays them on restore ([ADR 0020](../adr/0020-backups-replay-erasures-and-forward-only-upgrades.md)).
 - It does not own a User's GDPR access or portability export (Rights and legal actions), nor the Instance configuration loader and `tart config check` (Foundations), nor `tart tiles update` (Discovery).
-- The CI checks (missing message keys, OpenAPI drift, the dependency licence allow-list of [ADR 0011](../adr/0011-provisional-software-license.md), the asset manifest of [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)) are specified as acceptance criteria in [Foundations](foundations.md); this spec adds image publishing on tags.
+- The CI checks (missing message keys, OpenAPI drift, the dependency licence allow-list of [ADR 0011](../adr/0011-provisional-software-license.md), the asset manifest of [ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)) are specified as acceptance criteria in [Foundations](foundations.md); this spec adds the release pipeline ([ADR 0021](../adr/0021-release-automation-and-versioning.md)).
 
 ### Modules
 
 | Module | Interface (what callers see) | Lives in |
 |---|---|---|
-| Release pipeline | On a SemVer tag, build and publish the generic `api` and `frontend` images to GHCR | maintainer's CI |
+| Release pipeline | On a manual run, compute the next SemVer version from the commits, build and publish the generic `api` and `frontend` images to GHCR, then tag and publish the GitHub Release with its notes and Operator files | maintainer's CI |
 | Backup | `tart backup run`, `tart backup verify`, `tart backup restore`, `tart backup erasures`; the nightly, weekly, and 15-minute schedule; reports last success times to Health | `backup` Compose service (profile), Operator CLI |
 | Erasure log | Append a content-free entry (kind, target id, date); export all entries for the `erasures` snapshot; replay entries against a restored database and storage | backend (written by Purge, account deletion, and Creator credit anonymisation, read by restore) |
 | Host wrapper | `tart <command>` on the host: passes Operator CLI commands to `docker compose run --rm api tart <command>`; implements `tart upgrade` and stops and starts services around `tart backup restore` | POSIX shell script shipped with each release, beside the Compose file |
@@ -125,14 +126,17 @@ Backup and Data dump read the database and storage through the same storage adap
 ### 1. Deployment and releases
 
 - **Topology and sizing** are as in [Foundations](foundations.md#topology-and-stack) ([ADR 0004](../adr/0004-mvp-tech-stack.md)): a Docker Compose stack with `caddy`, `frontend`, `api`, `worker`, and `db`, plus the optional `backup` service as a Compose profile. Reference sizing is 4 GB RAM minimum, 8 GB recommended ([#13](https://github.com/spippoli/tart/issues/13)).
-- **Images.** Generic prebuilt images on GHCR, published by the maintainer's CI on tags: `api` (which also runs `worker` and the Operator CLI) and `frontend`. No Instance-specific image is built.
-- **Versioning.** SemVer on a single stable channel:
+- **Images.** Generic prebuilt images on GHCR, published by the maintainer's CI: `ghcr.io/spippoli/tart-api` (which also runs `worker` and the Operator CLI) and `ghcr.io/spippoli/tart-frontend`, for `linux/amd64` and `linux/arm64`. Each is tagged with the exact version only (`0.3.0`) and carries the OCI labels `version`, `revision`, `source`, and `licenses`. No Instance-specific image is built.
+- **Versioning.** SemVer on a single stable channel, one version for the whole platform ([ADR 0021](../adr/0021-release-automation-and-versioning.md)):
   - **patch**: fixes, and rebuilds for relevant base-image CVEs (below);
   - **minor**: features, with compatible migrations;
   - **major**: anything needing Operator action (a `config_version` bump, a manual step, a PostgreSQL major upgrade).
-- **Pinning.** Compose reads `TART_VERSION` from `.env`. The `latest` tag is never used.
-- **Release notes** always have an "Operator actions" section. Minor releases can be skipped; majors are applied in order.
-- **CVE rebuilds.** A weekly CI job scans the images of the latest release with Trivy (Apache-2.0, a CI tool that is not distributed); Renovate or Dependabot keeps the base-image digests current in the repository. A CVE is relevant when it is High or Critical, sits in a package present in the image (operating system, Python, or Node), and has a fix available. A relevant CVE triggers a patch release with the same code on the updated base, whose "Operator actions" section says that only the upgrade is needed. Lower severities, and CVEs without a fix, wait for the next regular release. There is no response-time commitment: rebuilds are the maintainer's reasonable effort, and the Operator documentation says so.
+
+  The bump is computed from the Conventional Commits since the last release: `fix`, `perf`, and `build(deps)` give a patch, `feat` a minor, and a breaking commit (`!` or `BREAKING CHANGE:`) a major. A commit is breaking only when the Operator must act, and its footer states the action. Until the first Instance launches, versions stay at `0.x` and a breaking commit gives a minor; `1.0.0` is cut deliberately at launch.
+- **Releasing.** The maintainer starts the release workflow on `main` by hand, by convention when an implementation wave is complete. It computes the next version, builds and pushes the images, and only then creates the `vX.Y.Z` tag and the GitHub Release, so an announced release always has its images.
+- **Pinning.** `deploy/compose.yaml`, the production file, references the images with `${TART_VERSION:?}` read from `.env` and has no `build:`; development adds `deploy/compose.dev.yaml`. The `latest` tag is never used, and no floating tag (`0.3`, `0`) is published.
+- **Release notes** are generated, and always open with an "Operator actions" section: the breaking footers, or a statement that only `tart upgrade <version>` is needed. Features and fixes follow. Minor releases can be skipped; majors are applied in order. Each release attaches the Operator files as separate assets: `compose.yaml`, `Caddyfile`, `.env.example`, and the `tart` host wrapper.
+- **CVE rebuilds.** A weekly CI job scans the images of the latest release with Trivy (Apache-2.0, a CI tool that is not distributed); Renovate or Dependabot keeps the base-image digests current in the repository. A CVE is relevant when it is High or Critical, sits in a package present in the image (operating system, Python, or Node), and has a fix available. A relevant CVE triggers a patch release with the same code on the updated base (the digest update is committed as `build(deps): …`, and the maintainer starts the release outside the wave rhythm), whose "Operator actions" section says that only the upgrade is needed. Lower severities, and CVEs without a fix, wait for the next regular release. There is no response-time commitment: rebuilds are the maintainer's reasonable effort, and the Operator documentation says so.
 - **Host wrapper.** The Operator CLI runs from the `api` image, but some commands must pull images and stop and start Compose services. Each release therefore ships a small POSIX shell script, `tart`, placed beside the Compose file on the host. It passes every Operator CLI command to `docker compose run --rm api tart <command>`, implements `tart upgrade` itself, and stops and restarts `api`, `worker`, and `frontend` around `tart backup restore`. The Docker socket is never mounted into any container. Host requirements are Docker with the Compose plugin and a POSIX shell.
 - **No phone-home.** The Instance never checks for updates. Operators watch GitHub releases or their Atom feed (checklist item 20).
 - **Host.** Host OS security updates are the Operator's: the runbook explains them and the checklist lists them (item 14).
@@ -417,13 +421,14 @@ A good test drives a module through its external interface (a CLI command, an HT
 - **Logs (unit)**: log records produced during sign-in, Notice intake, and email sending contain the User id where relevant and no email address, sign-in code, token, or Notice content.
 - **Log retention (integration, Compose stack, controlled clock)**: after advancing the clock by 15 days on a quiet Instance, no application or Caddy log line older than 14 days remains.
 - **Jobs (integration)**: a job that exhausts its retries is `failed` and counted by the Email check when it is an email; `tart jobs failed` output shows no personal data in clear; `tart jobs retry` re-enqueues; completed jobs older than 30 days are deleted.
+- **Release pipeline (scripted, against throwaway Git repositories)**: the semantic-release configuration in dry-run mode over fixture commit histories gives the expected next version for each bump rule, including `0.x` and `build(deps)`; the notes template renders "Operator actions" with and without breaking footers; commitlint rejects an invalid message and accepts each allowed type. How the whole workflow is exercised before the first real release (a fork, or a test tag prefix) is left to implementation.
 - **Data dump (integration)**: from a fixture archive with every record kind, withdrawn, merged, duplicate-retired, purged, pending, and redacted cases, and a deleted account: the dump validates against the JSON Schema; every public field is present; nothing in the exclusion rule is present; `redirects.ndjson` covers merged and retired ids; History events, Attributions, Crew memberships, and citations are in their own files, referenced by id; the README is in English and in the Content language, or in English only with the no-translation note when a fixture Content language has no catalogue; the package lands under `dumps/` with the timestamped name, and `/dumps/` is not served; `locations.geojson` is valid GeoJSON; `LICENSE` matches the configured `licenses.data` for each allowed value; the README carries the `licenses.data_attribution` text, or the default when it is absent, (and its default); `--with-media` contains only public renditions without EXIF and a manifest entry per file.
 
 ## Acceptance criteria
 
 **Releases and upgrades**
-1. Tagged releases publish `api` and `frontend` images to GHCR with SemVer tags; no `latest` tag is referenced by the Compose file, which reads `TART_VERSION` from `.env`.
-2. Every release's notes contain an "Operator actions" section.
+1. A release publishes `tart-api` and `tart-frontend` images to GHCR for `linux/amd64` and `linux/arm64`, tagged with the exact SemVer version only; no `latest` tag is referenced by the production Compose file, which reads `TART_VERSION` from `.env`.
+2. Every release's notes open with an "Operator actions" section, listing each breaking commit's footer, or stating that only the upgrade is needed when there is none.
 3. The Instance makes no network request to check for updates.
 4. `tart upgrade <version>`, run by the host wrapper, performs, in order: a backup tagged `pre-upgrade-<from>-<to>`, `config check --database` with the new image, image pull, stopping `api`, `worker`, and `frontend`, migrations in a one-shot container, restart, and a wait for the readiness checks (database, storage, `worker` heartbeat); it writes the new `TART_VERSION` only after the configuration check; on any failure it stops, puts back the previous `TART_VERSION`, and prints rollback instructions. No container mounts the Docker socket.
 5. A configuration that fails the new image's check aborts the upgrade before any service is stopped.
@@ -464,6 +469,13 @@ A good test drives a module through its external interface (a CLI command, an HT
 
 **Accessibility and i18n**
 32. This spec adds no user-facing page. The Operator alert email's strings come from the backend message catalogue under the missing-key check ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)); dates in emails use the Instance time zone.
+
+**Release pipeline** ([ADR 0021](../adr/0021-release-automation-and-versioning.md))
+33. The release version is computed from the commits since the last tag: `fix`, `perf`, or `build(deps)` gives a patch, `feat` a minor, a breaking commit a major; while the major is `0`, a breaking commit gives a minor.
+34. The images are pushed before the tag and the GitHub Release are created; when the image build fails, no tag and no release exist.
+35. The released images carry the version in both project files and in the `version` OCI label; the repository's project files are unchanged and `main` receives no commit from the release.
+36. Each GitHub Release attaches `compose.yaml`, `Caddyfile`, and `.env.example` as separate assets.
+37. A pull request with a commit whose message is not a valid Conventional Commit fails the `commitlint` check, and the `main` ruleset requires the `backend`, `frontend`, `images`, and `commitlint` checks.
 
 ## Instance configuration
 
