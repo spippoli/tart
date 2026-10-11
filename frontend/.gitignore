@@ -1,15 +1,17 @@
-node_modules
+node_modules/
 
-# Output
-.output
-/.svelte-kit
-/build
+# Build output
+/.svelte-kit/
+/build/
 
-# OS
-.DS_Store
-Thumbs.db
+# Test output
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
-# Env
+# Local environment
 .env
 .env.*
 !.env.example
@@ -18,6 +20,3 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-# Playwright
-test-results
-playwright-report
