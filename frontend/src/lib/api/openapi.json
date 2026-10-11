@@ -22,6 +22,472 @@
           }
         }
       }
+    },
+    "/api/config": {
+      "get": {
+        "summary": "Config",
+        "description": "The public subset of the Instance configuration, which the frontend caches.",
+        "operationId": "config_api_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicConfiguration"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Accent": {
+        "properties": {
+          "light": {
+            "type": "string",
+            "title": "Light"
+          },
+          "dark": {
+            "type": "string",
+            "title": "Dark"
+          }
+        },
+        "type": "object",
+        "required": [
+          "light",
+          "dark"
+        ],
+        "title": "Accent"
+      },
+      "Attribution": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "url"
+        ],
+        "title": "Attribution"
+      },
+      "Contacts": {
+        "properties": {
+          "general": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General"
+          },
+          "dsa": {
+            "type": "string",
+            "title": "Dsa"
+          },
+          "dsa_languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dsa Languages"
+          },
+          "privacy": {
+            "type": "string",
+            "title": "Privacy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "general",
+          "dsa",
+          "dsa_languages",
+          "privacy"
+        ],
+        "title": "Contacts"
+      },
+      "DefaultView": {
+        "properties": {
+          "center": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Center"
+          },
+          "zoom": {
+            "type": "number",
+            "title": "Zoom"
+          }
+        },
+        "type": "object",
+        "required": [
+          "center",
+          "zoom"
+        ],
+        "title": "DefaultView"
+      },
+      "Geography": {
+        "properties": {
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "place_name": {
+            "type": "string",
+            "title": "Place Name"
+          },
+          "time_zone": {
+            "type": "string",
+            "title": "Time Zone"
+          },
+          "default_view": {
+            "$ref": "#/components/schemas/DefaultView"
+          },
+          "bounds": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bounds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "country",
+          "place_name",
+          "time_zone",
+          "default_view",
+          "bounds"
+        ],
+        "title": "Geography"
+      },
+      "Identity": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "logo": {
+            "$ref": "#/components/schemas/Logo"
+          },
+          "favicon": {
+            "type": "string",
+            "title": "Favicon"
+          },
+          "accent": {
+            "$ref": "#/components/schemas/Accent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "logo",
+          "favicon",
+          "accent"
+        ],
+        "title": "Identity"
+      },
+      "Languages": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "ui": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ui"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content",
+          "ui"
+        ],
+        "title": "Languages"
+      },
+      "Licenses": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "title": "Data"
+          },
+          "files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "data_attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "files",
+          "data_attribution"
+        ],
+        "title": "Licenses"
+      },
+      "Logo": {
+        "properties": {
+          "light": {
+            "type": "string",
+            "title": "Light"
+          },
+          "dark": {
+            "type": "string",
+            "title": "Dark"
+          },
+          "alt": {
+            "type": "string",
+            "title": "Alt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "light",
+          "dark",
+          "alt"
+        ],
+        "title": "Logo"
+      },
+      "PublicConfiguration": {
+        "properties": {
+          "identity": {
+            "$ref": "#/components/schemas/Identity"
+          },
+          "operator_name": {
+            "type": "string",
+            "title": "Operator Name"
+          },
+          "contacts": {
+            "$ref": "#/components/schemas/Contacts"
+          },
+          "languages": {
+            "$ref": "#/components/schemas/Languages"
+          },
+          "geography": {
+            "$ref": "#/components/schemas/Geography"
+          },
+          "map_attribution": {
+            "items": {
+              "$ref": "#/components/schemas/Attribution"
+            },
+            "type": "array",
+            "title": "Map Attribution"
+          },
+          "vocabularies": {
+            "$ref": "#/components/schemas/Vocabularies"
+          },
+          "registration": {
+            "type": "string",
+            "enum": [
+              "open",
+              "invite",
+              "closed"
+            ],
+            "title": "Registration"
+          },
+          "licenses": {
+            "$ref": "#/components/schemas/Licenses"
+          },
+          "terms_version": {
+            "type": "integer",
+            "title": "Terms Version"
+          },
+          "texts": {
+            "$ref": "#/components/schemas/Texts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity",
+          "operator_name",
+          "contacts",
+          "languages",
+          "geography",
+          "map_attribution",
+          "vocabularies",
+          "registration",
+          "licenses",
+          "terms_version",
+          "texts"
+        ],
+        "title": "PublicConfiguration"
+      },
+      "Texts": {
+        "properties": {
+          "about": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "About"
+          },
+          "editorial_guidelines": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editorial Guidelines"
+          },
+          "contribution_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contribution Policy"
+          },
+          "terms": {
+            "type": "string",
+            "title": "Terms"
+          },
+          "privacy": {
+            "type": "string",
+            "title": "Privacy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "about",
+          "editorial_guidelines",
+          "contribution_policy",
+          "terms",
+          "privacy"
+        ],
+        "title": "Texts",
+        "description": "The Operator texts, Markdown in the Content language."
+      },
+      "Vocabularies": {
+        "properties": {
+          "expression_types": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyEntry"
+            },
+            "type": "array",
+            "title": "Expression Types"
+          },
+          "surface_types": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyEntry"
+            },
+            "type": "array",
+            "title": "Surface Types"
+          },
+          "decision_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyEntry"
+            },
+            "type": "array",
+            "title": "Decision Reasons"
+          },
+          "notice_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyEntry"
+            },
+            "type": "array",
+            "title": "Notice Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expression_types",
+          "surface_types",
+          "decision_reasons",
+          "notice_reasons"
+        ],
+        "title": "Vocabularies",
+        "description": "Each in display order; retired entries stay, for display on existing records."
+      },
+      "VocabularyEntry": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Label"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "retired": {
+            "type": "boolean",
+            "title": "Retired"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "retired"
+        ],
+        "title": "VocabularyEntry"
+      }
     }
   }
 }

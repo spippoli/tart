@@ -18,10 +18,177 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Config
+         * @description The public subset of the Instance configuration, which the frontend caches.
+         */
+        get: operations["config_api_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** Accent */
+        Accent: {
+            /** Light */
+            light: string;
+            /** Dark */
+            dark: string;
+        };
+        /** Attribution */
+        Attribution: {
+            /** Text */
+            text: string;
+            /** Url */
+            url: string;
+        };
+        /** Contacts */
+        Contacts: {
+            /** General */
+            general: string | null;
+            /** Dsa */
+            dsa: string;
+            /** Dsa Languages */
+            dsa_languages: string[];
+            /** Privacy */
+            privacy: string;
+        };
+        /** DefaultView */
+        DefaultView: {
+            /** Center */
+            center: number[];
+            /** Zoom */
+            zoom: number;
+        };
+        /** Geography */
+        Geography: {
+            /** Country */
+            country: string;
+            /** Place Name */
+            place_name: string;
+            /** Time Zone */
+            time_zone: string;
+            default_view: components["schemas"]["DefaultView"];
+            /** Bounds */
+            bounds: number[];
+        };
+        /** Identity */
+        Identity: {
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            logo: components["schemas"]["Logo"];
+            /** Favicon */
+            favicon: string;
+            accent: components["schemas"]["Accent"];
+        };
+        /** Languages */
+        Languages: {
+            /** Content */
+            content: string;
+            /** Ui */
+            ui: string[];
+        };
+        /** Licenses */
+        Licenses: {
+            /** Data */
+            data: string;
+            /** Files */
+            files: string[];
+            /** Data Attribution */
+            data_attribution: string | null;
+        };
+        /** Logo */
+        Logo: {
+            /** Light */
+            light: string;
+            /** Dark */
+            dark: string;
+            /** Alt */
+            alt: string;
+        };
+        /** PublicConfiguration */
+        PublicConfiguration: {
+            identity: components["schemas"]["Identity"];
+            /** Operator Name */
+            operator_name: string;
+            contacts: components["schemas"]["Contacts"];
+            languages: components["schemas"]["Languages"];
+            geography: components["schemas"]["Geography"];
+            /** Map Attribution */
+            map_attribution: components["schemas"]["Attribution"][];
+            vocabularies: components["schemas"]["Vocabularies"];
+            /**
+             * Registration
+             * @enum {string}
+             */
+            registration: "open" | "invite" | "closed";
+            licenses: components["schemas"]["Licenses"];
+            /** Terms Version */
+            terms_version: number;
+            texts: components["schemas"]["Texts"];
+        };
+        /**
+         * Texts
+         * @description The Operator texts, Markdown in the Content language.
+         */
+        Texts: {
+            /** About */
+            about: string | null;
+            /** Editorial Guidelines */
+            editorial_guidelines: string | null;
+            /** Contribution Policy */
+            contribution_policy: string | null;
+            /** Terms */
+            terms: string;
+            /** Privacy */
+            privacy: string;
+        };
+        /**
+         * Vocabularies
+         * @description Each in display order; retired entries stay, for display on existing records.
+         */
+        Vocabularies: {
+            /** Expression Types */
+            expression_types: components["schemas"]["VocabularyEntry"][];
+            /** Surface Types */
+            surface_types: components["schemas"]["VocabularyEntry"][];
+            /** Decision Reasons */
+            decision_reasons: components["schemas"]["VocabularyEntry"][];
+            /** Notice Reasons */
+            notice_reasons: components["schemas"]["VocabularyEntry"][];
+        };
+        /** VocabularyEntry */
+        VocabularyEntry: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: {
+                [key: string]: string;
+            };
+            /** Description */
+            description: {
+                [key: string]: string;
+            } | null;
+            /** Retired */
+            retired: boolean;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -46,6 +213,26 @@ export interface operations {
                 };
                 content: {
                     "text/plain": string;
+                };
+            };
+        };
+    };
+    config_api_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicConfiguration"];
                 };
             };
         };

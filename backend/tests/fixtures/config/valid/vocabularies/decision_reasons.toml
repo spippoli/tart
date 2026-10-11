@@ -1,0 +1,11 @@
+[[entries]]
+key = "evidence"
+label = { it = "Prove insufficienti", en = "Insufficient evidence" }
+
+[[entries]]
+key = "location"
+label = { it = "Posizione errata o imprecisa", en = "Wrong or imprecise location" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro", en = "Other" }

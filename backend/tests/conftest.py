@@ -1,9 +1,11 @@
 import asyncio
+import shutil
 import time
 import urllib.error
 import urllib.request
 import uuid
 from collections.abc import Iterator
+from pathlib import Path
 
 import aiobotocore.session
 import asyncpg
@@ -15,6 +17,46 @@ POSTGIS_IMAGE = (
     "postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677"
 )
 PASSWORD = "test"
+
+CONFIG_FIXTURES = Path(__file__).parent / "fixtures" / "config"
+VALID_CONFIG = CONFIG_FIXTURES / "valid"
+
+# A complete environment, apart from DATABASE_URL (see the `database` fixture).
+ENVIRONMENT = {
+    "CONFIG_DIR": str(VALID_CONFIG),
+    "PUBLIC_BASE_URL": "https://archive.example.org",
+    "SESSION_KEY": "test-session-key-0123456789abcdefghijklmnop",
+    "SMTP_HOST": "smtp.example.org",
+}
+
+
+def config_fixture(name: str, destination: Path) -> Path:
+    """The valid configuration with the fixture `failures/<name>` or `variants/<name>` laid over.
+
+    The fixture's files replace the valid ones; its `REMOVE` file lists paths to delete.
+    """
+    overlay = next(
+        directory
+        for directory in (CONFIG_FIXTURES / "failures" / name, CONFIG_FIXTURES / "variants" / name)
+        if directory.is_dir()
+    )
+    directory = destination / name
+    shutil.copytree(VALID_CONFIG, directory)
+    shutil.copytree(overlay, directory, dirs_exist_ok=True, ignore=shutil.ignore_patterns("REMOVE"))
+    removals = overlay / "REMOVE"
+    if removals.exists():
+        for line in removals.read_text(encoding="utf-8").splitlines():
+            if line and not line.startswith("#"):
+                (directory / line).unlink()
+    return directory
+
+
+@pytest.fixture(autouse=True)
+def instance_environment(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
+    """Every test, and every process it starts, sees the valid configuration."""
+    for name, value in ENVIRONMENT.items():
+        monkeypatch.setenv(name, value)
+    return ENVIRONMENT
 
 
 def execute(dsn: str, statement: str) -> None:

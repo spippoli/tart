@@ -6,7 +6,9 @@
 # `api` refuses to start on a database that is not at the code's migration
 # head (ADR 0020), so the test does what an Operator does: it starts the
 # PostGIS image of deploy/compose.yaml, runs `tart migrate` from the image in
-# a one-shot container, starts `api`, and expects `ok` from /api/health.
+# a one-shot container, starts `api`, and expects `ok` from /api/health. `api`
+# also refuses to start without a valid Instance configuration and environment,
+# so it gets the tests' fictional configuration directory and a complete one.
 # DB_PLATFORM runs the database under another platform (the PostGIS image is
 # published for linux/amd64 only, so the arm64 test emulates it).
 set -eu
@@ -16,6 +18,7 @@ compose_file=$(dirname "$0")/../deploy/compose.yaml
 db_image=$(sed -n 's|^ *image: \(postgis/postgis:.*\)$|\1|p' "$compose_file")
 name=tart-smoke-$$
 url=postgresql+asyncpg://postgres:smoke@$name-db:5432/postgres
+config=$(cd "$(dirname "$0")/../backend/tests/fixtures/config/valid" && pwd)
 
 cleanup() {
 	docker rm --force "$name-db" "$name-api" >/dev/null 2>&1 || true
@@ -41,6 +44,8 @@ done
 
 docker run --rm --network "$name" --env DATABASE_URL="$url" "$image" tart migrate
 docker run --detach --name "$name-api" --network "$name" --env DATABASE_URL="$url" \
+	--volume "$config:/config:ro" --env PUBLIC_BASE_URL=https://smoke.example.org \
+	--env SESSION_KEY=smoke-test-session-key-0123456789abcdef --env SMTP_HOST=smtp.example.org \
 	--publish 127.0.0.1::8000 "$image" >/dev/null
 port=$(docker port "$name-api" 8000/tcp | head -n 1 | sed 's/.*://')
 

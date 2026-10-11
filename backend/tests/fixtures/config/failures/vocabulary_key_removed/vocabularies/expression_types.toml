@@ -1,0 +1,10 @@
+# Failure fixture, with the database checks only: the retired "sticker" removed,
+# although the database still uses it.
+[[entries]]
+key = "mural"
+label = { it = "Murale", en = "Mural" }
+description = { it = "Comprese le pitture di grandi dimensioni", en = "Including large-scale paintings" }
+
+[[entries]]
+key = "stencil"
+label = { it = "Stencil", en = "Stencil" }

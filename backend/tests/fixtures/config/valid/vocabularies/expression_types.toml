@@ -1,0 +1,13 @@
+[[entries]]
+key = "mural"
+label = { it = "Murale", en = "Mural" }
+description = { it = "Comprese le pitture di grandi dimensioni", en = "Including large-scale paintings" }
+
+[[entries]]
+key = "stencil"
+label = { it = "Stencil", en = "Stencil" }
+
+[[entries]]
+key = "sticker"
+label = { it = "Sticker", en = "Sticker" }
+retired = true

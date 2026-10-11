@@ -1,0 +1,48 @@
+# Failure fixture: no DSA contact languages.
+config_version = 1
+
+[identity]
+name = "Archivio di prova dell'arte urbana"
+description = "Un archivio fittizio, usato solo dai test di TART."
+logo = { light = "identity/logo.light.svg", dark = "identity/logo.dark.svg", alt = "Archivio di prova dell'arte urbana" }
+favicon = "identity/favicon.svg"
+accent = { light = "#7A2E1C", dark = "#F0A08C" }
+
+[operator]
+name = "Associazione di prova (fittizia)"
+
+[contacts]
+general = "info@example.org"
+dsa = "dsa@example.org"
+privacy = "privacy@example.org"
+
+[languages]
+content = "it"
+ui = ["it", "en"]
+
+[geography]
+country = "IT"
+place_name = "Roma"
+time_zone = "Europe/Rome"
+boundary = "geography/boundary.geojson"
+default_view = { center = [12.4823, 41.8955], zoom = 12 }
+
+[map]
+attribution = [{ text = "© OpenStreetMap", url = "https://www.openstreetmap.org/copyright" }]
+
+[community]
+registration = "open"
+min_age = 14
+self_approval = true
+draft_expiry_days = 90
+
+[media]
+max_upload_mb = 25
+public_rendition_max_px = 2048
+
+[licenses]
+data = "CC-BY-SA-4.0"
+files = ["CC-BY-SA-4.0", "CC-BY-4.0", "CC0-1.0"]
+
+[terms]
+version = 1

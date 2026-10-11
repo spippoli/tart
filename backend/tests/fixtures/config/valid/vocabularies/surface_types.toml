@@ -1,0 +1,7 @@
+[[entries]]
+key = "building_wall"
+label = { it = "Muro di edificio", en = "Building wall" }
+
+[[entries]]
+key = "shutter"
+label = { it = "Serranda", en = "Shutter" }
