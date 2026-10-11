@@ -1,0 +1,43 @@
+# Rome's Expression types (Archive records spec): the brief's list plus `mosaic`.
+# Keys never change; retire an entry (retired = true) instead of deleting it.
+
+[[entries]]
+key = "mural"
+label = { it = "Murale", en = "Mural" }
+description = { it = "Comprese le pitture di grandi dimensioni", en = "Including large-scale paintings" }
+
+[[entries]]
+key = "graffiti"
+label = { it = "Graffiti e lettering", en = "Graffiti and lettering" }
+description = { it = "Writing, tag, throw-up, pezzi", en = "Writing, tags, throw-ups, pieces" }
+
+[[entries]]
+key = "stencil"
+label = { it = "Stencil", en = "Stencil" }
+
+[[entries]]
+key = "paste_up"
+label = { it = "Poster e paste-up", en = "Poster and paste-up" }
+
+[[entries]]
+key = "sticker"
+label = { it = "Sticker", en = "Sticker" }
+description = { it = "Comprese le altre piccole applicazioni grafiche", en = "Including other small graphic interventions" }
+
+[[entries]]
+key = "mosaic"
+label = { it = "Mosaico", en = "Mosaic" }
+description = { it = "Tessere o piastrelle applicate a una superficie", en = "Tiles applied to a surface" }
+
+[[entries]]
+key = "installation"
+label = { it = "Installazione o scultura", en = "Installation or sculpture" }
+
+[[entries]]
+key = "temporary"
+label = { it = "Intervento temporaneo o sperimentale", en = "Temporary or experimental intervention" }
+description = { it = "Si combina con gli altri tipi", en = "Combines with the other types" }
+
+[[entries]]
+key = "other"
+label = { it = "Altro intervento creativo", en = "Other creative intervention" }

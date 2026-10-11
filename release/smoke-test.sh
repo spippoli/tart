@@ -46,6 +46,7 @@ docker run --rm --network "$name" --env DATABASE_URL="$url" "$image" tart migrat
 docker run --detach --name "$name-api" --network "$name" --env DATABASE_URL="$url" \
 	--volume "$config:/config:ro" --env PUBLIC_BASE_URL=https://smoke.example.org \
 	--env SESSION_KEY=smoke-test-session-key-0123456789abcdef --env SMTP_HOST=smtp.example.org \
+	--env SMTP_FROM=archive@smoke.example.org \
 	--publish 127.0.0.1::8000 "$image" >/dev/null
 port=$(docker port "$name-api" 8000/tcp | head -n 1 | sed 's/.*://')
 

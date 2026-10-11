@@ -12,3 +12,21 @@ licence = "MPL-2.0"
 tier = "weak-copyleft"
 reason = """Mozilla's CA bundle, unmodified; a development dependency \
 (testcontainers, docker, requests) that is not in the api image."""
+
+[reviewed.psycopg]
+licence = "LGPL-3.0-only"
+tier = "weak-copyleft"
+reason = """The PostgreSQL driver of Procrastinate, the worker's job queue (ADR 0004); \
+installed unmodified from PyPI and imported, never vendored or patched."""
+
+[reviewed.psycopg-binary]
+licence = "LGPL-3.0-only"
+tier = "weak-copyleft"
+reason = """psycopg's C implementation as an unmodified binary wheel, dynamically loaded \
+by psycopg; it bundles libpq (PostgreSQL License, permissive) so the slim image needs no \
+system libpq."""
+
+[reviewed.psycopg-pool]
+licence = "LGPL-3.0-only"
+tier = "weak-copyleft"
+reason = """psycopg's connection pool, used unmodified by Procrastinate's psycopg connector."""
