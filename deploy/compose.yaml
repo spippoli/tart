@@ -41,6 +41,7 @@ services:
       TART_SITE_ADDRESS: ${TART_SITE_ADDRESS:-localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_DIR:-./config}/map:/srv/config/map:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on:

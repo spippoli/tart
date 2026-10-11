@@ -3,6 +3,13 @@
 	handle @api {
 		reverse_proxy api:8000
 	}
+	# The map style's assets (fonts, glyphs, sprites, overlays) from the configuration
+	# directory's map/. Their names carry no version: cached for an hour, not immutable.
+	handle /map/* {
+		root * /srv/config
+		header Cache-Control "public, max-age=3600"
+		file_server
+	}
 	handle {
 		reverse_proxy frontend:3000
 	}
