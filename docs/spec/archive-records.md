@@ -568,7 +568,7 @@ Set by [Rome Instance values](https://github.com/spippoli/tart/issues/86), in th
 - **Pages (end-to-end, Playwright with axe)**: each record page kind in both UI languages, through the state matrix in acceptance criterion 37; keyboard-only reading of gallery and Timeline; rendering without WebGL2; grayscale check of the three signs.
 - **i18n**: the missing-key check covers every Condition, History event type, certainty, Evidence level, Uncertain date, and vocabulary label message.
 - Test data uses fictional records only, marked as fictional, with no claims about real artworks or artists.
-- Prior art: none in the repository yet; this is among the first feature specs to be implemented. The throwaway prototypes on `prototype/17-status-presentation` and `prototype/27-submission-form` show the intended presentation and are not test fixtures.
+- Prior art: none in the repository yet; this is among the first feature specs to be implemented. The throwaway prototypes on `archive/prototype/17-status-presentation` and `archive/prototype/27-submission-form` show the intended presentation and are not test fixtures.
 
 ## Out of Scope
 
