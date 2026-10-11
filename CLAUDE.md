@@ -51,7 +51,7 @@ uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # aft
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
 ```
 
-The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it.
+The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, `SMTP_FROM`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it. The worker runs Procrastinate (`tart.jobs`); its tables come from the Alembic chain, so never run `procrastinate schema --apply`.
 
 Frontend (run in `frontend/`):
 
@@ -89,7 +89,7 @@ pnpm test                  # bump rules and notes over throwaway Git repositorie
 
 Releases are cut only by starting the `Release` workflow (`.github/workflows/release.yml`) on `main`; never tag or push images by hand.
 
-Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, and `SMTP_HOST`, point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
+Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db

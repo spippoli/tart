@@ -27,6 +27,7 @@ ENVIRONMENT = {
     "PUBLIC_BASE_URL": "https://archive.example.org",
     "SESSION_KEY": "test-session-key-0123456789abcdefghijklmnop",
     "SMTP_HOST": "smtp.example.org",
+    "SMTP_FROM": "archive@example.org",
 }
 
 
@@ -155,11 +156,11 @@ def s3_server() -> Iterator[str]:
         endpoint_url = (
             f"http://{container.get_container_host_ip()}:{container.get_exposed_port(7070)}"
         )
-        _wait_for_http(endpoint_url)
+        wait_for_http(endpoint_url)
         yield endpoint_url
 
 
-def _wait_for_http(url: str, timeout: float = 30) -> None:
+def wait_for_http(url: str, timeout: float = 30) -> None:
     deadline = time.monotonic() + timeout
     while True:
         try:

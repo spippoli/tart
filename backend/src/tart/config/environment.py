@@ -41,6 +41,11 @@ class Environment(BaseModel):
 
     SMTP_HOST: str
     SMTP_PORT: Annotated[int, Field(ge=1, le=65535)] = 587
+    SMTP_SECURITY: Literal["starttls", "tls", "none"] = "starttls"
+    """`starttls` upgrades a plain connection (port 587), `tls` connects over TLS
+    (port 465), `none` sends in clear (Mailpit in development only)."""
+    SMTP_FROM: Annotated[str, Field(pattern=r"^[^@\s<>]+@[^@\s<>]+$")]
+    """The From address; the From name is the archive name."""
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: SecretStr | None = None
 

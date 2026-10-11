@@ -1,0 +1,5 @@
+{
+  "email_subject": "[{archive_name}] {event}",
+  "email_record_update_subject": "Update on {title}",
+  "email_record_update_body": "The record “{title}” has been updated.\nSee it here: {url}\n\nThis is a test message, about a fictional record."
+}
