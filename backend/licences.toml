@@ -1,0 +1,10 @@
+# Reviewed Python dependencies whose licence is not in ADR 0011's permissive tier.
+# Checked by tools/licences.py. Each entry records the exact licence expression,
+# so a licence change upstream needs a new review.
+#
+# [reviewed.<package>]
+# licence = "LGPL-3.0-or-later"
+# tier = "weak-copyleft"   # an unmodified library, dynamically linked
+# reason = "How TART uses it, and why that fits the tier."
+
+[reviewed]
