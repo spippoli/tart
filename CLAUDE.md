@@ -46,6 +46,8 @@ uv run tart migrate        # apply migrations to the database at DATABASE_URL
 uv run tart config check   # validate the configuration directory at CONFIG_DIR (default /config)
 uv run tart config check --database   # also the checks against the database at DATABASE_URL
 uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabulary`), for editors
+uv run tart users grant moderator <email> [--display-name NAME]   # also `revoke moderator <email>`, `list --role moderator`
+uv run tart users suspend <email> --reason TEXT   # and `unsuspend <email>`; the email goes through the worker
 uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate

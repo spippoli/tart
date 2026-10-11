@@ -3,17 +3,19 @@
 `tart config check --database` and startup run them after the files are valid:
 a vocabulary key stored in the database must still be in its file (retired or
 not), and `terms.version` may not go below the highest version already accepted.
+They also report warnings, which never fail: about the Moderators (`tart.auth.operator`).
 
 The tables that store vocabulary keys and terms acceptances are added by later
 tickets; each one registers its column here, in `VOCABULARY_COLUMNS` or
 `TERMS_ACCEPTANCE_COLUMN`, in the same change that creates it.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from tart.auth.operator import moderator_warnings
 from tart.config.loader import Instance, Issue
 from tart.db import create_engine
 
@@ -34,6 +36,14 @@ TERMS_ACCEPTANCE_COLUMN: Column | None = None
 """The integer column that records which `terms.version` a User accepted."""
 
 
+@dataclass(frozen=True)
+class DatabaseCheck:
+    issues: list[Issue] = field(default_factory=list)
+    """What makes the configuration invalid against this database."""
+    warnings: list[str] = field(default_factory=list)
+    """What the Operator should know, without failing."""
+
+
 async def _keys_in_use(connection: AsyncConnection, column: Column) -> set[str]:
     # Identifiers come from the registry above, never from input.
     result = await connection.execute(
@@ -45,7 +55,7 @@ async def _keys_in_use(connection: AsyncConnection, column: Column) -> set[str]:
     return set(result.scalars())
 
 
-async def _check(connection: AsyncConnection, instance: Instance) -> list[Issue]:
+async def _check(connection: AsyncConnection, instance: Instance) -> DatabaseCheck:
     issues: list[Issue] = []
     for name, columns in VOCABULARY_COLUMNS.items():
         known = {entry.key for entry in instance.vocabularies[name]}
@@ -71,11 +81,13 @@ async def _check(connection: AsyncConnection, instance: Instance) -> list[Issue]
                     f"is {version}, lower than version {accepted} that Users already accepted",
                 )
             )
-    return issues
+    warnings = await moderator_warnings(connection, instance.settings.community.self_approval)
+    return DatabaseCheck(issues, warnings)
 
 
-async def check_database(instance: Instance) -> list[Issue]:
-    """The database issues of a valid configuration, against the database at `DATABASE_URL`."""
+async def check_database(instance: Instance) -> DatabaseCheck:
+    """The database issues and warnings of a valid configuration, against the database
+    at `DATABASE_URL`."""
     engine = create_engine()
     try:
         async with engine.connect() as connection:
