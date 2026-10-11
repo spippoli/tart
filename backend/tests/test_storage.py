@@ -1,6 +1,8 @@
 """Contract of the storage port, run against every adapter (Foundations spec, Testing Decisions)."""
 
 import stat
+import urllib.error
+import urllib.request
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import Any
@@ -17,6 +19,7 @@ from tart.storage import (
     Storage,
 )
 from tart.storage.filesystem import FilesystemStorage
+from tart.storage.s3 import S3Storage
 
 pytestmark = pytest.mark.anyio
 
@@ -46,7 +49,7 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest.fixture(params=["filesystem"])
+@pytest.fixture(params=["filesystem", "s3"])
 def adapter(request: pytest.FixtureRequest) -> str:
     return request.param
 
@@ -56,7 +59,7 @@ def settings(adapter: str, request: pytest.FixtureRequest) -> dict[str, Any]:
     """The adapter's constructor settings, prepared outside the event loop."""
     if adapter == "filesystem":
         return {"root": request.getfixturevalue("tmp_path") / "media"}
-    raise NotImplementedError(adapter)
+    return request.getfixturevalue("s3_bucket")
 
 
 @pytest.fixture
@@ -64,7 +67,8 @@ async def storage(adapter: str, settings: dict[str, Any]) -> AsyncIterator[Stora
     if adapter == "filesystem":
         yield FilesystemStorage(**settings)
         return
-    raise NotImplementedError(adapter)
+    async with S3Storage(**settings) as s3:
+        yield s3
 
 
 @pytest.fixture
@@ -82,7 +86,17 @@ def outsider_read(adapter: str, settings: dict[str, Any]) -> OutsiderRead:
 
         return other_user_can_read
 
-    raise NotImplementedError(adapter)
+    def anonymous_http_get_succeeds(area: Area, key: str) -> bool:
+        url = f"{settings['endpoint_url']}/{settings['bucket']}/{area}/{key}"
+        try:
+            with urllib.request.urlopen(url) as response:
+                response.read()
+        except urllib.error.HTTPError as error:
+            assert error.code == 403
+            return False
+        return True
+
+    return anonymous_http_get_succeeds
 
 
 async def test_criterion_21_a_stored_object_is_private_and_read_only_through_the_app(
