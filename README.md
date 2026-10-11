@@ -1,4 +1,29 @@
-# TART — Platform Design Brief
+# TART
+
+TART is a collaborative platform for documenting and preserving the history of urban art. Each deployment, an **Instance**, runs one independent local archive; the first is Rome ("Archivio dell'arte urbana di Roma — Powered by TART"). The software is source-available and freely available for non-commercial use, provisionally under the PolyForm Noncommercial License 1.0.0 ([`LICENSE`](LICENSE)).
+
+## Project status
+
+The design phase is complete: the MVP is fully specified, and implementation is starting. There is no source code yet.
+
+## Where to find what
+
+| You need | Look in |
+|---|---|
+| What to build, feature by feature, and in which order | [`docs/spec/index.md`](docs/spec/index.md) and the seven feature specs beside it |
+| Why a hard-to-reverse choice was made | [`docs/adr/`](docs/adr/) |
+| What a domain term means | [`GLOSSARY.md`](GLOSSARY.md) |
+| The work to pick up | GitHub issues labelled `ready-for-agent` or `ready-for-human`, grouped under the spec tracking issues; "Blocked by" sets the order |
+| Rules for contributors and AI agents | [`CLAUDE.md`](CLAUDE.md) |
+| The licence decision | [`docs/adr/0011-provisional-software-license.md`](docs/adr/0011-provisional-software-license.md) |
+
+The design history is the closed map [Wayfinder: TART MVP specification](https://github.com/spippoli/tart/issues/2) and its tickets.
+
+---
+
+# Platform design brief
+
+The original brief that started the project. It remains the statement of mission and principles. The specs and ADRs refine it, and where they narrow it, they win. The brief is addressed to the designer who produced the specification.
 
 ## 1. Role and mission
 

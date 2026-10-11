@@ -49,7 +49,7 @@ Build in this order; each spec depends only on the ones above it.
 | 6 | Notifications | [`notifications.md`](notifications.md) | Email notifications | [Compile Notifications spec](https://github.com/spippoli/tart/issues/55) | [Notifications spec](https://github.com/spippoli/tart/issues/75) |
 | 7 | Operations and portability | [`operations-and-portability.md`](operations-and-portability.md) | Backups, upgrades, monitoring, public data dump, Operator compliance checklist | [Compile Operations and portability spec](https://github.com/spippoli/tart/issues/56) | [Operations and portability spec](https://github.com/spippoli/tart/issues/81) |
 
-All seven feature specs are compiled. Each still lists open items in its Further Notes; the decision tickets that settle them amend the spec in their own PR and block its tracking issue, so a tracking issue with no open blocker is ready for `to-tickets`.
+All seven feature specs are compiled and every decision ticket is closed. `to-tickets` has turned them into implementation tickets: each is a sub-issue of its spec's tracking issue, labelled `ready-for-agent` (or `ready-for-human`), and lists the spec sections and acceptance criteria it covers. Native "Blocked by" links order them; a ticket is takeable when all its blockers are closed. A later change to a spec is a PR to the spec file, with an ADR when it is hard to reverse.
 
 ## Rome configuration summary
 
