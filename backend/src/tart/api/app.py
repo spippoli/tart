@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
 from tart import tiles
+from tart.api import map_style
 from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
 from tart.startup import start
@@ -59,4 +60,5 @@ def create_app() -> FastAPI:
         """The public subset of the Instance configuration, which the frontend caches."""
         return public
 
+    app.include_router(map_style.router)
     return app

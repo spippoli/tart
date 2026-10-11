@@ -216,6 +216,7 @@ def test_the_endpoint_carries_the_public_subset() -> None:
         "languages",
         "geography",
         "map_attribution",
+        "map_tile_origins",
         "vocabularies",
         "registration",
         "licenses",

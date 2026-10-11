@@ -1,7 +1,8 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { Handle } from '@sveltejs/kit/hooks';
+import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { chooseLanguage, LANGUAGE_COOKIE, textDirection } from '#lib/i18n/language.ts';
 import { readInstanceConfig } from '#lib/server/config.ts';
+import { createContentSecurityPolicyHandle } from '#lib/server/content-security-policy.ts';
 import {
 	isLocale,
 	localizeHref,
@@ -21,7 +22,7 @@ overwriteServerAsyncLocalStorage(requestStore);
  * names its language in its prefix, and a prefix that is not an enabled UI
  * language makes the page answer 404, rendered in the Instance default.
  */
-export const handle: Handle = async ({ event, resolve }) => {
+const resolveLanguage: Handle = async ({ event, resolve }) => {
 	const config = await readInstanceConfig();
 	const enabled = config.languages.ui.filter(isLocale);
 	const defaultLocale = enabled[0];
@@ -56,3 +57,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		})
 	);
 };
+
+/** Every response carries the Content-Security-Policy, with the external map tile origins. */
+export const handle = sequence(
+	createContentSecurityPolicyHandle(readInstanceConfig),
+	resolveLanguage
+);

@@ -41,6 +41,71 @@
           }
         }
       }
+    },
+    "/api/map/style/{theme}.json": {
+      "get": {
+        "summary": "Map Style",
+        "description": "The map style of one theme, revalidated on every use (`no-cache` with an ETag).",
+        "operationId": "map_style_api_map_style__theme__json_get",
+        "parameters": [
+          {
+            "name": "theme",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "light",
+                "dark"
+              ],
+              "type": "string",
+              "title": "Theme"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The style, with absolute asset URLs and the current basemap extract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The style has not changed since the ETag sent"
+          },
+          "503": {
+            "description": "The style uses the local basemap, and there is no extract yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "const": "tiles_missing"
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -179,6 +244,19 @@
         ],
         "title": "Geography"
       },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
       "Identity": {
         "properties": {
           "name": {
@@ -312,6 +390,13 @@
             "type": "array",
             "title": "Map Attribution"
           },
+          "map_tile_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Map Tile Origins"
+          },
           "vocabularies": {
             "$ref": "#/components/schemas/Vocabularies"
           },
@@ -343,6 +428,7 @@
           "languages",
           "geography",
           "map_attribution",
+          "map_tile_origins",
           "vocabularies",
           "registration",
           "licenses",
@@ -405,6 +491,46 @@
         ],
         "title": "Texts",
         "description": "The Operator texts, Markdown in the Content language."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       },
       "Vocabularies": {
         "properties": {

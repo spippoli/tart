@@ -18,8 +18,16 @@ from xml.etree import ElementTree
 from pydantic import BaseModel, ValidationError
 
 from tart.config.environment import Environment
-from tart.config.instance import BOUNDARY, FAVICON, LOGO_DARK, LOGO_LIGHT, InstanceFile
+from tart.config.instance import (
+    BOUNDARY,
+    FAVICON,
+    LOGO_DARK,
+    LOGO_LIGHT,
+    InstanceFile,
+    accent_problem,
+)
 from tart.config.vocabularies import VOCABULARIES, Entry, VocabularyFile, duplicate_entry
+from tart.map.style import THEMES, read_styles
 from tart.messages import UI_LANGUAGES
 
 INSTANCE_FILE = "instance.toml"
@@ -72,6 +80,8 @@ class Instance:
     """The boundary's bounding box: west, south, east, north."""
     boundary: Mapping[str, Any]
     """The boundary as a GeoJSON Polygon or MultiPolygon geometry."""
+    map_styles: Mapping[str, Mapping[str, Any]]
+    """The validated map style files by theme (`light`, `dark`), as read; never modified."""
 
 
 @dataclass(frozen=True)
@@ -192,6 +202,22 @@ def _enabled_ui_languages(raw: dict[str, Any] | None) -> tuple[str, ...]:
     return tuple(language for language in ui if language in UI_LANGUAGES)
 
 
+def _accents(raw: dict[str, Any] | None) -> dict[str, str | None]:
+    """The accent of each theme for the map style checks, read leniently.
+
+    An accent that fails its own check (not a colour, or too close to its theme's UI
+    background) is reported with `instance.toml` alone, and left out of the map checks.
+    """
+    accent = ((raw or {}).get("identity") or {}).get("accent")
+    accent = accent if isinstance(accent, dict) else {}
+    accents: dict[str, str | None] = {}
+    for theme in THEMES:
+        value = accent.get(theme)
+        valid = isinstance(value, str) and accent_problem(value, theme) is None
+        accents[theme] = value.upper() if valid else None
+    return accents
+
+
 def load_instance(directory: Path) -> Instance:
     """Read and validate the configuration directory, or raise `ConfigurationError`."""
     issues: list[Issue] = []
@@ -221,12 +247,14 @@ def load_instance(directory: Path) -> Instance:
         favicon=_read_svg(directory, FAVICON, issues),
     )
     boundary = _read_boundary(directory, issues)
+    map_styles, style_issues = read_styles(directory, _accents(raw))
+    issues += [Issue(file, key, message) for file, key, message in style_issues]
 
     if issues:
         raise ConfigurationError(issues)
     assert settings is not None and boundary is not None
     geometry, bounds = boundary
-    return Instance(settings, vocabularies, texts, identity, bounds, geometry)
+    return Instance(settings, vocabularies, texts, identity, bounds, geometry, map_styles)
 
 
 def load_environment(environ: Mapping[str, str]) -> Environment:

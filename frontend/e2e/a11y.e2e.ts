@@ -54,6 +54,8 @@ test('AC 37: every shell control is keyboard-operable with a visible focus indic
 	page
 }) => {
 	await page.goto('/en/about');
+	// Hydration collapses the narrow-screen navigation; tabbing must start after it.
+	await expect(page.locator('header.site-header.enhanced')).toBeAttached();
 	const visited: string[] = [];
 	for (let step = 0; step < 40; step++) {
 		await page.keyboard.press('Tab');

@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Muro di prova (fittizio)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12.47,
+            41.89
+          ],
+          [
+            12.48,
+            41.9
+          ]
+        ]
+      }
+    }
+  ]
+}
