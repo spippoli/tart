@@ -115,6 +115,8 @@ class PublicConfiguration(BaseModel):
     Content-Security-Policy; empty when the map uses only the local basemap."""
     vocabularies: Vocabularies
     registration: Literal["open", "invite", "closed"]
+    min_age: int
+    """The minimum age that registration asks people to declare."""
     licenses: Licenses
     terms_version: int
     texts: Texts
@@ -156,6 +158,7 @@ def public_configuration(instance: Instance) -> PublicConfiguration:
             }
         ),
         registration=settings.community.registration,
+        min_age=settings.community.min_age,
         licenses=Licenses.model_validate(settings.licenses.model_dump()),
         terms_version=settings.terms.version,
         texts=Texts.model_validate(dict(instance.texts)),

@@ -727,6 +727,10 @@
             ],
             "title": "Registration"
           },
+          "min_age": {
+            "type": "integer",
+            "title": "Min Age"
+          },
           "licenses": {
             "$ref": "#/components/schemas/Licenses"
           },
@@ -749,6 +753,7 @@
           "map_tile_origins",
           "vocabularies",
           "registration",
+          "min_age",
           "licenses",
           "terms_version",
           "texts"
