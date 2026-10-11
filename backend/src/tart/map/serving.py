@@ -13,21 +13,15 @@ the extract (after `tart tiles update`).
 import copy
 import hashlib
 import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from tart import tiles
 from tart.map.style import ACCENT_TOKEN, ASSET_PREFIX, BASEMAP_URL, TOKENS
 
-MANIFEST = "manifest.json"
-"""The tile manifest in the PMTiles directory, written by `tart tiles update`."""
-MANIFEST_FILE_KEY = "file"
-"""The manifest key naming the current extract, a file in the same directory."""
 TILES_PREFIX = "/tiles/"
 """Where Caddy serves the PMTiles directory."""
-
-_EXTRACT = re.compile(r"^basemap-\d{8}\.pmtiles$")
 
 
 class TilesMissing(Exception):
@@ -39,18 +33,6 @@ class ServedStyle:
     body: bytes
     etag: str
     """A strong ETag, quoted."""
-
-
-def current_extract(tiles_dir: Path) -> str | None:
-    """The file name of the current basemap extract, or `None` if there is none."""
-    try:
-        manifest = json.loads((tiles_dir / MANIFEST).read_text(encoding="utf-8"))
-    except OSError, ValueError:
-        return None
-    name = manifest.get(MANIFEST_FILE_KEY) if isinstance(manifest, dict) else None
-    if not isinstance(name, str) or not _EXTRACT.match(name):
-        return None
-    return name if (tiles_dir / name).is_file() else None
 
 
 def _absolute(value: Any, base_url: str) -> Any:
@@ -68,9 +50,11 @@ def _rewrite_sources(style: dict[str, Any], base_url: str, tiles_dir: Path) -> N
         urls += [(index, source["tiles"]) for index in range(len(source.get("tiles", [])))]
         for key, holder in urls:
             if holder[key] == BASEMAP_URL:
-                extract = extract or current_extract(tiles_dir)
                 if extract is None:
-                    raise TilesMissing
+                    manifest = tiles.current_extract(tiles_dir)
+                    if manifest is None:
+                        raise TilesMissing
+                    extract = manifest.file
                 holder[key] = f"pmtiles://{base_url}{TILES_PREFIX}{extract}"
 
 

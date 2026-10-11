@@ -23,6 +23,8 @@ from tart.config.public import public_configuration
 LIGHT = "map/style.light.json"
 DARK = "map/style.dark.json"
 BASE_URL = ENVIRONMENT["PUBLIC_BASE_URL"]
+MANIFEST = {"build": "20261001", "schema_version": "4.15.2", "boundary_sha256": "0" * 64}
+"""The manifest fields the style endpoint does not read."""
 
 # Fixture name -> the (file, key) of every issue it must produce, and nothing else.
 STYLE_FAILURES = {
@@ -189,7 +191,8 @@ def _extract(tiles: Path, build: str) -> str:
     """What `tart tiles update` leaves: a versioned extract named by the manifest."""
     name = f"basemap-{build}.pmtiles"
     (tiles / name).write_bytes(b"PMTiles fixture")
-    (tiles / "manifest.json").write_text(json.dumps({"file": name, "build": build}))
+    manifest = {**MANIFEST, "file": name, "build": build}
+    (tiles / "manifest.json").write_text(json.dumps(manifest))
     return name
 
 
@@ -272,8 +275,9 @@ def test_criterion_70_the_etag_changes_after_tart_tiles_update(tmp_path: Path) -
     "manifest",
     [
         None,
-        {"file": "basemap-20261001.pmtiles"},  # The manifest names a file that is gone.
-        {"file": "../secrets.pmtiles"},
+        # The manifest names a file that is gone, or one outside the extracts.
+        {**MANIFEST, "file": "basemap-20261001.pmtiles"},
+        {**MANIFEST, "file": "../secrets.pmtiles"},
     ],
 )
 def test_criterion_70_without_an_extract_the_style_answers_503_tiles_missing(

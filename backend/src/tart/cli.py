@@ -13,9 +13,10 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from tart import migrations
+from tart import migrations, tiles
 from tart.config import ConfigurationError, config_dir, load_instance
 from tart.config.database import check_database
+from tart.config.environment import pmtiles_path
 from tart.config.instance import InstanceFile
 from tart.config.vocabularies import VocabularyFile
 
@@ -50,6 +51,27 @@ _SCHEMAS = {"instance": InstanceFile, "vocabulary": VocabularyFile}
 def _config_schema(args: argparse.Namespace) -> int:
     print(json.dumps(_SCHEMAS[args.file].model_json_schema(), indent=2))
     return 0
+
+
+def _tiles_update(args: argparse.Namespace) -> int:
+    try:
+        manifest = tiles.update(
+            config_dir(os.environ), pmtiles_path(os.environ), args.build, args.source
+        )
+    except (ConfigurationError, tiles.TilesError) as error:
+        print(f"{error}\nThe current basemap, if any, is unchanged.", file=sys.stderr)
+        return 1
+    print(
+        f"{manifest.file} (Protomaps build {manifest.build}, schema {manifest.schema_version}) "
+        "is now the current basemap"
+    )
+    return 0
+
+
+def _build(value: str) -> str:
+    if not tiles.is_build(value):
+        raise argparse.ArgumentTypeError(f"{value!r} is not a date YYYYMMDD")
+    return value
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -92,6 +114,37 @@ def _parser() -> argparse.ArgumentParser:
     )
     schema.add_argument("file", choices=sorted(_SCHEMAS), help="instance.toml or a vocabulary")
     schema.set_defaults(handler=_config_schema)
+
+    tiles_command = commands.add_parser("tiles", help="manage the basemap tiles")
+    tiles_commands = tiles_command.add_subparsers(
+        title="commands", metavar="<command>", required=True
+    )
+    update = tiles_commands.add_parser(
+        "update",
+        help="extract the basemap for the boundary plus 2 km and swap it in",
+        description=(
+            "Extract the Instance boundary plus 2 km from a Protomaps daily build into "
+            "PMTILES_PATH (default /data/tiles) with go-pmtiles, refuse an extract whose "
+            "schema major differs from the map styles' metadata.tart:basemap-schema, and "
+            "swap it in atomically. The previous extract is kept for open pages; older "
+            "ones are deleted. On any failure the current extract stays in place."
+        ),
+    )
+    update.add_argument(
+        "--build",
+        type=_build,
+        metavar="YYYYMMDD",
+        help="the Protomaps daily build to extract (default: the latest)",
+    )
+    update.add_argument(
+        "--source",
+        metavar="URL",
+        help=(
+            f"a mirror laid out like {tiles.DEFAULT_SOURCE}, holding YYYYMMDD.pmtiles; "
+            "needs --build"
+        ),
+    )
+    update.set_defaults(handler=_tiles_update)
 
     return parser
 
