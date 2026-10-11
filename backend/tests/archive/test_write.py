@@ -707,7 +707,7 @@ def test_the_vocabulary_keys_in_use_are_checked_against_the_configuration(
         "surface_types": (),
     }
 
-    issues = asyncio.run(check_database(replace(instance, vocabularies=without_stencil)))
+    issues = asyncio.run(check_database(replace(instance, vocabularies=without_stencil))).issues
 
     assert [(issue.file, "artwork" in issue.message) for issue in issues] == [
         ("vocabularies/expression_types.toml", True),
