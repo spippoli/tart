@@ -154,6 +154,10 @@ _Avoid_: Authorship, credit, signature
 A registered account on an Instance; never implies control over any Artist.
 _Avoid_: Contributor (as an entity), member, account holder
 
+**Suspension**:
+The Operator's blocking of a User's access to the Instance, with a stated reason, until it is lifted; the User's contributions stay as they are.
+_Avoid_: Ban, block, deactivation
+
 **Invitation**:
 A single-use offer, issued by a Moderator or the Operator to one email address, that lets that person register on an Instance whose registration is by invitation; it expires and can be revoked while unused.
 _Avoid_: Invite code, referral

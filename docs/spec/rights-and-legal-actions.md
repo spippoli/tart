@@ -26,7 +26,7 @@ Every section except Further Notes is normative. The invariants, language rules,
 
 **Glossary terms applied**: Instance, Operator, Instance configuration, Data licence, Erasure log, User, Moderator, Submitter, Submission, Submission status, Retraction, Outdated, Decision message, Moderation note, Archive record, Revision, Artwork, Artist, Attribution, Crew membership, Location, Source, Documentation item, Creator credit, Rights basis, Merge, Duplicate retirement, Unmerge, Withdrawal, Redaction, Reinstatement, Purge, Notice, UI language, Content language.
 
-**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Redaction by operation and of current values, the Purge command and what it leaves, Creator credit anonymisation, immutable file licences), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (public Rights basis and origin URL, one creator field, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (effects on linked records, Moderator and Submitter views of hidden content, statements in the app).
+**Decision tickets incorporated**: [Content rights and GDPR product rules](https://github.com/spippoli/tart/issues/14), [Artist records, personal data, and artist claims](https://github.com/spippoli/tart/issues/20) (artist requests), [Moderation roles and permissions](https://github.com/spippoli/tart/issues/43) (who performs legal actions, self-review, Moderation notes, escalation), [Information architecture and page inventory](https://github.com/spippoli/tart/issues/15) (report entry point and route), [Licence policy for map assets and basemap data](https://github.com/spippoli/tart/issues/35) (ODbL boundary), [Basemap tile pipeline per Instance](https://github.com/spippoli/tart/issues/38) (external tile provider as a recipient), [Operator compliance checklist](https://github.com/spippoli/tart/issues/46) (escalation, authority orders, GDPR requests, processing inventory), [Backups, upgrades and monitoring](https://github.com/spippoli/tart/issues/45) (the Erasure log and erasures in backups), and, for the parts that set legal message triggers, [Notifications](https://github.com/spippoli/tart/issues/44). Background research: [Research: archive data and contributor content licensing, GDPR](https://github.com/spippoli/tart/issues/8), [Research: Digital Services Act duties for an archive Instance](https://github.com/spippoli/tart/issues/19), [Instance configuration keys and contacts](https://github.com/spippoli/tart/issues/85) (Notice reasons vocabulary, contacts, licence keys, terms version), [Operator as decider and Moderator self-review](https://github.com/spippoli/tart/issues/93) (the Operator decides as a Moderator, Notices about a Moderator's own content), [Redaction, current-value removal and Purge](https://github.com/spippoli/tart/issues/95) (Redaction by operation and of current values, the Purge command and what it leaves, Creator credit anonymisation, immutable file licences), [Public provenance, file rights and position coarsening](https://github.com/spippoli/tart/issues/91) (public Rights basis and origin URL, one creator field, no hidden positions), [Withdrawal effects and views of hidden content](https://github.com/spippoli/tart/issues/92) (effects on linked records, Moderator and Submitter views of hidden content, statements in the app), [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84) (Notice rate limits, the honeypot and minimum fill time, IP retention).
 
 **Depends on**: [Foundations](foundations.md) (configuration, sessions, storage and media pipeline, Account page, Operator CLI, email adapter), [Archive records](archive-records.md) (record model, visibility table, `/revisions`, "Report" action), and Contribution and moderation (roles and permission checks, Submission rejection and Decision messages, the review checklist, terms acceptance).
 
@@ -94,6 +94,7 @@ Anyone can send a Notice from any public record or Documentation item page, with
 31. As an Operator, I want to produce a User's data export from the CLI, so that I can answer GDPR access and portability requests within a month.
 32. As an Operator, I want the notifier's personal data erased automatically six months after the decision, so that retention is enforced without manual work.
 33. As an Operator, I want a documented inventory of what the platform processes, so that my privacy notice and record of processing start from facts.
+34. As a person whose address someone else typed into the report form, I want to receive at most a few acknowledgements a day, so that the archive cannot be used to spam me.
 
 ## Implementation Decisions
 
@@ -173,6 +174,13 @@ Legal actions are domain-rich (reversibility, affected recipients, self-review r
 - The UI language of the form is stored with the Notice and used for the notifier's emails ([ADR 0008](../adr/0008-single-content-language-and-prefixed-ui-languages.md)).
 - The "personal data" reason covers an Attribution that exposes someone ([ADR 0014](../adr/0014-artist-records-hold-only-a-public-identity.md)).
 - Notices are judged on their content, never on who sends them; no identity is verified.
+
+**Abuse protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)). The form needs no session and accepts any email address, so it could send acknowledgements to strangers and flood Moderators. Platform constants, counted by the Foundations rate-limit module:
+- **Per IP**: at most 5 Notices per hour and 20 per 24 hours, signed in or not, so there is one path.
+- **Per notifier email**: at most 3 Notices per 24 hours with the same address, so nobody receives more than three acknowledgements a day. A Notice without an email is limited per IP only.
+- Beyond a limit the form answers `429` with a translatable error code and the time to wait, and the Notice is not stored.
+- **Honeypot and minimum fill time**: the form carries the Foundations honeypot field and a signed render timestamp (no cookie); a submission less than 3 seconds after the form was rendered is treated like a filled honeypot: a fake success answer, nothing stored or sent.
+- Notice received emails to Moderators are capped per hour, with a summary past the cap ([Notifications](notifications.md#email-catalogue)); every Notice is still listed in the queue.
 - After sending, the page confirms receipt in text (a status message announced to assistive technology).
 
 **Lifecycle.** A Notice is *open* until a Moderator closes it with exactly one decision: **Withdrawal**, **Redaction**, or **no action**. On receipt:
@@ -298,7 +306,7 @@ No email is sent about the retractions, since the account no longer has an addre
 
 ### 11. Processing inventory
 
-The platform documents what it processes so that the Operator's privacy notice and record of processing start from facts, not a template ([#46](https://github.com/spippoli/tart/issues/46)). For each data category it states the purpose and retention: account email, sessions, logs, display name and pseudonym, Submission content (media of rejected and retracted Submissions deleted after 30 days, their content reduced to a stub after 12 months, [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96)), Notice data (notifier name and email erased six months after the decision), EXIF GPS (stripped on publish). It lists the external recipients: hosting, storage, SMTP, and, when an Instance style uses an external `https` tile source, the tile provider ([#38](https://github.com/spippoli/tart/issues/38)). The matching Operator checklist items (name the tile provider in the privacy policy, among others) are in Operations and portability.
+The platform documents what it processes so that the Operator's privacy notice and record of processing start from facts, not a template ([#46](https://github.com/spippoli/tart/issues/46)). For each data category it states the purpose and retention: account email, sessions, logs, display name and pseudonym, Submission content (media of rejected and retracted Submissions deleted after 30 days, their content reduced to a stub after 12 months, [Submission lifecycle edge cases](https://github.com/spippoli/tart/issues/96)), Notice data (notifier name and email erased six months after the decision), IP addresses kept for rate limits (deleted within 24 hours, [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)), the date and reason of a Suspension (kept until it is lifted), EXIF GPS (stripped on publish). It lists the external recipients: hosting, storage, SMTP, and, when an Instance style uses an external `https` tile source, the tile provider ([#38](https://github.com/spippoli/tart/issues/38)). The matching Operator checklist items (name the tile provider in the privacy policy, among others) are in Operations and portability.
 
 ### Example
 
@@ -311,6 +319,7 @@ A good test exercises a module through its external interface and asserts observ
 - **Legal actions domain (unit, pytest)**: Notice lifecycle (one decision, no reopening by a second decision); affected-Submitter computation for a Documentation item, a record with many Revisions, and a rejection, including a deleted account; statement of reasons content (all six elements present, "no automation", no Moderator or notifier identity); `self_approval` rules for closing, reinstating, withdrawing, and redacting own content; Purge refusal on public content.
 - **Persistence and API (integration, pytest against PostGIS)**: after a Withdrawal the record page and `/revisions` answer 410 and the content is absent from lists, the map data, search, galleries, and Timelines; a withdrawn Artist's Attributions and Crew memberships disappear and return on Reinstatement; a redacted Revision is listed without content; Withdrawal and Redaction create no Revision; pending Submissions on a withdrawn target become Outdated; a Merge on a record with an open Notice is Outdated; concurrent Notice decisions (second one refused with a stable error code); the Notice intake works without a session; Moderation notes and the Notice log are never returned to non-Moderators.
 - **Retention job**: with a controlled clock, the notifier's name and email are erased six months after the decision and the rest of the Notice is kept.
+- **Notice limits**: with a controlled clock, each per-IP and per-email limit at its threshold and one past it, the honeypot, and the minimum fill time.
 - **Account deletion (integration)**: email, passkeys, and sessions gone; pseudonym on `/revisions`; drafts and their media deleted; open Submissions retracted; approved records unchanged; Creator credits anonymised only when chosen.
 - **CLI**: Purge erases database content and stored objects of a withdrawn Documentation item and refuses public content; the export command produces an export for a User.
 - **Legal message port**: a capturing adapter asserts which messages are queued, to whom, in which UI language, and that no message goes to the actor or to a deleted account.
@@ -333,7 +342,7 @@ A good test exercises a module through its external interface and asserts observ
 7. Every public record page of every kind and every Documentation item page has a "Report" action leading to `/it/segnala?oggetto=…` (`/en/report?object=…`) with the URL prefilled.
 8. The report form can be sent without an account; it requires a reason, URL, explanation, and the good-faith statement, and accepts optional name and email.
 9. With an email, the notifier receives an acknowledgement (reference, reason, URL, explanation) and, on closing, a decision with redress, both in the UI language of the form; without an email, nothing is sent.
-10. Every Moderator is notified of each new Notice immediately; the reported content's Submitter is notified of nothing until a measure is taken.
+10. Every Moderator is notified of each new Notice immediately, up to the hourly cap of [Notifications](notifications.md#email-catalogue); the reported content's Submitter is notified of nothing until a measure is taken.
 11. A Notice is closed with exactly one of Withdrawal, Redaction, or no action; a second decision on a Notice that is no longer open is refused with a translated error.
 12. With `self_approval = false`, a Moderator cannot close a Notice about their own content with no action or reinstate their own content, can close it with a Withdrawal or Redaction of the reported content, and can always withdraw or redact their own content.
 13. Six months after a Notice's decision, the notifier's name and email are erased and the rest of the Notice log remains.
@@ -385,6 +394,11 @@ A good test exercises a module through its external interface and asserts observ
 39. The Withdrawal confirmation of a Source or Documentation item lists the Claims that would lose their last public citation and the `confirmed` Attributions that would be shown as `probable`; that of a Location gives the number of Artworks that would show the placeholder.
 40. Each Withdrawal, Redaction, and Reinstatement adds an entry with the full statement of reasons to the Submission log of every affected Submission, visible to its Submitter and to Moderators, without Moderator or notifier identity.
 
+**Notice abuse protection** ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84))
+
+41. From one IP, a sixth Notice within an hour or a twenty-first within 24 hours answers `429` with a translatable error code and stores nothing; so does a fourth Notice within 24 hours with the same notifier email, from any IP.
+42. A report with the honeypot filled, or sent less than 3 seconds after the form was rendered, gets the ordinary confirmation, and no Notice is stored and no email sent.
+
 ## Instance configuration
 
 The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.toml` and the file layout; "Not decided" means the decisions give no value for Rome.
@@ -402,7 +416,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 | Terms version | `terms.version` | Acceptance before submitting (Contribution and moderation) | `1` at launch |
 | Content language, UI languages, time zone | `languages.content`, `languages.ui`, `geography.time_zone` | Labels, email language, date formatting | `it`; `it` (default), `en`; `Europe/Rome` |
 
-**Platform constants, not configuration**: notifier name and email retention (six months after the decision); "no automation" in statements of reasons; Purge and Creator credit anonymisation only from the CLI; the Purge grounds (`gdpr-erasure`, `authority-order`); the "removed for legal reasons" placeholder and "anonymous creator" label, from the message catalogues. The 7-day decision target is Operator guidance only.
+**Platform constants, not configuration**: notifier name and email retention (six months after the decision); the Notice limits (5 per hour and 20 per 24 hours per IP, 3 per 24 hours per notifier email) and the 3-second minimum fill time; "no automation" in statements of reasons; Purge and Creator credit anonymisation only from the CLI; the Purge grounds (`gdpr-erasure`, `authority-order`); the "removed for legal reasons" placeholder and "anonymous creator" label, from the message catalogues. The 7-day decision target is Operator guidance only.
 
 ## Out of Scope
 
@@ -414,7 +428,7 @@ The [Foundations](foundations.md#1-instance-configuration) spec owns `instance.t
 - Email rendering, delivery, opt-out, and bounce handling (Notifications).
 - The Operator compliance checklist, the public data dump, and backups (Operations and portability).
 - Drafting the terms of use, privacy policy, trademark policy, or any licence notice text beyond the platform's UI strings; professional legal review itself.
-- Rate limiting and spam protection of Notices (unticketed "Performance and limits").
+- CAPTCHAs and content filtering of Notices ([Security constants and abuse protection](https://github.com/spippoli/tart/issues/84)).
 
 ## Further Notes
 
@@ -477,6 +491,6 @@ The inputs leave these unsettled. Implementers must not fill them by assumption;
 
 ### Notes
 
-- Abuse protection for the public report form (rate limits, spam) waits for the unticketed "Performance and limits" work on the [map](https://github.com/spippoli/tart/issues/2).
+- Abuse protection for the public report form (rate limits, honeypot, minimum fill time) is set in [Notices](#2-notices), from [Security constants and abuse protection](https://github.com/spippoli/tart/issues/84).
 - The Operator obligations around this feature (AGCOM notification and declarations, authority orders, threats to life or safety, data breaches, the 7-day target) are Operator checklist items in Operations and portability ([#46](https://github.com/spippoli/tart/issues/46)), not software behaviour.
 - The Rome Operator (an individual, an existing association, or a new entity) is not decided ([#46](https://github.com/spippoli/tart/issues/46)); it determines who acts as DSA provider and GDPR controller.
