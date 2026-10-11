@@ -1,6 +1,11 @@
 # Reference topology (ADR 0004). Start with `docker compose up --build`;
-# add `--profile dev` for Mailpit.
+# add `--profile dev` for Mailpit. `api` and `worker` refuse to start until the
+# database is at the code's migration head: run `docker compose run --rm api tart migrate`.
 name: tart
+
+# `api`, `worker`, and the one-shot `tart migrate` reach the database through it.
+x-database-url: &database-url
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
 
 services:
   caddy:
@@ -29,6 +34,7 @@ services:
     build: ../backend
     image: tart-backend
     restart: unless-stopped
+    environment: *database-url
     depends_on:
       db:
         condition: service_healthy
@@ -38,6 +44,7 @@ services:
     image: tart-backend
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
+    environment: *database-url
     depends_on:
       db:
         condition: service_healthy

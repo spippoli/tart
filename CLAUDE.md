@@ -41,7 +41,11 @@ uv run ruff format .       # format (CI runs `--check`)
 uv run pytest              # all tests
 uv run pytest tests/test_health.py   # one file
 uv run uvicorn tart.api.app:create_app --factory --reload   # dev server on :8000
+uv run tart migrate        # apply migrations to the database at DATABASE_URL
+uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 ```
+
+The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup.
 
 Frontend (run in `frontend/`):
 
@@ -69,6 +73,7 @@ Full stack (run in `deploy/`; copy `.env.example` to `.env` and set `POSTGRES_PA
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db
+docker compose run --rm api tart migrate   # first start and after pulling migrations
 docker compose --profile dev up --build   # also Mailpit, UI on :8025
 docker compose down                    # add -v to drop the volumes
 ```
