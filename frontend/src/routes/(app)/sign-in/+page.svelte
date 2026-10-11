@@ -17,6 +17,8 @@
 
 	const step: Step = $derived(form?.step ?? 'email');
 	const email = $derived(form?.email ?? '');
+	// The visible fields get a value only when there is one to restore: an empty one
+	// would clear, at hydration, what the person typed before the page was ready.
 	// The return page rides on every form's URL, so that each step keeps it.
 	const query = $derived(data.next ? `&next=${encodeURIComponent(data.next)}` : '');
 	const restart = $derived(
@@ -131,7 +133,7 @@
 				type="email"
 				autocomplete="email"
 				required
-				value={email}
+				value={email || undefined}
 				aria-invalid={errorText && !passkeyFailure ? 'true' : undefined}
 				aria-describedby={errorText && !passkeyFailure ? 'email-error' : undefined}
 			/>
@@ -191,7 +193,7 @@
 				autocomplete="nickname"
 				required
 				maxlength="200"
-				value={form && 'displayName' in form ? (form.displayName ?? '') : ''}
+				value={(form && 'displayName' in form && form.displayName) || undefined}
 				aria-invalid={nameError ? 'true' : undefined}
 				aria-describedby={nameError ? 'register-error display-name-hint' : 'display-name-hint'}
 			/>
