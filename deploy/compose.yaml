@@ -7,8 +7,8 @@ services:
     image: caddy:2.11.7-alpine
     restart: unless-stopped
     ports:
-      - "${TART_HTTP_PORT:-80}:80"
-      - "${TART_HTTPS_PORT:-443}:443"
+      - "80:80"
+      - "443:443"
     environment:
       TART_SITE_ADDRESS: ${TART_SITE_ADDRESS:-localhost}
     volumes:
@@ -29,26 +29,21 @@ services:
     build: ../backend
     image: tart-backend
     restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
     depends_on:
       db:
         condition: service_healthy
 
   worker:
+    build: ../backend
     image: tart-backend
     restart: unless-stopped
     command: ["python", "-m", "tart.worker"]
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-tart}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tart}
     depends_on:
-      api:
-        condition: service_started
       db:
         condition: service_healthy
 
   db:
-    image: postgis/postgis:18-3.6
+    image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tart}

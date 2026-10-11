@@ -1,5 +1,6 @@
 {$TART_SITE_ADDRESS:localhost} {
-	handle /api/* {
+	@api path /api /api/*
+	handle @api {
 		reverse_proxy api:8000
 	}
 	handle {
