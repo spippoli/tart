@@ -31,6 +31,8 @@ jobs:
             backend:
               - *workflow
               - backend/**
+              # A backend test checks this committed copy of the API schema.
+              - frontend/src/lib/api/openapi.json
             frontend:
               - *workflow
               - frontend/**

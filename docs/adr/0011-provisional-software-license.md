@@ -57,9 +57,11 @@ No software license grants or requires brand use, so the name and logo are gover
 
 | Tier | Licences | Allowed as |
 |---|---|---|
-| Permissive | MIT, BSD, Apache-2.0, ISC, PSF, Zlib | any dependency |
+| Permissive | MIT, BSD, Apache-2.0, ISC, PSF, Zlib, BlueOak-1.0.0 | any dependency |
 | Weak copyleft | LGPL, MPL-2.0 | unmodified libraries, dynamically linked |
 | Strong copyleft | GPL, AGPL | separate, unmodified programs in their own container only; never linked into or bundled with TART code |
+
+The Blue Oak Model License 1.0.0 joined the permissive tier on 2026-10-11 ([#127](https://github.com/spippoli/tart/issues/127)): it is OSI-approved and grants at least what MIT does.
 
 Concrete applications:
 
