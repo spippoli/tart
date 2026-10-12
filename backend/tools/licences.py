@@ -29,6 +29,7 @@ PERMISSIVE = frozenset(
         "Python-2.0",
         "Zlib",
         "BlueOak-1.0.0",
+        "MIT-0",
     }
 )
 WEAK_COPYLEFT = frozenset(

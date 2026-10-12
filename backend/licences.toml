@@ -31,13 +31,6 @@ licence = "LGPL-3.0-only"
 tier = "weak-copyleft"
 reason = """psycopg's connection pool, used unmodified by Procrastinate's psycopg connector."""
 
-[reviewed.cffi]
-licence = "MIT-0"
-tier = "permissive"
-reason = """The C foreign-function interface of cryptography, which py_webauthn needs for \
-passkeys (ADR 0005). MIT No Attribution is OSI-approved and grants at least what MIT does, \
-but ADR 0011 §8 does not name it: pending the maintainer's confirmation."""
-
 [reviewed.pyasn1_modules]
 licence = "BSD"
 tier = "permissive"
