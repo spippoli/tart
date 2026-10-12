@@ -147,6 +147,7 @@
 				<button type="button" onclick={signInWithPasskey} disabled={passkeyBusy}>
 					{m.sign_in_passkey_submit()}
 				</button>
+				<p class="hint">{m.sign_in_passkey_hint()}</p>
 			</section>
 		{/if}
 	{:else if step === 'code'}

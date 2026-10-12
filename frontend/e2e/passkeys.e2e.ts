@@ -109,6 +109,9 @@ test('a passkey that is not registered does not sign in', async ({ page }) => {
 			}
 		});
 	});
+	await expect(
+		page.getByText('No passkey yet? Sign in with the code and add one on the Account page.')
+	).toBeVisible();
 
 	await page.getByRole('button', { name: 'Sign in with a passkey' }).click();
 

@@ -135,6 +135,7 @@
 	"sign_in_passkey_heading": "With a passkey",
 	"sign_in_passkey_intro": "If you have added a passkey to your account, you can sign in with it, without a code.",
 	"sign_in_passkey_submit": "Sign in with a passkey",
+	"sign_in_passkey_hint": "No passkey yet? Sign in with the code and add one on the Account page.",
 	"sign_in_error_passkey_invalid": "Signing in with this passkey did not work. Try again, or sign in with the email code.",
 	"sign_in_error_passkey_cancelled": "No passkey was used. Try again whenever you like, or sign in with the email code.",
 	"account_title": "Account",
