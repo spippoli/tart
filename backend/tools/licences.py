@@ -56,6 +56,10 @@ CLASSIFIERS = {
 # expression and no classifier to fall back on.
 LICENCE_NAMES = {
     "Apache License 2.0": "Apache-2.0",
+    # pypdfium2: its own code, plus the libraries bundled in the PDFium binary.
+    "BSD-3-Clause, Apache-2.0, dependency licenses": (
+        "BSD-3-Clause AND Apache-2.0 AND LicenseRef-PDFium-dependencies"
+    ),
 }
 
 POLICY = Path(__file__).parents[1] / "licences.toml"

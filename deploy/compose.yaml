@@ -39,6 +39,7 @@ services:
       - "443:443"
     environment:
       TART_SITE_ADDRESS: ${TART_SITE_ADDRESS:-localhost}
+      TART_UPLOAD_BODY_LIMIT: ${TART_UPLOAD_BODY_LIMIT:-26MiB}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ${CONFIG_DIR:-./config}/map:/srv/config/map:ro
@@ -69,6 +70,8 @@ services:
       - *config-volume
       # Basemap extracts (PMTILES_PATH): `tart tiles update` writes them, Caddy serves them.
       - tiles-data:/data/tiles
+      # Uploaded files with STORAGE_BACKEND=filesystem (STORAGE_PATH); never mounted in Caddy.
+      - media-data:/data/storage
     depends_on:
       db:
         condition: service_healthy
@@ -82,6 +85,7 @@ services:
     environment: *api-environment
     volumes:
       - *config-volume
+      - media-data:/data/storage
     depends_on:
       db:
         condition: service_healthy
@@ -106,3 +110,4 @@ volumes:
   caddy-config:
   db-data:
   tiles-data:
+  media-data:

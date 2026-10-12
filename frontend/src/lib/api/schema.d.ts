@@ -328,6 +328,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload File
+         * @description Upload one file, in a multipart field (any name), at most `max_upload_mb`.
+         */
+        post: operations["upload_file_api_media_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/media/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upload State
+         * @description An upload's processing state, for the User who uploaded it and for Moderators.
+         */
+        get: operations["upload_state_api_media__upload_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/media/{upload_id}/{rendition}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rendition File
+         * @description A rendition: public once its Documentation item is approved, else only for the
+         *     User who uploaded it and for Moderators.
+         */
+        get: operations["rendition_file_api_media__upload_id___rendition__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -542,6 +603,12 @@ export interface components {
             /** Age Confirmed */
             age_confirmed: boolean;
         };
+        /**
+         * Rendition
+         * @description The public renditions, all WebP, by long edge.
+         * @enum {string}
+         */
+        Rendition: "thumbnail" | "view" | "large";
         /** SessionState */
         SessionState: {
             user: components["schemas"]["SignedInUser"] | null;
@@ -556,6 +623,26 @@ export interface components {
             preferred_language: string;
             /** Moderator */
             moderator: boolean;
+        };
+        /** Size */
+        Size: {
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+        };
+        /**
+         * Suggestions
+         * @description From the file's EXIF, only to prefill the form; never a stored Location.
+         */
+        Suggestions: {
+            /** Observed Date */
+            observed_date: string | null;
+            /** Point */
+            point: [
+                number,
+                number
+            ] | null;
         };
         /**
          * Texts
@@ -572,6 +659,28 @@ export interface components {
             terms: string;
             /** Privacy */
             privacy: string;
+        };
+        /** UploadState */
+        UploadState: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "processing" | "ready" | "rejected";
+            /** Error */
+            error?: string | null;
+            /** Format */
+            format?: ("jpeg" | "png" | "webp" | "avif" | "heic" | "pdf") | null;
+            /** Renditions */
+            renditions?: {
+                [key: string]: components["schemas"]["Size"];
+            } | null;
+            suggestions?: components["schemas"]["Suggestions"] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1369,6 +1478,156 @@ export interface operations {
                         /** @constant */
                         code: "tiles_missing";
                     };
+                };
+            };
+        };
+    };
+    upload_file_api_media_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadState"];
+                };
+            };
+            /** @description `file_missing`, `one_file_per_request` */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `file_too_large` */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_state_api_media__upload_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadState"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rendition_file_api_media__upload_id___rendition__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+                rendition: components["schemas"]["Rendition"];
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rendition. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": unknown;
+                };
+            };
+            /** @description The rendition has not changed. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
