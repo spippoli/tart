@@ -43,3 +43,19 @@ licence = "BSD"
 tier = "permissive"
 reason = """ASN.1 modules used by py_webauthn to read attestation certificates (ADR 0005). \
 The metadata says only "BSD"; the LICENSE.txt it ships is BSD-2-Clause."""
+
+[reviewed.pillow]
+licence = "MIT-CMU"
+tier = "permissive"
+reason = """The image library of the media pipeline, named by ADR 0004. The CMU licence \
+(Historical Permission Notice and Disclaimer family) is OSI-approved and asks only that \
+the notice is kept, as MIT does."""
+
+[reviewed.pypdfium2]
+licence = "BSD-3-Clause AND Apache-2.0 AND LicenseRef-PDFium-dependencies"
+tier = "permissive"
+reason = """PDF first-page previews in the media pipeline, named by ADR 0004. The wheel \
+bundles a PDFium binary whose libraries, listed in its BUILD_LICENSES, are all \
+permissive: abseil, LLVM libc (Apache-2.0), AGG, OpenJPEG, simdutf (BSD), FreeType \
+(FreeType License), ICU (Unicode), Little CMS, fast_float (MIT), libjpeg-turbo (IJG, \
+BSD), libpng, libtiff, and zlib."""
