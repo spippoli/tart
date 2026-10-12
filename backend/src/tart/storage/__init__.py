@@ -17,10 +17,12 @@ objects can be copied between them unchanged.
 
 import re
 from collections.abc import AsyncIterable, AsyncIterator
-from contextlib import AbstractAsyncContextManager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
+
+from tart.config.environment import Environment
 
 
 class Area(StrEnum):
@@ -126,3 +128,25 @@ def resolve_range(byte_range: ByteRange | None, size: int) -> tuple[int, int]:
         raise RangeNotSatisfiableError(size)
     end = size - 1 if byte_range.end is None else min(byte_range.end, size - 1)
     return byte_range.start, end - byte_range.start + 1
+
+
+@asynccontextmanager
+async def open_storage(environment: Environment) -> AsyncIterator[Storage]:
+    """The adapter that `STORAGE_BACKEND` names, open for the life of the service."""
+    if environment.STORAGE_BACKEND == "filesystem":
+        from tart.storage.filesystem import FilesystemStorage
+
+        yield FilesystemStorage(environment.STORAGE_PATH)
+        return
+    from tart.storage.s3 import S3Storage
+
+    assert environment.S3_ENDPOINT_URL and environment.S3_ACCESS_KEY_ID
+    assert environment.S3_SECRET_ACCESS_KEY and environment.S3_REGION and environment.S3_BUCKET
+    async with S3Storage(
+        endpoint_url=str(environment.S3_ENDPOINT_URL),
+        region=environment.S3_REGION,
+        bucket=environment.S3_BUCKET,
+        access_key_id=environment.S3_ACCESS_KEY_ID.get_secret_value(),
+        secret_access_key=environment.S3_SECRET_ACCESS_KEY.get_secret_value(),
+    ) as storage:
+        yield storage

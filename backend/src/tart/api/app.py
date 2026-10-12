@@ -9,12 +9,13 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
 from tart import jobs, tiles
-from tart.api import auth, csrf, map_style
+from tart.api import auth, csrf, map_style, media
 from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
 from tart.db import create_engine
 from tart.messages import load_catalogue
 from tart.startup import start
+from tart.storage import open_storage
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,8 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     # The api only defers jobs, such as emails; the `worker` runs them.
     app.state.jobs = jobs.create_app(jobs.connector_for(database_url))
     try:
-        async with app.state.jobs.open_async():
+        async with open_storage(configuration.environment) as storage, app.state.jobs.open_async():
+            app.state.storage = storage
             yield
     finally:
         await app.state.engine.dispose()
@@ -74,4 +76,5 @@ def create_app() -> FastAPI:
     app.middleware("http")(csrf.check)
     app.include_router(auth.router)
     app.include_router(map_style.router)
+    app.include_router(media.router)
     return app

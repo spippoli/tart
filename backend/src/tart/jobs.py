@@ -9,6 +9,7 @@ worker passes its services to the jobs through the job context.
 """
 
 import logging
+import uuid
 from datetime import UTC, datetime
 
 from procrastinate import App, JobContext, PsycopgConnector
@@ -19,16 +20,22 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from tart import rate_limits
 from tart.auth import passkeys, sessions
 from tart.auth.tables import email_change_code, sign_in_code
-from tart.db import create_engine
 from tart.email import Mailer
+from tart.media import uploads
+from tart.storage import Storage
 
 SEND_EMAIL = "send_email"
+PROCESS_UPLOAD = "process_upload"
 SWEEP = "sweep"
 SWEEP_CRON = "0 * * * *"
 """Hourly, on the hour."""
 
 MAILER = "mailer"
 """The key of the worker's `Mailer` in the job context."""
+ENGINE = "engine"
+"""The key of the worker's database engine in the job context."""
+STORAGE = "storage"
+"""The key of the worker's `Storage` in the job context."""
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +57,22 @@ async def send_email(
     await mailer.send(kind=kind, to=to, language=language, params=params, reply_to=reply_to)
 
 
-async def sweep(timestamp: int) -> None:
-    """The hourly cleanup. Later features add their steps: abandoned uploads, expired drafts."""
+async def process_upload(context: JobContext, *, upload_id: str, cap: int) -> None:
+    """Process one quarantined upload into its original and renditions, capped at `cap` px."""
+    services = context.additional_context
+    await uploads.process_upload(
+        services[ENGINE], services[STORAGE], uuid.UUID(upload_id), cap, datetime.now(UTC)
+    )
+
+
+async def sweep(context: JobContext, timestamp: int) -> None:
+    """The hourly cleanup. Later features add their steps: expired drafts."""
     logger.info("hourly sweep (scheduled at %s)", timestamp)
-    engine = create_engine()
-    try:
-        await sweep_database(engine, datetime.now(UTC))
-    finally:
-        await engine.dispose()
+    engine: AsyncEngine = context.additional_context[ENGINE]
+    storage: Storage = context.additional_context[STORAGE]
+    now = datetime.now(UTC)
+    await sweep_database(engine, now)
+    await uploads.sweep(engine, storage, now)
 
 
 async def sweep_database(engine: AsyncEngine, now: datetime) -> None:
@@ -83,5 +98,6 @@ def connector_for(database_url: str) -> PsycopgConnector:
 def create_app(connector: BaseConnector) -> App:
     app = App(connector=connector)
     app.task(name=SEND_EMAIL, pass_context=True)(send_email)
-    app.periodic(cron=SWEEP_CRON)(app.task(name=SWEEP)(sweep))
+    app.task(name=PROCESS_UPLOAD, pass_context=True)(process_upload)
+    app.periodic(cron=SWEEP_CRON)(app.task(name=SWEEP, pass_context=True)(sweep))
     return app

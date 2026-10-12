@@ -6,6 +6,7 @@ from sqlalchemy import MetaData
 # Register every module's tables on the metadata.
 import tart.archive_persistence.tables
 import tart.auth.tables
+import tart.media.tables
 import tart.rate_limits  # noqa: F401
 from tart.db import Base
 
