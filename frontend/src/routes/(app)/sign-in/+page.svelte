@@ -7,6 +7,7 @@
 		passkeysSupported,
 		usePasskey
 	} from '#lib/auth/passkey.ts';
+	import { formatWait } from '#lib/i18n/format.ts';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale, localizeHref } from '#lib/paraglide/runtime.js';
 	import PageTitle from '#lib/shell/PageTitle.svelte';
@@ -32,14 +33,6 @@
 			closed: m.sign_in_registration_closed
 		}[data.registration]
 	);
-
-	/** "in 5 minutes", in the UI language. */
-	function waitText(seconds: number): string {
-		const format = new Intl.RelativeTimeFormat(getLocale(), { numeric: 'auto' });
-		if (seconds < 60) return format.format(seconds, 'second');
-		if (seconds < 3600) return format.format(Math.ceil(seconds / 60), 'minute');
-		return format.format(Math.ceil(seconds / 3600), 'hour');
-	}
 
 	// Passkeys need the browser's WebAuthn support, known only once the page runs.
 	let canUsePasskey = $state(false);
@@ -88,7 +81,9 @@
 				return m.sign_in_error_code_invalid();
 			case 'rate_limited':
 				return m.sign_in_error_rate_limited({
-					when: waitText(form && 'retryAfter' in form ? Number(form.retryAfter) : 60)
+					when: formatWait(form && 'retryAfter' in form ? Number(form.retryAfter) : 60, {
+						locale: getLocale()
+					})
 				});
 			case 'age_not_confirmed':
 				return m.sign_in_error_age_not_confirmed({ age: data.minAge });

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatDateTime, formatList, formatNumber, languageName } from './format';
+import {
+	formatDate,
+	formatDateTime,
+	formatList,
+	formatNumber,
+	formatWait,
+	languageName
+} from './format';
 
 // Foundations criterion 34: dates and numbers use Intl with the UI language and the Instance time zone.
 describe('AC 34: locale-aware formatting', () => {
@@ -32,5 +39,11 @@ describe('AC 34: locale-aware formatting', () => {
 		expect(languageName('it', { locale: 'en' })).toBe('Italian');
 		expect(languageName('en', { locale: 'it' })).toBe('inglese');
 		expect(formatList(['italiano', 'inglese'], { locale: 'it' })).toBe('italiano e inglese');
+	});
+
+	it('says a wait as a time from now, rounded up', () => {
+		expect(formatWait(45, { locale: 'en' })).toBe('in 45 seconds');
+		expect(formatWait(181, { locale: 'it' })).toBe('tra 4 minuti');
+		expect(formatWait(3601, { locale: 'en' })).toBe('in 2 hours');
 	});
 });
