@@ -1,4 +1,4 @@
-"""The tables of Users, roles, sessions, one-time codes, and passkeys (PostgreSQL).
+"""The tables of Users, roles, sessions, one-time codes, email changes, and passkeys (PostgreSQL).
 
 A User's id is their User number, which Moderators see and which the deleted-account
 Pseudonym shows. Email addresses are stored normalised (`normalise_email`), so the
@@ -73,6 +73,19 @@ sign_in_code = Table(
     metadata,
     # One live code per address: a new request replaces the row, invalidating the old code.
     Column("email", Text, primary_key=True),
+    Column("code_hash", LargeBinary, nullable=False),
+    Column("expires_at", DateTime(timezone=True), nullable=False),
+    Column("wrong_attempts", Integer, nullable=False, server_default="0"),
+)
+
+email_change_code = Table(
+    "email_change_code",
+    metadata,
+    # One pending change per User: a new request replaces the row, invalidating the old code.
+    Column(
+        "user_id", BigInteger, ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column("new_email", Text, nullable=False),
     Column("code_hash", LargeBinary, nullable=False),
     Column("expires_at", DateTime(timezone=True), nullable=False),
     Column("wrong_attempts", Integer, nullable=False, server_default="0"),

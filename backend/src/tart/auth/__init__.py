@@ -3,6 +3,7 @@
     outcome = await authentication.request_code(CodeRequest(...), now)
     outcome = await authentication.verify_code(CodeAttempt(...), now)
     outcome = await authentication.sign_in_with_passkey(credential, now)
+    outcome = await authentication.request_email_change(EmailChange(...), now)
 
 The API sees only the `Authentication` interface, so that a later Instance can
 plug in an external identity provider; `BuiltInAuthentication`
@@ -33,6 +34,8 @@ AGE_NOT_CONFIRMED = "age_not_confirmed"
 DISPLAY_NAME_LENGTH = "display_name_length"
 DISPLAY_NAME_CONTROL_CHARACTERS = "display_name_control_characters"
 DISPLAY_NAME_RESERVED = "display_name_reserved"
+EMAIL_UNCHANGED = "email_unchanged"
+LANGUAGE_UNAVAILABLE = "language_unavailable"
 
 
 @dataclass(frozen=True)
@@ -61,6 +64,14 @@ class CodeAttempt:
     registration: Registration | None = None
     """The registration step's answers, sent again with the code once the address
     turned out to have no User."""
+
+
+@dataclass(frozen=True)
+class EmailChange:
+    user_id: int
+    email: str
+    """The new address."""
+    client_ip: str
 
 
 @dataclass(frozen=True)
@@ -114,3 +125,14 @@ class Authentication(Protocol):
     async def sign_in_with_passkey(
         self, credential: dict[str, Any], now: datetime
     ) -> SignedIn | Refused: ...
+
+    async def request_email_change(
+        self, request: EmailChange, now: datetime
+    ) -> RateLimited | Refused | None:
+        """Send a code to the new address, or Address already in use if another User
+        has it; the answer is the same either way, apart from the rate limits."""
+        ...
+
+    async def confirm_email_change(self, user_id: int, code: str, now: datetime) -> Refused | None:
+        """Change the address once the code sent to it is entered, and tell the old one."""
+        ...

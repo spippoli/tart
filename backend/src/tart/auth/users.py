@@ -46,3 +46,10 @@ def display_name_problem(
         if re.fullmatch(pattern, " ".join(name.casefold().split())):
             return DISPLAY_NAME_RESERVED
     return None
+
+
+def mask_email(email: str) -> str:
+    """The address as the Email changed notice shows it: `d***@g***.com`."""
+    local, _, domain = email.partition("@")
+    name, _, top_level = domain.rpartition(".")
+    return f"{local[:1]}***@{name[:1]}***.{top_level}"

@@ -7,5 +7,11 @@
   "email_registration_not_open_subject": "Registration is not open",
   "email_registration_not_open_body": "Someone asked to sign in with this email address, but there is no account for it, and the archive is not open to new registrations at the moment. No account was created.\n\nIf you did not ask, you can ignore this email.",
   "email_suspension_subject": "Your account is suspended",
-  "email_suspension_body": "Your account has been suspended. You cannot sign in until the Suspension is lifted.\n\nReason given:\n\n{reason}\n\nWhat you created before stays as it is: your drafts and the Submissions waiting for review are kept, and contributions already approved are unchanged.\n\nTo contest this decision, reply to this email: your reply reaches the archive's contact for these matters. You can also go to court."
+  "email_suspension_body": "Your account has been suspended. You cannot sign in until the Suspension is lifted.\n\nReason given:\n\n{reason}\n\nWhat you created before stays as it is: your drafts and the Submissions waiting for review are kept, and contributions already approved are unchanged.\n\nTo contest this decision, reply to this email: your reply reaches the archive's contact for these matters. You can also go to court.",
+  "email_new_address_code_subject": "Code to confirm your new email address",
+  "email_new_address_code_body": "Someone asked to use this address for their account in the archive. To confirm the change, enter this code on the Account page:\n\n{code}\n\nIt is valid for {minutes} minutes and can be used once.\n\nIf you did not ask for this change, you can ignore this email: the address is not changed without the code.",
+  "email_address_in_use_subject": "This address already has an account",
+  "email_address_in_use_body": "Someone asked to move another account of the archive to this email address, but this address already has an account. Nothing was changed, and no code was sent.\n\nIf it was you, sign in with this address instead. If you did not ask, you can ignore this email.",
+  "email_email_changed_subject": "Your email address has been changed",
+  "email_email_changed_body": "The email address of your account has been changed to {masked_email}. From now on, sign-in codes and emails go to the new address.\n\nIf you did not make this change, write to {privacy_contact} to contest it."
 }
