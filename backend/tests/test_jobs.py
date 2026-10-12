@@ -37,9 +37,7 @@ def test_criterion_38_the_worker_job_renders_and_sends_the_email() -> None:
 def test_the_periodic_jobs_and_their_schedules() -> None:
     app = create_app(InMemoryConnector())
 
-    periodic = {
-        task.task.name: task.cron for task in app.periodic_registry.periodic_tasks.values()
-    }
+    periodic = {task.task.name: task.cron for task in app.periodic_registry.periodic_tasks.values()}
 
     assert periodic == {
         SWEEP: "0 * * * *",

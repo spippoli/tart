@@ -49,6 +49,7 @@ uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabu
 uv run tart users grant moderator <email> [--display-name NAME]   # also `revoke moderator <email>`, `list --role moderator`
 uv run tart users suspend <email> --reason TEXT   # and `unsuspend <email>`; the email goes through the worker
 uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
+uv run tart jobs failed     # failed background jobs, never their arguments; `jobs retry <id|--all>` queues them again
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
@@ -98,7 +99,7 @@ Rome's configuration directory, the reference Instance (run in `instances/rome/g
 uv run boundary.py         # rebuild boundary.geojson from OpenStreetMap (Overpass API, ODbL)
 ```
 
-Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`.
+Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`. Every service logs into the host's journal; without journald (Docker Desktop), set `TART_LOG_DRIVER=json-file`.
 
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db

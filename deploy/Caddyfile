@@ -1,4 +1,8 @@
 {$TART_SITE_ADDRESS:localhost} {
+	# The access log, with full client IP addresses, for abuse and incident handling. It
+	# goes to stderr and so to the host's journal, which drops it after 14 days at most;
+	# Caddy leaves the Cookie and Authorization headers out (Operations spec, 5. Monitoring).
+	log
 	# The client's address goes to `api` and `frontend` in this header, which Caddy
 	# always overwrites; the app reads the client IP from nowhere else, never from
 	# X-Forwarded-For (Foundations spec, Rate limits). `api` must stay unreachable
