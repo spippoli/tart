@@ -1,13 +1,14 @@
-"""The tables of Users, roles, sessions, and one-time codes (PostgreSQL).
+"""The tables of Users, roles, sessions, one-time codes, and passkeys (PostgreSQL).
 
 A User's id is their User number, which Moderators see and which the deleted-account
 Pseudonym shows. Email addresses are stored normalised (`normalise_email`), so the
 unique constraint compares them without regard to case. Session ids and codes are
 stored only as keyed hashes (`tart.auth.tokens`): a copy of the database holds no
-usable session or code.
+usable session or code. A passkey row holds only the public key.
 """
 
 from sqlalchemy import (
+    ARRAY,
     BigInteger,
     CheckConstraint,
     Column,
@@ -75,4 +76,33 @@ sign_in_code = Table(
     Column("code_hash", LargeBinary, nullable=False),
     Column("expires_at", DateTime(timezone=True), nullable=False),
     Column("wrong_attempts", Integer, nullable=False, server_default="0"),
+)
+
+passkey = Table(
+    "passkey",
+    metadata,
+    Column("id", BigInteger, Identity(), primary_key=True),
+    Column(
+        "user_id",
+        BigInteger,
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("credential_id", LargeBinary, nullable=False, unique=True),
+    Column("public_key", LargeBinary, nullable=False),
+    Column("sign_count", BigInteger, nullable=False),
+    Column("transports", ARRAY(Text), nullable=False),
+    Column("name", Text, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+)
+
+passkey_challenge = Table(
+    "passkey_challenge",
+    metadata,
+    # Single-use: verifying a passkey deletes the row of its challenge.
+    Column("challenge_hash", LargeBinary, primary_key=True),
+    # The User adding a passkey; null for a sign-in.
+    Column("user_id", BigInteger, ForeignKey("user_account.id", ondelete="CASCADE")),
+    Column("expires_at", DateTime(timezone=True), nullable=False, index=True),
 )

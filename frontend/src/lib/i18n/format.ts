@@ -15,6 +15,11 @@ export function formatNumber(value: number, { locale }: Pick<FormatContext, 'loc
 	return new Intl.NumberFormat(locale).format(value);
 }
 
+/** A calendar date, as when a passkey was added. */
+export function formatDate(instant: Date | string, { locale, timeZone }: FormatContext): string {
+	return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone }).format(new Date(instant));
+}
+
 /** A date and time, as in a Revision or a Submission round. */
 export function formatDateTime(
 	instant: Date | string,

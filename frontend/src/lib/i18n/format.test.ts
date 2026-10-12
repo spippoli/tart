@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDateTime, formatList, formatNumber, languageName } from './format';
+import { formatDate, formatDateTime, formatList, formatNumber, languageName } from './format';
 
 // Foundations criterion 34: dates and numbers use Intl with the UI language and the Instance time zone.
 describe('AC 34: locale-aware formatting', () => {
@@ -20,6 +20,12 @@ describe('AC 34: locale-aware formatting', () => {
 		expect(formatDateTime(instant, { locale: 'en', timeZone: 'America/New_York' })).toBe(
 			'January 31, 2026 at 6:30 PM'
 		);
+	});
+
+	it('formats a date in the Instance time zone', () => {
+		const instant = '2026-01-31T23:30:00Z';
+		expect(formatDate(instant, { locale: 'it', timeZone: 'Europe/Rome' })).toBe('1 febbraio 2026');
+		expect(formatDate(instant, { locale: 'en', timeZone: 'Europe/Rome' })).toBe('February 1, 2026');
 	});
 
 	it('names languages and joins lists in the UI language', () => {

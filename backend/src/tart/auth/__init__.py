@@ -1,18 +1,22 @@
-"""Authentication: email one-time codes, registration, and sessions (ADR 0005).
+"""Authentication: email one-time codes, registration, passkeys, and sessions (ADR 0005).
 
     outcome = await authentication.request_code(CodeRequest(...), now)
     outcome = await authentication.verify_code(CodeAttempt(...), now)
+    outcome = await authentication.sign_in_with_passkey(credential, now)
 
 The API sees only the `Authentication` interface, so that a later Instance can
 plug in an external identity provider; `BuiltInAuthentication`
 (`tart.auth.built_in`) is the one implementation, and the method is not
 configurable. Sessions and roles belong to TART whatever the method
-(`tart.auth.sessions`). Passkeys are added by their own ticket.
+(`tart.auth.sessions`).
 """
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from tart.auth.passkeys import Passkey
 
 # Platform constants, which configuration cannot weaken (Foundations spec,
 # Instance configuration). The code length is `tart.auth.tokens.CODE_LENGTH`.
@@ -92,3 +96,21 @@ class Authentication(Protocol):
     async def verify_code(
         self, attempt: CodeAttempt, now: datetime
     ) -> SignedIn | RegistrationRequired | Refused: ...
+
+    async def passkey_registration_options(self, user_id: int, now: datetime) -> dict[str, Any]:
+        """The WebAuthn options for the browser to create a passkey for the User."""
+        ...
+
+    async def register_passkey(
+        self, user_id: int, name: str, credential: dict[str, Any], now: datetime
+    ) -> Passkey | Refused:
+        """Add the passkey the browser created from those options."""
+        ...
+
+    async def passkey_sign_in_options(self, now: datetime) -> dict[str, Any]:
+        """The WebAuthn options for the browser to sign in with a passkey."""
+        ...
+
+    async def sign_in_with_passkey(
+        self, credential: dict[str, Any], now: datetime
+    ) -> SignedIn | Refused: ...
