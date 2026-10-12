@@ -75,6 +75,7 @@ def test_criterion_4_the_archive_port_cannot_delete() -> None:
 
     assert methods == {
         "allocate_id",
+        "allocate_history_event_id",
         "get",
         "save",
         "add_revision",

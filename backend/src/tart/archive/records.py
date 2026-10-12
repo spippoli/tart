@@ -17,6 +17,7 @@ from tart.archive.geometry import Geometry
 from tart.archive.uncertain_date import Period, UncertainDate
 
 type RecordId = int
+type EventId = int
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,60 @@ class RightsBasis(StrEnum):
     """Own work of the file's creator."""
     THIRD_PARTY = "third_party"
     """A third party's work, already published under an allowlisted licence."""
+
+
+class Condition(StrEnum):
+    """An Artwork's physical state, always derived from its physical history."""
+
+    INTACT = "intact"
+    DETERIORATED = "deteriorated"
+    DAMAGED = "damaged"
+    MODIFIED = "modified"
+    COVERED = "covered"
+    REMOVED = "removed"
+    DESTROYED = "destroyed"
+    MISSING = "missing"
+    UNKNOWN = "unknown"
+
+
+class HistoryEventType(StrEnum):
+    """The closed vocabulary of History event types (ADR 0009)."""
+
+    CREATED = "created"
+    """The Creation event."""
+    CONDITION_RECORDED = "condition_recorded"
+    """The Condition record: the state observed, without asserting a change."""
+    DETERIORATED = "deteriorated"
+    DAMAGED = "damaged"
+    MODIFIED = "modified"
+    COVERED = "covered"
+    REMOVED = "removed"
+    DESTROYED = "destroyed"
+    ATTRIBUTION_CHANGED = "attribution_changed"
+
+
+@dataclass(frozen=True)
+class HistoryEvent:
+    """A Claim on one Artwork: a dated occurrence in its physical life.
+
+    `id` is the event's own, allocated when it is created, or `New` for an event the
+    same changeset creates.
+    """
+
+    id: EventId | New
+    type: HistoryEventType
+    observed_date: UncertainDate
+    condition: Condition | None = None
+    """The Condition a `condition_recorded` event states; no other type has one."""
+    note: str | None = None
+    citations: tuple[Ref, ...] = ()
+    """Sources and Documentation items."""
+    covering: Ref | None = None
+    """The covering Artwork, which only a `covered` event may link."""
+
+    @property
+    def key(self) -> EventId | New:
+        return self.id
 
 
 @dataclass(frozen=True)
@@ -120,7 +175,7 @@ def item_key(item: Any) -> Any:
 @dataclass(frozen=True)
 class Artwork(Record):
     KIND = Kind.ARTWORK
-    COLLECTIONS = ("attributions", "series", "sources")
+    COLLECTIONS = ("attributions", "history_events", "series", "sources")
 
     location: Ref
     """Changes only to correct wrong data, never for a physical move."""
@@ -128,6 +183,8 @@ class Artwork(Record):
     title: str | None = None
     description: str | None = None
     attributions: tuple[Attribution, ...] = ()
+    history_events: tuple[HistoryEvent, ...] = ()
+    """The physical history; an approved Artwork has at least one condition-changing event."""
     series: tuple[Ref, ...] = ()
     sources: tuple[Ref, ...] = ()
     """Record-level citations: background, never an Evidence level."""

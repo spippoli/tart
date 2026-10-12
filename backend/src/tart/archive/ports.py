@@ -18,6 +18,10 @@ class ArchiveStore(Protocol):
         """A new id, never used before by any record of any kind."""
         ...
 
+    async def allocate_history_event_id(self) -> int:
+        """A new History event id, never used before by any event."""
+        ...
+
     async def get(self, record_id: RecordId) -> Record | None:
         """The stored record, or `None` when no record has this id."""
         ...

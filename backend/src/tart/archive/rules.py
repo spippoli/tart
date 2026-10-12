@@ -14,12 +14,15 @@ from zoneinfo import ZoneInfo
 
 from tart.archive.errors import ArchiveRuleViolation
 from tart.archive.geometry import Boundary, GeometryKind
+from tart.archive.history import CONDITION_CHANGING
 from tart.archive.records import (
     Area,
     Artist,
     Artwork,
     Certainty,
     DocumentationItem,
+    HistoryEvent,
+    HistoryEventType,
     Location,
     Medium,
     Record,
@@ -98,6 +101,7 @@ def _new_dates(record: Record, before: Record | None) -> list[UncertainDate]:
     for value in values:
         found += _dates(value)
         found += _dates(getattr(value, "period", None))
+        found += _dates(getattr(value, "observed_date", None))
     return found
 
 
@@ -166,6 +170,25 @@ def _check_artwork(record: Artwork, before: Record | None, rules: InstanceRules)
             raise ArchiveRuleViolation("attribution.confirmed_requires_citation")
         if len(set(attribution.citations)) != len(attribution.citations):
             raise ArchiveRuleViolation("attribution.citations_duplicated")
+    for event in record.history_events:
+        _check_history_event(event)
+    types = [event.type for event in record.history_events]
+    if types.count(HistoryEventType.CREATED) > 1:
+        raise ArchiveRuleViolation("artwork.creation_event_duplicated")
+    if not CONDITION_CHANGING.intersection(types):
+        raise ArchiveRuleViolation("artwork.condition_changing_event_required")
+
+
+def _check_history_event(event: HistoryEvent) -> None:
+    if event.type is HistoryEventType.CONDITION_RECORDED:
+        if event.condition is None:
+            raise ArchiveRuleViolation("history_event.condition_required")
+    elif event.condition is not None:
+        raise ArchiveRuleViolation("history_event.condition_not_applicable")
+    if event.covering is not None and event.type is not HistoryEventType.COVERED:
+        raise ArchiveRuleViolation("history_event.covering_not_applicable")
+    if len(set(event.citations)) != len(event.citations):
+        raise ArchiveRuleViolation("history_event.citations_duplicated")
 
 
 def _check_location(record: Location, before: Record | None, rules: InstanceRules) -> None:
