@@ -18,12 +18,21 @@ from sqlalchemy import (
     Identity,
     Index,
     Integer,
+    Sequence,
     Table,
     Text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
-from tart.archive.records import ArtistKind, Certainty, Kind, Medium, RightsBasis
+from tart.archive.records import (
+    ArtistKind,
+    Certainty,
+    Condition,
+    HistoryEventType,
+    Kind,
+    Medium,
+    RightsBasis,
+)
 from tart.db import Base
 
 metadata = Base.metadata
@@ -235,6 +244,43 @@ attribution_citation = Table(
         deferrable=True,
         initially="DEFERRED",
     ),
+)
+
+history_event_id = Sequence("history_event_id_seq", metadata=metadata)
+"""History event ids are allocated before the event is stored, and never reused."""
+
+history_event = Table(
+    "history_event",
+    metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("artwork_id", BigInteger, _link("artwork.id"), nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("type", Text, nullable=False),
+    Column("observed_date", JSONB, nullable=False),
+    Column("condition", Text),
+    Column("note", Text),
+    Column("covering_artwork_id", BigInteger, _link("artwork.id")),
+    _one_of("type", HistoryEventType),
+    _one_of("condition", Condition),
+    CheckConstraint(
+        "(type = 'condition_recorded') = (condition IS NOT NULL)",
+        name="condition_on_condition_recorded",
+    ),
+    CheckConstraint("covering_artwork_id IS NULL OR type = 'covered'", name="covering_on_covered"),
+    Index("ix_history_event_artwork_id", "artwork_id"),
+)
+
+history_event_citation = Table(
+    "history_event_citation",
+    metadata,
+    Column(
+        "event_id",
+        BigInteger,
+        _link("history_event.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column("cited_id", BigInteger, _link("record.id"), primary_key=True),
+    Column("position", Integer, nullable=False),
 )
 
 documentation_item_artwork = Table(

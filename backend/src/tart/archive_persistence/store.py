@@ -25,8 +25,11 @@ from tart.archive.records import (
     Artwork,
     Attribution,
     Certainty,
+    Condition,
     CrewMembership,
     DocumentationItem,
+    HistoryEvent,
+    HistoryEventType,
     Kind,
     Location,
     Medium,
@@ -59,6 +62,9 @@ class PostgresArchiveStore:
 
     async def allocate_id(self, kind: Kind) -> RecordId:
         return await self._one(insert(t.record).values(kind=kind.value).returning(t.record.c.id))
+
+    async def allocate_history_event_id(self) -> int:
+        return await self._one(select(t.history_event_id.next_value()))
 
     async def get(self, record_id: RecordId) -> Record | None:
         kind = await self.connection.scalar(
@@ -255,6 +261,7 @@ async def _read_artwork(store: PostgresArchiveStore, record_id: RecordId) -> Art
         title=row.title,
         description=row.description,
         attributions=tuple(attributions),
+        history_events=await _read_history_events(store, record_id),
         series=await store._links(t.artwork_series, "artwork_id", record_id, "series_id"),
         sources=await store._sources(record_id),
     )
@@ -298,10 +305,76 @@ async def _write_artwork(
     ]
     if citations:  # the old ones went with their Attributions (ON DELETE CASCADE)
         await store.connection.execute(insert(t.attribution_citation), citations)
+    await _write_history_events(store, record_id, record.history_events)
     await store._replace(
         t.artwork_series, "artwork_id", record_id, [{"series_id": id_} for id_ in record.series]
     )
     await store._replace_sources(record_id, record.sources)
+
+
+async def _read_history_events(
+    store: PostgresArchiveStore, artwork_id: RecordId
+) -> tuple[HistoryEvent, ...]:
+    events = await store._collection(
+        t.history_event,
+        "artwork_id",
+        artwork_id,
+        "id",
+        "type",
+        "observed_date",
+        "condition",
+        "note",
+        "covering_artwork_id",
+    )
+    citations: dict[int, list[RecordId]] = {event.id: [] for event in events}
+    rows = await store.connection.execute(
+        select(t.history_event_citation.c.event_id, t.history_event_citation.c.cited_id)
+        .where(t.history_event_citation.c.event_id.in_(list(citations)))
+        .order_by(t.history_event_citation.c.position)
+    )
+    for event_id, cited_id in rows:
+        citations[event_id].append(cited_id)
+    return tuple(
+        HistoryEvent(
+            id=event.id,
+            type=HistoryEventType(event.type),
+            observed_date=decode_uncertain_date(event.observed_date),
+            condition=Condition(event.condition) if event.condition else None,
+            note=event.note,
+            citations=tuple(citations[event.id]),
+            covering=event.covering_artwork_id,
+        )
+        for event in events
+    )
+
+
+async def _write_history_events(
+    store: PostgresArchiveStore, artwork_id: RecordId, events: tuple[HistoryEvent, ...]
+) -> None:
+    # The citations of the replaced events go with them (ON DELETE CASCADE).
+    await store._replace(
+        t.history_event,
+        "artwork_id",
+        artwork_id,
+        [
+            {
+                "id": event.id,
+                "type": event.type.value,
+                "observed_date": encode_uncertain_date(event.observed_date),
+                "condition": event.condition.value if event.condition else None,
+                "note": event.note,
+                "covering_artwork_id": event.covering,
+            }
+            for event in events
+        ],
+    )
+    citations = [
+        {"event_id": event.id, "cited_id": cited, "position": index}
+        for event in events
+        for index, cited in enumerate(event.citations)
+    ]
+    if citations:
+        await store.connection.execute(insert(t.history_event_citation), citations)
 
 
 async def _read_location(store: PostgresArchiveStore, record_id: RecordId) -> Location:
