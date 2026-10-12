@@ -6,7 +6,14 @@ from procrastinate.testing import InMemoryConnector
 from test_email import ARCHIVE_NAME, PARAMS, _mailer
 
 from tart.email import CapturingEmailSender
-from tart.jobs import MAILER, SEND_EMAIL, SWEEP, SWEEP_CRON, create_app
+from tart.jobs import (
+    DELETE_COMPLETED_JOBS,
+    HEALTH_ALERTS,
+    MAILER,
+    SEND_EMAIL,
+    SWEEP,
+    create_app,
+)
 
 
 def test_criterion_38_the_worker_job_renders_and_sends_the_email() -> None:
@@ -27,12 +34,15 @@ def test_criterion_38_the_worker_job_renders_and_sends_the_email() -> None:
     assert message["Subject"].startswith(f"[{ARCHIVE_NAME}] Update on")
 
 
-def test_the_sweep_job_runs_every_hour() -> None:
+def test_the_periodic_jobs_and_their_schedules() -> None:
     app = create_app(InMemoryConnector())
 
-    periodic = [
-        (task.task.name, task.cron) for task in app.periodic_registry.periodic_tasks.values()
-    ]
+    periodic = {
+        task.task.name: task.cron for task in app.periodic_registry.periodic_tasks.values()
+    }
 
-    assert periodic == [(SWEEP, SWEEP_CRON)]
-    assert SWEEP_CRON == "0 * * * *"
+    assert periodic == {
+        SWEEP: "0 * * * *",
+        HEALTH_ALERTS: "* * * * *",
+        DELETE_COMPLETED_JOBS: "15 4 * * *",
+    }

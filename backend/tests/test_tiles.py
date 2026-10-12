@@ -396,7 +396,7 @@ def test_ac_47_the_api_starts_and_logs_the_warning(
     run_cli(["migrate"])
 
     with caplog.at_level(logging.WARNING), TestClient(create_app()) as client:
-        response = client.get("/api/health")
+        response = client.get("/api/config")
 
     assert response.status_code == 200
     assert any(

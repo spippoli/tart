@@ -91,4 +91,4 @@ def test_api_starts_when_the_database_is_at_the_head(database: str) -> None:
     run_cli(["migrate"])
 
     with TestClient(create_app()) as client:
-        assert client.get("/api/health").text == "ok"
+        assert client.get("/api/config").status_code == 200

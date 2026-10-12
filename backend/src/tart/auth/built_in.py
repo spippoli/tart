@@ -11,6 +11,7 @@ User has it, with the same answer. Emails are deferred to the `worker` once the
 transaction is committed.
 """
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -47,6 +48,8 @@ from tart.auth.users import display_name_problem, mask_email, normalise_email
 from tart.jobs import SEND_EMAIL
 from tart.messages import Catalogue
 from tart.rate_limits import Limit
+
+logger = logging.getLogger(__name__)
 
 # Platform constants (Foundations spec, Instance configuration).
 CODE_PER_EMAIL_MINUTE = Limit("code_per_email_minute", 1, timedelta(seconds=60))
@@ -202,6 +205,7 @@ class BuiltInAuthentication:
                 await connection.execute(used_up)
                 if user.suspended_at is not None:
                     return Refused(CODE_INVALID)
+                logger.info("signed in with a code", extra={"user_id": user.id})
                 return SignedIn(await sessions.create(connection, user.id, now, self.key))
             if not self._may_register(email):
                 await connection.execute(used_up)
@@ -227,6 +231,7 @@ class BuiltInAuthentication:
                 .returning(user_account.c.id)
             )
             await connection.execute(used_up)
+            logger.info("registered and signed in", extra={"user_id": user_id})
             return SignedIn(await sessions.create(connection, user_id, now, self.key))
 
     async def passkey_registration_options(self, user_id: int, now: datetime) -> dict[str, Any]:
@@ -257,6 +262,7 @@ class BuiltInAuthentication:
             )
             if user_id is None:
                 return Refused(PASSKEY_INVALID)
+            logger.info("signed in with a passkey", extra={"user_id": user_id})
             return SignedIn(await sessions.create(connection, user_id, now, self.key))
 
     def _change_code_hash(self, user_id: int, email: str, code: str) -> bytes:

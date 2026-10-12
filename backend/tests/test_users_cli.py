@@ -327,6 +327,6 @@ def test_criterion_45_startup_logs_the_warning_and_still_starts(
         caplog.at_level(logging.WARNING, logger="tart.startup"),
         TestClient(create_app()) as client,
     ):
-        assert client.get("/api/health").status_code == 200
+        assert client.get("/api/config").status_code == 200
 
     assert any("no User holds the Moderator role" in record.message for record in caplog.records)

@@ -27,6 +27,17 @@ x-api-environment: &api-environment
   SMTP_FROM: ${SMTP_FROM:-}
   SMTP_USERNAME: ${SMTP_USERNAME:-}
   SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  # Monitoring: the token of /api/health/details, the Operator alert address, and the
+  # threshold overrides (Operations and portability spec, 5. Monitoring).
+  HEALTH_DETAILS_TOKEN: ${HEALTH_DETAILS_TOKEN:-}
+  OPERATOR_ALERT_EMAIL: ${OPERATOR_ALERT_EMAIL:-}
+  RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+  HEALTH_WORKER_HEARTBEAT_MAX_AGE: ${HEALTH_WORKER_HEARTBEAT_MAX_AGE:-}
+  HEALTH_JOB_QUEUE_MAX_AGE: ${HEALTH_JOB_QUEUE_MAX_AGE:-}
+  HEALTH_EMAIL_MAX_FAILED: ${HEALTH_EMAIL_MAX_FAILED:-}
+  HEALTH_DISK_MIN_FREE_PERCENT: ${HEALTH_DISK_MIN_FREE_PERCENT:-}
+  HEALTH_BACKUP_MAX_AGE: ${HEALTH_BACKUP_MAX_AGE:-}
+  HEALTH_VERIFY_MAX_AGE: ${HEALTH_VERIFY_MAX_AGE:-}
 
 x-config-volume: &config-volume ${CONFIG_DIR:-./config}:/config:ro
 

@@ -17,10 +17,11 @@ from procrastinate.connector import BaseConnector
 from sqlalchemy import delete, make_url
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from tart import rate_limits
+from tart import health, rate_limits
 from tart.auth import passkeys, sessions
 from tart.auth.tables import email_change_code, sign_in_code
 from tart.email import Mailer
+from tart.health import alerts
 from tart.media import uploads
 from tart.storage import Storage
 
@@ -29,6 +30,14 @@ PROCESS_UPLOAD = "process_upload"
 SWEEP = "sweep"
 SWEEP_CRON = "0 * * * *"
 """Hourly, on the hour."""
+HEALTH_ALERTS = "health_alerts"
+HEALTH_ALERTS_CRON = "* * * * *"
+"""Every minute."""
+DELETE_COMPLETED_JOBS = "delete_completed_jobs"
+DELETE_COMPLETED_JOBS_CRON = "15 4 * * *"
+"""Daily, at 04:15 UTC."""
+COMPLETED_JOB_RETENTION_HOURS = 30 * 24
+"""Completed jobs are deleted after 30 days; failed ones stay for `tart jobs`."""
 
 MAILER = "mailer"
 """The key of the worker's `Mailer` in the job context."""
@@ -36,6 +45,10 @@ ENGINE = "engine"
 """The key of the worker's database engine in the job context."""
 STORAGE = "storage"
 """The key of the worker's `Storage` in the job context."""
+HEALTH = "health"
+"""The key of the worker's `health.Settings` in the job context."""
+ALERTING = "alerting"
+"""The key of the worker's `health.alerts.Alerting` in the job context."""
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +68,7 @@ async def send_email(
     """
     mailer: Mailer = context.additional_context[MAILER]
     await mailer.send(kind=kind, to=to, language=language, params=params, reply_to=reply_to)
+    logger.info("email %s sent", kind, extra={"kind": kind})
 
 
 async def process_upload(context: JobContext, *, upload_id: str, cap: int) -> None:
@@ -89,6 +103,21 @@ async def sweep_database(engine: AsyncEngine, now: datetime) -> None:
         await sessions.delete_expired(connection, now)
 
 
+async def health_alerts(context: JobContext, timestamp: int) -> None:
+    """Run the checks and email the Operator about the failing ones that are due."""
+    services = context.additional_context
+    now = datetime.now(UTC)
+    report = await health.run_checks(
+        health.Services(services[ENGINE], services[STORAGE]), services[HEALTH], now
+    )
+    await alerts.send_alerts(services[ENGINE], services[MAILER], services[ALERTING], report, now)
+
+
+async def delete_completed_jobs(context: JobContext, timestamp: int) -> None:
+    """Delete the jobs that succeeded more than 30 days ago."""
+    await context.app.job_manager.delete_old_jobs(nb_hours=COMPLETED_JOB_RETENTION_HOURS)
+
+
 def connector_for(database_url: str) -> PsycopgConnector:
     """A Procrastinate connector to the database at `DATABASE_URL` (an asyncpg URL)."""
     conninfo = make_url(database_url).set(drivername="postgresql")
@@ -100,4 +129,10 @@ def create_app(connector: BaseConnector) -> App:
     app.task(name=SEND_EMAIL, pass_context=True)(send_email)
     app.task(name=PROCESS_UPLOAD, pass_context=True)(process_upload)
     app.periodic(cron=SWEEP_CRON)(app.task(name=SWEEP, pass_context=True)(sweep))
+    app.periodic(cron=HEALTH_ALERTS_CRON)(
+        app.task(name=HEALTH_ALERTS, pass_context=True)(health_alerts)
+    )
+    app.periodic(cron=DELETE_COMPLETED_JOBS_CRON)(
+        app.task(name=DELETE_COMPLETED_JOBS, pass_context=True)(delete_completed_jobs)
+    )
     return app
