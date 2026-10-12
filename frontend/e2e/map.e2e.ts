@@ -33,6 +33,21 @@ async function openExplore(page: Page, path = '/en/') {
 	await expect(map(page)).toBeVisible();
 }
 
+test('the map loads its style and worker without errors', async ({ page }) => {
+	const errors: string[] = [];
+	page.on('console', (message) => {
+		if (message.type() === 'error') errors.push(message.text());
+	});
+	page.on('pageerror', (error) => errors.push(error.message));
+	await openExplore(page);
+	await page
+		.getByRole('group', { name: 'Map controls' })
+		.getByRole('button', { name: 'Zoom in' })
+		.click();
+	await expect.poll(async () => (await camera(page)).zoom).toBe(13);
+	expect(errors).toEqual([]);
+});
+
 test.describe('AC 12: pan and zoom without dragging', () => {
 	test('zoom, the four pan buttons, and the reset to the default view', async ({ page }) => {
 		await openExplore(page);

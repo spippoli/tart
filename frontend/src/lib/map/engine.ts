@@ -6,10 +6,14 @@
 import {
 	addProtocol,
 	Map as MapLibreMap,
+	setWorkerUrl,
 	type AddProtocolAction,
 	type StyleSpecification
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+// MapLibre finds its worker next to its own module, which bundling moves: Vite
+// builds the worker, with the code it shares with the main thread, as its own file.
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Protocol } from 'pmtiles';
 import { MAX_ZOOM, type Bounds } from './bounds';
 import type { Style, Unavailable } from './style';
@@ -48,7 +52,7 @@ export interface Engine {
 	destroy(): void;
 }
 
-let protocolAdded = false;
+let configured = false;
 
 function escapeHtml(text: string): string {
 	return text.replace(
@@ -68,9 +72,10 @@ function attributionHtml(entry: { text: string; url: string }): string {
  * first `load`). Errors after that, such as a tile that fails, leave the map in place.
  */
 export function createEngine(container: HTMLElement, options: EngineOptions): Promise<Engine> {
-	if (!protocolAdded) {
+	if (!configured) {
+		setWorkerUrl(workerUrl);
 		addProtocol('pmtiles', new Protocol().tilev4 as AddProtocolAction);
-		protocolAdded = true;
+		configured = true;
 	}
 
 	return new Promise((resolve, rejectWith) => {
