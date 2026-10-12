@@ -54,6 +54,23 @@ class Environment(BaseModel):
 
     PMTILES_PATH: Path = DEFAULT_PMTILES_PATH
 
+    # Monitoring (Operations and portability spec, 5. Monitoring).
+    HEALTH_DETAILS_TOKEN: Annotated[SecretStr, Field(min_length=32)] | None = None
+    """The bearer token of `GET /api/health/details`; without it, the details are refused."""
+    OPERATOR_ALERT_EMAIL: Annotated[str, Field(pattern=r"^[^@\s<>]+@[^@\s<>]+$")] | None = None
+    """Where the `worker` emails a failing check; without it, no alert email is sent."""
+    RESTIC_REPOSITORY: str | None = None
+    """The backup repository; while it is unset, backups are `not_configured`."""
+    HEALTH_DISK_PATH: Path = Path("/")
+    """A path on the disk that holds the Docker volumes, for the disk check."""
+    HEALTH_WORKER_HEARTBEAT_MAX_AGE: Annotated[int, Field(gt=0)] = 120
+    HEALTH_JOB_QUEUE_MAX_AGE: Annotated[int, Field(gt=0)] = 15 * 60
+    HEALTH_EMAIL_MAX_FAILED: Annotated[int, Field(ge=0)] = 0
+    HEALTH_DISK_MIN_FREE_PERCENT: Annotated[float, Field(ge=0, lt=100)] = 20
+    HEALTH_BACKUP_MAX_AGE: Annotated[int, Field(gt=0)] = 26 * 3600
+    HEALTH_VERIFY_MAX_AGE: Annotated[int, Field(gt=0)] = 8 * 24 * 3600
+    """The health thresholds, in seconds, a count, and a percentage."""
+
     @model_validator(mode="after")
     def _s3_is_complete(self) -> Self:
         if self.STORAGE_BACKEND == "s3":

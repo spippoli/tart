@@ -13,5 +13,7 @@
   "email_address_in_use_subject": "This address already has an account",
   "email_address_in_use_body": "Someone asked to move another account of the archive to this email address, but this address already has an account. Nothing was changed, and no code was sent.\n\nIf it was you, sign in with this address instead. If you did not ask, you can ignore this email.",
   "email_email_changed_subject": "Your email address has been changed",
-  "email_email_changed_body": "The email address of your account has been changed to {masked_email}. From now on, sign-in codes and emails go to the new address.\n\nIf you did not make this change, write to {privacy_contact} to contest it."
+  "email_email_changed_body": "The email address of your account has been changed to {masked_email}. From now on, sign-in codes and emails go to the new address.\n\nIf you did not make this change, write to {privacy_contact} to contest it.",
+  "email_operator_alert_subject": "Health check failing: {check}",
+  "email_operator_alert_body": "The health check {check} of the archive is failing, as of {time}.\n\nValue: {value}\nThreshold: {threshold}\n\nThe check key, value, and threshold are those of /api/health/details and of the logs. Until it recovers, you receive at most one email a day for this check.\n\nThis email went to OPERATOR_ALERT_EMAIL; the Operator documentation explains each check."
 }

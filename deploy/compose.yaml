@@ -27,13 +27,40 @@ x-api-environment: &api-environment
   SMTP_FROM: ${SMTP_FROM:-}
   SMTP_USERNAME: ${SMTP_USERNAME:-}
   SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  # Monitoring: the token of /api/health/details, the Operator alert address, and the
+  # threshold overrides (Operations and portability spec, 5. Monitoring).
+  HEALTH_DETAILS_TOKEN: ${HEALTH_DETAILS_TOKEN:-}
+  OPERATOR_ALERT_EMAIL: ${OPERATOR_ALERT_EMAIL:-}
+  RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+  HEALTH_WORKER_HEARTBEAT_MAX_AGE: ${HEALTH_WORKER_HEARTBEAT_MAX_AGE:-}
+  HEALTH_JOB_QUEUE_MAX_AGE: ${HEALTH_JOB_QUEUE_MAX_AGE:-}
+  HEALTH_EMAIL_MAX_FAILED: ${HEALTH_EMAIL_MAX_FAILED:-}
+  HEALTH_DISK_MIN_FREE_PERCENT: ${HEALTH_DISK_MIN_FREE_PERCENT:-}
+  HEALTH_BACKUP_MAX_AGE: ${HEALTH_BACKUP_MAX_AGE:-}
+  HEALTH_VERIFY_MAX_AGE: ${HEALTH_VERIFY_MAX_AGE:-}
 
 x-config-volume: &config-volume ${CONFIG_DIR:-./config}:/config:ro
+
+# Every service logs into the host's journal, which keeps no line older than 14 days
+# and at most 200 MB (Operations and portability spec, 5. Monitoring); Docker's own
+# json-file logs rotate by size only. `docker compose logs` reads them back. Set the
+# journal once on the host, in /etc/systemd/journald.conf.d/tart.conf:
+#
+#     [Journal]
+#     MaxFileSec=1day
+#     MaxRetentionSec=13day
+#     SystemMaxUse=200M
+#
+# then `systemctl restart systemd-journald`. TART_LOG_DRIVER=json-file is for
+# development on a machine without journald (Docker Desktop) only.
+x-logging: &logging
+  driver: ${TART_LOG_DRIVER:-journald}
 
 services:
   caddy:
     image: caddy:2.11.7-alpine
     restart: unless-stopped
+    logging: *logging
     ports:
       - "80:80"
       - "443:443"
@@ -53,6 +80,7 @@ services:
   frontend:
     image: ghcr.io/spippoli/tart-frontend:${TART_VERSION:?set TART_VERSION}
     restart: unless-stopped
+    logging: *logging
     environment:
       ORIGIN: https://${TART_SITE_ADDRESS:-localhost}
       # The client's address, which Caddy sets and the frontend forwards to `api`.
@@ -65,6 +93,7 @@ services:
   api:
     image: *api-image
     restart: unless-stopped
+    logging: *logging
     environment: *api-environment
     volumes:
       - *config-volume
@@ -79,6 +108,7 @@ services:
   worker:
     image: *api-image
     restart: unless-stopped
+    logging: *logging
     command: ["python", "-m", "tart.worker"]
     # Its own memory limit, so that media processing cannot starve `api` and `db`.
     mem_limit: ${WORKER_MEMORY_LIMIT:-1g}
@@ -93,6 +123,7 @@ services:
   db:
     image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tart}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}

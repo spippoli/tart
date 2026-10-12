@@ -5,24 +5,6 @@
     "version": "0.0.0"
   },
   "paths": {
-    "/api/health": {
-      "get": {
-        "summary": "Health",
-        "operationId": "health_api_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/config": {
       "get": {
         "summary": "Config",
@@ -925,6 +907,56 @@
         }
       }
     },
+    "/api/health": {
+      "get": {
+        "summary": "Health Status",
+        "description": "`ok` (200) or `fail` (503): `fail` while any check fails.",
+        "operationId": "health_status_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "ok"
+              }
+            }
+          },
+          "503": {
+            "description": "fail"
+          }
+        }
+      }
+    },
+    "/api/health/details": {
+      "get": {
+        "summary": "Health Details",
+        "description": "Every check, with its value and threshold, for the Operator.",
+        "operationId": "health_details_api_health_details_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or wrong token"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/map/style/{theme}.json": {
       "get": {
         "summary": "Map Style",
@@ -1508,6 +1540,99 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HealthCheck": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warning",
+              "fail"
+            ],
+            "title": "Status"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "status",
+          "value",
+          "threshold",
+          "unit"
+        ],
+        "title": "HealthCheck"
+      },
+      "HealthDetails": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "fail"
+            ],
+            "title": "Status"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/HealthCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "HealthDetails"
       },
       "Identity": {
         "properties": {
@@ -2180,6 +2305,12 @@
           "retired"
         ],
         "title": "VocabularyEntry"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

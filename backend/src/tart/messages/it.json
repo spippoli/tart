@@ -13,5 +13,7 @@
   "email_address_in_use_subject": "Questo indirizzo ha già un account",
   "email_address_in_use_body": "Qualcuno ha chiesto di spostare un altro account dell'archivio su questo indirizzo email, ma questo indirizzo ha già un account. Non è cambiato nulla e non è stato inviato alcun codice.\n\nSe eri tu, accedi invece con questo indirizzo. Se non l'hai chiesto, puoi ignorare questa email.",
   "email_email_changed_subject": "L'indirizzo email del tuo account è cambiato",
-  "email_email_changed_body": "L'indirizzo email del tuo account è stato cambiato in {masked_email}. D'ora in poi i codici di accesso e le email arrivano al nuovo indirizzo.\n\nSe non hai fatto tu questo cambio, scrivi a {privacy_contact} per contestarlo."
+  "email_email_changed_body": "L'indirizzo email del tuo account è stato cambiato in {masked_email}. D'ora in poi i codici di accesso e le email arrivano al nuovo indirizzo.\n\nSe non hai fatto tu questo cambio, scrivi a {privacy_contact} per contestarlo.",
+  "email_operator_alert_subject": "Controllo di salute in errore: {check}",
+  "email_operator_alert_body": "Il controllo di salute {check} dell'archivio risulta in errore (rilevato il {time}).\n\nValore: {value}\nSoglia: {threshold}\n\nChiave, valore e soglia del controllo sono quelli di /api/health/details e dei log. Finché non torna a posto, ricevi al massimo un'email al giorno per questo controllo.\n\nQuesta email è andata a OPERATOR_ALERT_EMAIL; la documentazione per l'Operator spiega ogni controllo."
 }

@@ -13,6 +13,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 
 from psycopg import Error as PsycopgError
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -198,6 +199,53 @@ def _users_unsuspend(args: argparse.Namespace) -> int:
     return _run_on_database(unsuspend)
 
 
+_FAILED_JOBS = text(
+    "SELECT job.id, job.task_name, job.queue_name, job.attempts, max(event.at) AS failed_at "
+    "FROM procrastinate_jobs job JOIN procrastinate_events event ON event.job_id = job.id "
+    "AND event.type = 'failed' WHERE job.status = 'failed' "
+    "GROUP BY job.id ORDER BY job.id"
+)
+
+
+def _jobs_failed(_: argparse.Namespace) -> int:
+    async def list_failed(connection: AsyncConnection, _: Instance) -> str:
+        # A job's arguments may hold an email address or a code: never printed.
+        lines = [
+            f"#{job.id}\t{job.task_name}\tqueue {job.queue_name}\t{job.attempts} attempt(s)"
+            f"\tfailed {job.failed_at:%Y-%m-%d %H:%M:%S} UTC"
+            for job in await connection.execute(_FAILED_JOBS)
+        ]
+        return "\n".join(lines) if lines else "no failed job"
+
+    return _run_on_database(list_failed)
+
+
+def _jobs_retry(args: argparse.Namespace) -> int:
+    async def retry(connection: AsyncConnection, _: Instance) -> str:
+        failed = [job.id for job in await connection.execute(_FAILED_JOBS)]
+        if args.all:
+            ids = failed
+        elif args.id in failed:
+            ids = [args.id]
+        else:
+            raise OperatorError(f"job #{args.id} is not a failed job; see `tart jobs failed`")
+        if not ids:
+            return "no failed job"
+        app = jobs.create_app(jobs.connector_for(database_url()))
+        async with app.open_async():
+            for job_id in ids:
+                await app.job_manager.retry_job_by_id_async(job_id, datetime.now(UTC))
+        return "\n".join(f"#{job_id} is queued again" for job_id in ids)
+
+    return _run_on_database(retry)
+
+
+def _job_id(value: str) -> int:
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError(f"{value!r} is not a job number")
+    return int(value)
+
+
 def _build(value: str) -> str:
     if not tiles.is_build(value):
         raise argparse.ArgumentTypeError(f"{value!r} is not a date YYYYMMDD")
@@ -293,6 +341,30 @@ def _parser() -> argparse.ArgumentParser:
     unsuspend = users_commands.add_parser("unsuspend", help="lift a Suspension; no email is sent")
     unsuspend.add_argument("email")
     unsuspend.set_defaults(handler=_users_unsuspend)
+
+    jobs_command = commands.add_parser("jobs", help="inspect and retry failed background jobs")
+    jobs_commands = jobs_command.add_subparsers(
+        title="commands", metavar="<command>", required=True
+    )
+    failed = jobs_commands.add_parser(
+        "failed",
+        help="list the jobs that exhausted their attempts",
+        description=(
+            "List the background jobs that failed for good, with their task, attempts, and "
+            "time of failure. Their arguments are never printed: they may hold personal data. "
+            "Completed jobs are deleted after 30 days; failed ones stay until retried."
+        ),
+    )
+    failed.set_defaults(handler=_jobs_failed)
+    retry = jobs_commands.add_parser(
+        "retry",
+        help="queue failed jobs again",
+        description="Queue one failed job again, by its number from `tart jobs failed`, or all.",
+    )
+    which = retry.add_mutually_exclusive_group(required=True)
+    which.add_argument("id", nargs="?", type=_job_id, help="the job number")
+    which.add_argument("--all", action="store_true", help="every failed job")
+    retry.set_defaults(handler=_jobs_retry)
 
     tiles_command = commands.add_parser("tiles", help="manage the basemap tiles")
     tiles_commands = tiles_command.add_subparsers(

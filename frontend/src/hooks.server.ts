@@ -1,9 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { sequence, type Handle } from '@sveltejs/kit/hooks';
+import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
 import { chooseLanguage, LANGUAGE_COOKIE, textDirection } from '#lib/i18n/language.ts';
 import { api, onBehalfOf, SESSION_COOKIE } from '#lib/server/api.ts';
 import { readInstanceConfig } from '#lib/server/config.ts';
 import { createContentSecurityPolicyHandle } from '#lib/server/content-security-policy.ts';
+import { log } from '#lib/server/log.ts';
 import {
 	isLocale,
 	localizeHref,
@@ -81,3 +82,16 @@ export const handle = sequence(
 	resolveSession,
 	resolveLanguage
 );
+
+/**
+ * An unexpected error is logged as one JSON line, with the path and never the query
+ * string, the cookies, or the body; the page keeps SvelteKit's generic message. Errors
+ * the app throws on purpose and SvelteKit's own (a 404) are not logged.
+ */
+export const handleError: HandleServerError = ({ kind, error, event }) => {
+	if (kind !== 'unknown') return;
+	log('error', error instanceof Error ? error.message : String(error), {
+		path: event.url.pathname,
+		...(error instanceof Error && error.stack ? { stack: error.stack } : {})
+	});
+};

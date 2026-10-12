@@ -6,10 +6,10 @@ from importlib.metadata import version
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import PlainTextResponse
 
-from tart import jobs, tiles
+from tart import health, jobs, tiles
 from tart.api import auth, csrf, map_style, media
+from tart.api import health as health_api
 from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
 from tart.db import create_engine
@@ -33,6 +33,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     ):
         logger.warning("basemap: %s", warning)
     app.state.catalogue = load_catalogue()
+    app.state.health_settings = health.Settings.from_environment(configuration.environment)
     database_url = configuration.environment.DATABASE_URL.get_secret_value()
     app.state.engine = create_engine(database_url)
     # The api only defers jobs, such as emails; the `worker` runs them.
@@ -61,11 +62,6 @@ def create_app() -> FastAPI:
         lifespan=_lifespan,
     )
 
-    @app.get("/api/health", response_class=PlainTextResponse)
-    def health() -> str:
-        # Liveness only; the Health module (Operations spec) adds the checks.
-        return "ok"
-
     @app.get("/api/config")
     def config(
         public: Annotated[PublicConfiguration, Depends(get_public_configuration)],
@@ -75,6 +71,7 @@ def create_app() -> FastAPI:
 
     app.middleware("http")(csrf.check)
     app.include_router(auth.router)
+    app.include_router(health_api.router)
     app.include_router(map_style.router)
     app.include_router(media.router)
     return app

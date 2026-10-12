@@ -6,7 +6,8 @@
 # `api` refuses to start on a database that is not at the code's migration
 # head (ADR 0020), so the test does what an Operator does: it starts the
 # PostGIS image of deploy/compose.yaml, runs `tart migrate` from the image in
-# a one-shot container, starts `api`, and expects `ok` from /api/health. `api`
+# a one-shot container, starts `api`, and expects it to serve /api/config. (Not
+# /api/health: without a `worker`, its heartbeat check fails it, as it should.) `api`
 # also refuses to start without a valid Instance configuration and environment,
 # so it gets the tests' fictional configuration directory and a complete one.
 # DB_PLATFORM runs the database under another platform (the PostGIS image is
@@ -51,13 +52,13 @@ docker run --detach --name "$name-api" --network "$name" --env DATABASE_URL="$ur
 port=$(docker port "$name-api" 8000/tcp | head -n 1 | sed 's/.*://')
 
 tries=0
-until [ "$(curl --silent --max-time 2 "http://127.0.0.1:$port/api/health" || true)" = ok ]; do
+until curl --silent --fail --max-time 2 --output /dev/null "http://127.0.0.1:$port/api/config"; do
 	tries=$((tries + 1))
 	if [ "$tries" -ge 30 ] || [ "$(docker inspect --format '{{.State.Running}}' "$name-api")" != true ]; then
-		echo "smoke test: /api/health did not answer ok" >&2
+		echo "smoke test: /api/config did not answer" >&2
 		docker logs "$name-api" >&2
 		exit 1
 	fi
 	sleep 1
 done
-echo "smoke test: /api/health answered ok"
+echo "smoke test: api started and served /api/config"

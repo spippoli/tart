@@ -114,7 +114,7 @@ jobs:
           path: ${{ runner.temp }}/digests/*
           retention-days: 1
 
-  # The arm64 `api` image must start: migrate a database, then /api/health.
+  # The arm64 `api` image must start: migrate a database, then /api/config.
   smoke:
     needs: [version, build]
     runs-on: ubuntu-24.04-arm
