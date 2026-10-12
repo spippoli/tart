@@ -1,5 +1,5 @@
 """`/api/auth/*`: sign-in by email code or passkey, registration, the signed-in
-User's passkeys, sessions (Foundations spec, 2).
+User's account settings, email change, and passkeys, sessions (Foundations spec, 2).
 
 Every answer to the code request is the same whatever the address; refusals carry
 a translatable error code, `{"code": ...}`.
@@ -17,20 +17,24 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from tart.auth import (
+    LANGUAGE_UNAVAILABLE,
     SESSION_ABSOLUTE_LIFETIME,
     Authentication,
     CodeAttempt,
     CodeRequest,
+    EmailChange,
     RateLimited,
     Refused,
     Registration,
     RegistrationRequired,
+    accounts,
     passkeys,
     sessions,
 )
 from tart.auth.built_in import BuiltInAuthentication
 from tart.auth.passkeys import RelyingParty
 from tart.auth.sessions import COOKIE, SessionUser
+from tart.auth.users import display_name_problem
 from tart.config import Configuration
 
 router = APIRouter(prefix="/api/auth")
@@ -87,6 +91,7 @@ def get_authentication(
         relying_party=RelyingParty.for_site(
             str(configuration.environment.PUBLIC_BASE_URL), settings.identity.name
         ),
+        privacy_contact=settings.contacts.privacy,
     )
 
 
@@ -120,6 +125,15 @@ class RateLimitedError(BaseModel):
     """Seconds to wait before asking again."""
 
 
+def _rate_limited(outcome: RateLimited) -> JSONResponse:
+    seconds = max(1, math.ceil(outcome.wait.total_seconds()))
+    return JSONResponse(
+        {"code": RATE_LIMITED, "retry_after": seconds},
+        status_code=429,
+        headers={"Retry-After": str(seconds)},
+    )
+
+
 class CodeRequestBody(BaseModel):
     email: str
     language: str
@@ -145,12 +159,7 @@ async def request_code(
         CodeRequest(body.email, body.language, client_ip(request), body.website), clock()
     )
     if isinstance(outcome, RateLimited):
-        seconds = max(1, math.ceil(outcome.wait.total_seconds()))
-        return JSONResponse(  # type: ignore[return-value]
-            {"code": RATE_LIMITED, "retry_after": seconds},
-            status_code=429,
-            headers={"Retry-After": str(seconds)},
-        )
+        return _rate_limited(outcome)  # type: ignore[return-value]
     if isinstance(outcome, Refused):
         return JSONResponse({"code": outcome.code}, status_code=400)  # type: ignore[return-value]
     return {}
@@ -269,6 +278,124 @@ async def sign_out_everywhere(
 
 def _sign_in_required() -> JSONResponse:
     return JSONResponse({"code": SIGN_IN_REQUIRED}, status_code=401)
+
+
+class AccountState(BaseModel):
+    number: int
+    email: str
+    display_name: str
+    preferred_language: str
+
+
+class AccountChange(BaseModel):
+    display_name: str | None = None
+    """1 to 40 characters after trimming, no control characters, not a deleted-account label."""
+    preferred_language: str | None = None
+    """An enabled UI language; it is also the language of the User's emails."""
+
+
+async def _account(engine: AsyncEngine, user_id: int) -> AccountState:
+    async with engine.begin() as connection:
+        account = await accounts.read(connection, user_id)
+    return AccountState(
+        number=account.number,
+        email=account.email,
+        display_name=account.display_name,
+        preferred_language=account.preferred_language,
+    )
+
+
+@router.get("/account", responses={401: {"model": Error}})
+async def account(
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+) -> AccountState:
+    """The signed-in User's account settings."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    return await _account(engine, user.id)
+
+
+@router.patch("/account", responses={400: {"model": Error}, 401: {"model": Error}})
+async def change_account(
+    body: AccountChange,
+    request: Request,
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+    configuration: Annotated[Configuration, Depends(get_configuration)],
+) -> AccountState:
+    """Change the display name, the preferred UI language, or both."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    ui_languages = configuration.instance.settings.languages.ui
+    if body.display_name is not None:
+        problem = display_name_problem(body.display_name, request.app.state.catalogue, ui_languages)
+        if problem is not None:
+            return JSONResponse({"code": problem}, status_code=400)  # type: ignore[return-value]
+    if body.preferred_language is not None and body.preferred_language not in ui_languages:
+        return JSONResponse({"code": LANGUAGE_UNAVAILABLE}, status_code=400)  # type: ignore[return-value]
+    async with engine.begin() as connection:
+        await accounts.change(
+            connection,
+            user.id,
+            display_name=body.display_name and body.display_name.strip(),
+            preferred_language=body.preferred_language,
+        )
+    return await _account(engine, user.id)
+
+
+class EmailChangeBody(BaseModel):
+    email: str
+    """The new address."""
+
+
+class EmailChangeCode(BaseModel):
+    code: str
+
+
+@router.post(
+    "/account/email",
+    status_code=202,
+    responses={400: {"model": Error}, 401: {"model": Error}, 429: {"model": RateLimitedError}},
+)
+async def request_email_change(
+    body: EmailChangeBody,
+    request: Request,
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> dict[str, str]:
+    """Send a code to the new address; the answer is the same if another User has it."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    outcome = await authentication.request_email_change(
+        EmailChange(user.id, body.email, client_ip(request)), clock()
+    )
+    if isinstance(outcome, RateLimited):
+        return _rate_limited(outcome)  # type: ignore[return-value]
+    if isinstance(outcome, Refused):
+        return JSONResponse({"code": outcome.code}, status_code=400)  # type: ignore[return-value]
+    return {}
+
+
+@router.post(
+    "/account/email/verify",
+    responses={400: {"model": Error}, 401: {"model": Error}},
+)
+async def confirm_email_change(
+    body: EmailChangeCode,
+    user: Annotated[SessionUser | None, Depends(current_user)],
+    authentication: Annotated[Authentication, Depends(get_authentication)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> AccountState:
+    """Change the address to the new one once its code is entered."""
+    if user is None:
+        return _sign_in_required()  # type: ignore[return-value]
+    outcome = await authentication.confirm_email_change(user.id, body.code, clock())
+    if isinstance(outcome, Refused):
+        return JSONResponse({"code": outcome.code}, status_code=400)  # type: ignore[return-value]
+    return await _account(engine, user.id)
 
 
 class PasskeyCredential(BaseModel):

@@ -7,5 +7,11 @@
   "email_registration_not_open_subject": "Le registrazioni non sono aperte",
   "email_registration_not_open_body": "Qualcuno ha chiesto di accedere con questo indirizzo email, ma non esiste un account collegato e al momento l'archivio non accetta nuove registrazioni. Non è stato creato nessun account.\n\nSe non l'hai chiesto tu, puoi ignorare questa email.",
   "email_suspension_subject": "Il tuo account è sospeso",
-  "email_suspension_body": "Il tuo account è stato sospeso. Non puoi accedere finché la sospensione non viene revocata.\n\nMotivo indicato:\n\n{reason}\n\nQuello che hai creato finora resta com'è: le bozze e le proposte in attesa di revisione sono conservate, e i contributi già approvati non cambiano.\n\nPer contestare questa decisione rispondi a questa email: la tua risposta arriva al contatto dell'archivio per queste questioni. Puoi anche rivolgerti a un giudice."
+  "email_suspension_body": "Il tuo account è stato sospeso. Non puoi accedere finché la sospensione non viene revocata.\n\nMotivo indicato:\n\n{reason}\n\nQuello che hai creato finora resta com'è: le bozze e le proposte in attesa di revisione sono conservate, e i contributi già approvati non cambiano.\n\nPer contestare questa decisione rispondi a questa email: la tua risposta arriva al contatto dell'archivio per queste questioni. Puoi anche rivolgerti a un giudice.",
+  "email_new_address_code_subject": "Codice per confermare il nuovo indirizzo email",
+  "email_new_address_code_body": "Qualcuno ha chiesto di usare questo indirizzo per il proprio account nell'archivio. Per confermare il cambio, inserisci questo codice nella pagina Account:\n\n{code}\n\nVale {minutes} minuti e si può usare una sola volta.\n\nSe non hai chiesto tu il cambio, puoi ignorare questa email: senza il codice l'indirizzo non cambia.",
+  "email_address_in_use_subject": "Questo indirizzo ha già un account",
+  "email_address_in_use_body": "Qualcuno ha chiesto di spostare un altro account dell'archivio su questo indirizzo email, ma questo indirizzo ha già un account. Non è cambiato nulla e non è stato inviato alcun codice.\n\nSe eri tu, accedi invece con questo indirizzo. Se non l'hai chiesto, puoi ignorare questa email.",
+  "email_email_changed_subject": "L'indirizzo email del tuo account è cambiato",
+  "email_email_changed_body": "L'indirizzo email del tuo account è stato cambiato in {masked_email}. D'ora in poi i codici di accesso e le email arrivano al nuovo indirizzo.\n\nSe non hai fatto tu questo cambio, scrivi a {privacy_contact} per contestarlo."
 }

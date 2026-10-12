@@ -20,6 +20,14 @@ export function formatDate(instant: Date | string, { locale, timeZone }: FormatC
 	return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone }).format(new Date(instant));
 }
 
+/** How long to wait, as a time from now: "in 4 minutes", "tra 4 minuti". */
+export function formatWait(seconds: number, { locale }: Pick<FormatContext, 'locale'>): string {
+	const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+	if (seconds < 60) return format.format(seconds, 'second');
+	if (seconds < 3600) return format.format(Math.ceil(seconds / 60), 'minute');
+	return format.format(Math.ceil(seconds / 3600), 'hour');
+}
+
 /** A date and time, as in a Revision or a Submission round. */
 export function formatDateTime(
 	instant: Date | string,

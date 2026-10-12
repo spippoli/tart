@@ -52,7 +52,7 @@ test('AC 12: a User adds a passkey on the Account page and then signs in with it
 
 	await addPasskey(page, 'Phone');
 
-	await expect(page.getByRole('status')).toHaveText(
+	await expect(page.getByRole('region', { name: 'Passkeys' }).getByRole('status')).toHaveText(
 		'Passkey “Phone” added: next time you can sign in with it.'
 	);
 	const item = page.getByRole('listitem').filter({ hasText: 'Phone' });
@@ -76,7 +76,9 @@ test('a passkey is removed from the Account page', async ({ page }, info) => {
 	await expect(remove).toHaveAccessibleDescription('Laptop');
 	await remove.click();
 
-	await expect(page.getByRole('status')).toHaveText('Passkey “Laptop” removed.');
+	await expect(page.getByRole('region', { name: 'Passkeys' }).getByRole('status')).toHaveText(
+		'Passkey “Laptop” removed.'
+	);
 	await expect(page.getByText('You have not added any passkeys yet.')).toBeVisible();
 });
 
