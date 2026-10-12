@@ -135,6 +135,7 @@
 	"sign_in_passkey_heading": "Con una passkey",
 	"sign_in_passkey_intro": "Se hai aggiunto una passkey al tuo account, puoi accedere con quella, senza codice.",
 	"sign_in_passkey_submit": "Accedi con una passkey",
+	"sign_in_passkey_hint": "Non hai ancora una passkey? Accedi con il codice e aggiungila dalla pagina Account.",
 	"sign_in_error_passkey_invalid": "Non è stato possibile accedere con questa passkey. Riprova, oppure accedi con il codice via email.",
 	"sign_in_error_passkey_cancelled": "Nessuna passkey è stata usata. Riprova quando vuoi, oppure accedi con il codice via email.",
 	"account_title": "Account",
