@@ -14,7 +14,11 @@ export function safeNext(value: string | null | undefined, origin: string): stri
 	} catch {
 		return null;
 	}
-	return url.origin === origin ? url.pathname + url.search + url.hash : null;
+	// Checked again after normalisation: dot segments collapse `/.//host` into `//host`.
+	if (url.origin !== origin || url.pathname.startsWith('//')) {
+		return null;
+	}
+	return url.pathname + url.search + url.hash;
 }
 
 /** The sign-in page, returning to `url` afterwards (Foundations spec, access rules). */
