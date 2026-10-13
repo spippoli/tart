@@ -196,3 +196,39 @@ def test_rome_boundary_is_roma_capitale_with_vatican_city_from_openstreetmap() -
     assert _inside((12.4534, 41.9022), boundary["geometry"])
     # Fiumicino's airport, a separate municipality, stays outside.
     assert not _inside((12.2389, 41.8003), boundary["geometry"])
+
+
+def test_rome_overlay_holds_the_walls_and_archaeology_from_openstreetmap() -> None:
+    """Discovery spec, Overlays: walls, archaeological sites, and ruins, under the ODbL."""
+    overlay = json.loads((ROME_CONFIG / "map" / "overlay.geojson").read_text())
+    names = {feature["properties"].get("name") for feature in overlay["features"]}
+
+    assert {feature["properties"]["kind"] for feature in overlay["features"]} == {"wall", "ruin"}
+    assert {"Mura Aureliane", "Mura Serviane"} <= names
+    assert all(feature["geometry"]["type"] != "Point" for feature in overlay["features"])
+    readme = (ROME_CONFIG / "map" / "README.md").read_text()
+    assert "© OpenStreetMap contributors" in readme and "Open Database License" in readme
+    assert (ROME_CONFIG / "map" / "overlay.overpassql").is_file()
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_rome_style_draws_the_overlay_below_the_archive_layers(theme: str) -> None:
+    """Discovery spec, Overlays: drawn by the Instance style, below the archive layers."""
+    style = json.loads((ROME_CONFIG / "map" / f"style.{theme}.json").read_text())
+    ids = [layer["id"] for layer in style["layers"]]
+    below = ids.index(style["metadata"]["tart:insert-archive-below"])
+    overlay = [
+        index
+        for index, layer in enumerate(style["layers"])
+        if layer.get("source") == "overlay" and layer["type"] == "line"
+    ]
+
+    assert style["sources"]["overlay"] == {"type": "geojson", "data": "/map/overlay.geojson"}
+    assert overlay and all(index < below for index in overlay)
+    # The walls are a heavy ink line; labels are Goudy, served as font files.
+    walls = next(layer for layer in style["layers"] if layer["id"] == "overlay-walls")
+    assert walls["paint"]["line-color"] == style["metadata"]["tart:tokens"]["map.ink"]
+    fonts = {
+        font for layer in style["layers"] for font in layer.get("layout", {}).get("text-font", [])
+    }
+    assert fonts <= set(style["font-faces"])
