@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Request
 
 from tart import health, jobs, tiles
-from tart.api import auth, csrf, map_style, media
+from tart.api import archive, auth, csrf, map_style, media
 from tart.api import health as health_api
 from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
@@ -70,6 +70,7 @@ def create_app() -> FastAPI:
         return public
 
     app.middleware("http")(csrf.check)
+    app.include_router(archive.router)
     app.include_router(auth.router)
     app.include_router(health_api.router)
     app.include_router(map_style.router)

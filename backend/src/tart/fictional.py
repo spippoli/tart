@@ -675,7 +675,13 @@ def generated(rules: InstanceRules, count: int, seed: int = 0) -> Iterator[Chang
 @dataclass(frozen=True)
 class Seeded:
     records: dict[Kind, int]
-    complete_artwork: RecordId
+    """How many records of each kind were written."""
+    ids: dict[str, RecordId]
+    """The id of each record of the state matrix, by its key in `matrix`."""
+
+    @property
+    def complete_artwork(self) -> RecordId:
+        return self.ids["gatto"]
 
 
 def _provenance(number: int, contributor: int, moderator: int) -> Provenance:
@@ -781,7 +787,7 @@ async def seed(
             batch = []
     if batch:
         await write(batch)
-    return Seeded(counts, ids["gatto"])
+    return Seeded(counts, ids)
 
 
 def _parser() -> argparse.ArgumentParser:
