@@ -111,7 +111,7 @@ services:
     logging: *logging
     command: ["python", "-m", "tart.worker"]
     # Its own memory limit, so that media processing cannot starve `api` and `db`.
-    mem_limit: ${WORKER_MEMORY_LIMIT:-1g}
+    mem_limit: ${WORKER_MEMORY_LIMIT:-2g}
     environment: *api-environment
     volumes:
       - *config-volume
