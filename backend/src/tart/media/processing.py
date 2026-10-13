@@ -11,7 +11,7 @@ from datetime import datetime
 
 import pi_heif
 import pypdfium2
-from PIL import ExifTags, Image, ImageOps
+from PIL import ExifTags, Image
 
 from tart.media import (
     FILE_TYPE_UNSUPPORTED,
@@ -83,24 +83,40 @@ def process(data: bytes, cap: int) -> Processed | Rejected:
 
 
 def _image(data: bytes, file_format: Format, cap: int) -> Processed | Rejected:
+    # Memory: a 100-megapixel bitmap is 400 MB, so the full-size image is decoded once and
+    # never copied; everything after the first downscale works on the large rendition.
     with Image.open(io.BytesIO(data), formats=[_PILLOW_FORMATS[file_format]]) as image:
-        width, height = image.size
-        if width * height > MAX_PIXELS:
+        size = image.size
+        if size[0] * size[1] > MAX_PIXELS:
             return Rejected(IMAGE_TOO_LARGE)
         image.seek(0)  # an animated image keeps only its first frame
+        large = _fit(size, rendition_edge(Rendition.LARGE, cap, max(size)))
+        if file_format is Format.JPEG:
+            # Decodes the whole file at 1/2, 1/4, or 1/8 scale, never below `large`.
+            image.draft(None, large)
         image.load()
         animated = getattr(image, "n_frames", 1) > 1
-        suggestions = _suggestions(image.getexif())
+        exif = image.getexif()
+        suggestions = _suggestions(exif)
+        orientation = _ORIENTATIONS.get(exif.get(ExifTags.Base.Orientation))
         icc = image.info.get("icc_profile") if image.mode in ("RGB", "RGBA") else None
-        upright = _flatten(ImageOps.exif_transpose(image))
-    if animated:
-        # The first frame alone becomes the original, losslessly, with no metadata.
-        buffer = io.BytesIO()
-        upright.save(buffer, "WEBP", lossless=True, icc_profile=icc)
-        original, file_format = buffer.getvalue(), Format.WEBP
-    else:
-        original = sanitise(data, file_format)
-    return Processed(file_format, original, _renditions(upright, cap, icc), suggestions)
+        flat = _flatten(image)
+        if animated:
+            # The first frame alone becomes the original, losslessly, with no metadata.
+            upright = flat.transpose(orientation) if orientation is not None else flat
+            buffer = io.BytesIO()
+            upright.save(buffer, "WEBP", lossless=True, icc_profile=icc)
+            original, file_format = buffer.getvalue(), Format.WEBP
+            del upright
+        else:
+            original = sanitise(data, file_format)
+        source = _resized(flat, large)
+        del flat  # the full-size bitmap goes with `image`, not at the return
+    if orientation is not None:
+        source = source.transpose(orientation)
+        if orientation in _QUARTER_TURNS:
+            size = size[::-1]
+    return Processed(file_format, original, _renditions(source, size, cap, icc), suggestions)
 
 
 def _pdf(data: bytes, cap: int) -> Processed | Rejected:
@@ -124,28 +140,79 @@ def _pdf(data: bytes, cap: int) -> Processed | Rejected:
         return Rejected(FILE_UNREADABLE)
     finally:
         document.close()
-    return Processed(Format.PDF, data, _renditions(preview, cap, None), Suggestions())
+    return Processed(Format.PDF, data, _renditions(preview, preview.size, cap, None), Suggestions())
+
+
+# EXIF orientation to the transposition that makes the image upright, as `exif_transpose`.
+_ORIENTATIONS = {
+    2: Image.Transpose.FLIP_LEFT_RIGHT,
+    3: Image.Transpose.ROTATE_180,
+    4: Image.Transpose.FLIP_TOP_BOTTOM,
+    5: Image.Transpose.TRANSPOSE,
+    6: Image.Transpose.ROTATE_270,
+    7: Image.Transpose.TRANSVERSE,
+    8: Image.Transpose.ROTATE_90,
+}
+_QUARTER_TURNS = {
+    Image.Transpose.TRANSPOSE,
+    Image.Transpose.ROTATE_270,
+    Image.Transpose.TRANSVERSE,
+    Image.Transpose.ROTATE_90,
+}
+# The pixels of each band `_resized` reduces at a time: 16 MB in RGBA.
+_BAND_PIXELS = 4_000_000
 
 
 def _flatten(image: Image.Image) -> Image.Image:
-    """RGB, or RGBA when the image has transparency: what WebP stores."""
+    """RGB, or RGBA when the image has transparency: what WebP stores. No copy if it is."""
     transparent = image.mode in ("RGBA", "LA", "PA") or "transparency" in image.info
-    return image.convert("RGBA" if transparent else "RGB")
+    mode = "RGBA" if transparent else "RGB"
+    return image if image.mode == mode else image.convert(mode)
+
+
+def _fit(size: tuple[int, int], edge: int) -> tuple[int, int]:
+    """`size` scaled so that its long edge is `edge`."""
+    width, height = size
+    scale = edge / max(width, height)
+    return max(1, round(width * scale)), max(1, round(height * scale))
+
+
+def _resized(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """A new image of `size`, resampled with Lanczos.
+
+    Past twice `size`, it first reduces by an integer factor, a box filter, band by band:
+    Pillow converts an image with alpha to premultiplied alpha before reducing it, which
+    would be a second full-size bitmap. Bands whose height is a multiple of the factor
+    give the same pixels as reducing the whole image.
+    """
+    width, height = image.size
+    factor = min(width // size[0], height // size[1]) // 2
+    if factor < 2:
+        return image.resize(size, Image.Resampling.LANCZOS)
+    reduced = Image.new(image.mode, (-(-width // factor), -(-height // factor)))
+    band = factor * max(1, _BAND_PIXELS // (width * factor))
+    for top in range(0, height, band):
+        part = image.crop((0, top, width, min(top + band, height))).reduce(factor)
+        reduced.paste(part, (0, top // factor))
+    return reduced.resize(size, Image.Resampling.LANCZOS)
 
 
 def _renditions(
-    image: Image.Image, cap: int, icc: bytes | None
+    image: Image.Image, size: tuple[int, int], cap: int, icc: bytes | None
 ) -> dict[Rendition, tuple[bytes, int, int]]:
-    long_edge = max(image.size)
+    """The renditions of a source of `size`, from `image`, its large rendition.
+
+    Each derives from the next larger one, so that no full-size copy is ever made.
+    """
     renditions = {}
-    for rendition in Rendition:
-        edge = rendition_edge(rendition, cap, long_edge)
-        resized = image.copy()
-        resized.thumbnail((edge, edge), Image.Resampling.LANCZOS)
+    for rendition in (Rendition.LARGE, Rendition.VIEW, Rendition.THUMBNAIL):
+        fitted = _fit(size, rendition_edge(rendition, cap, max(size)))
+        if image.size != fitted:
+            image = image.resize(fitted, Image.Resampling.LANCZOS)
         buffer = io.BytesIO()
         # Only what is passed here is written: no EXIF, XMP, or IPTC.
-        resized.save(buffer, "WEBP", quality=WEBP_QUALITY, method=4, icc_profile=icc)
-        renditions[rendition] = (buffer.getvalue(), *resized.size)
+        image.save(buffer, "WEBP", quality=WEBP_QUALITY, method=4, icc_profile=icc)
+        renditions[rendition] = (buffer.getvalue(), *image.size)
     return renditions
 
 
