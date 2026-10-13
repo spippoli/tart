@@ -1,0 +1,79 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": null,
+	"redactions": [],
+	"kind": "artist",
+	"id": 8,
+	"path": "8-collettivo-vernice-assente",
+	"name": "Collettivo Vernice Assente",
+	"artist_kind": "collective",
+	"aliases": [],
+	"period": {
+		"start": {
+			"precision": "year",
+			"qualifier": "exact",
+			"first": "2015-01-01",
+			"second": null
+		},
+		"end": {
+			"precision": "year",
+			"qualifier": "exact",
+			"first": "2020-01-01",
+			"second": null
+		}
+	},
+	"biography": "Collettivo fittizio.",
+	"areas": [],
+	"collectives": [],
+	"members": [
+		{
+			"artist": {
+				"kind": "artist",
+				"id": 9,
+				"path": "9-lupo-inventato",
+				"name": "Lupo Inventato",
+				"location_title": null
+			},
+			"period": {
+				"start": {
+					"precision": "year",
+					"qualifier": "exact",
+					"first": "2016-01-01",
+					"second": null
+				},
+				"end": {
+					"precision": "year",
+					"qualifier": "exact",
+					"first": "2019-01-01",
+					"second": null
+				}
+			}
+		}
+	],
+	"artworks": [
+		{
+			"artwork": {
+				"id": 22,
+				"path": "22-onda-fittizia",
+				"title": "Onda fittizia",
+				"expression_types": ["mural"],
+				"condition": {
+					"condition": "modified",
+					"group": "present",
+					"since": {
+						"precision": "year",
+						"qualifier": "after",
+						"first": "2022-01-01",
+						"second": null
+					},
+					"evidence_level": "reported",
+					"event": 14
+				},
+				"last_documented": null
+			},
+			"certainty": "probable",
+			"alias": null
+		}
+	],
+	"sources": []
+}

@@ -1,0 +1,165 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": null,
+	"redactions": [],
+	"kind": "artwork",
+	"id": 23,
+	"path": "23-scritta-fittizia",
+	"title": "Scritta fittizia",
+	"expression_types": ["mural"],
+	"description": "Opera fittizia documentata solo da un collegamento e da un testo.",
+	"condition": {
+		"condition": "intact",
+		"group": "present",
+		"since": {
+			"precision": "unknown",
+			"qualifier": null,
+			"first": null,
+			"second": null
+		},
+		"evidence_level": "reported",
+		"event": 15
+	},
+	"last_documented": {
+		"precision": "month",
+		"qualifier": "exact",
+		"first": "2023-09-01",
+		"second": null
+	},
+	"first_documentation": {
+		"precision": "year",
+		"qualifier": "exact",
+		"first": "2023-01-01",
+		"second": null
+	},
+	"creation": null,
+	"attribution": {
+		"attributed": [],
+		"disputed": []
+	},
+	"gallery": [
+		{
+			"id": 27,
+			"path": "27",
+			"medium": "text",
+			"observed_date": {
+				"precision": "month",
+				"qualifier": "exact",
+				"first": "2023-09-01",
+				"second": null
+			},
+			"file": null,
+			"renditions": null,
+			"alt_text": null,
+			"creator_credit": null,
+			"licence": null,
+			"text": "Testimonianza fittizia: la scritta era ancora leggibile.",
+			"url": null,
+			"language": "it"
+		},
+		{
+			"id": 28,
+			"path": "28",
+			"medium": "link",
+			"observed_date": {
+				"precision": "year",
+				"qualifier": "exact",
+				"first": "2023-01-01",
+				"second": null
+			},
+			"file": null,
+			"renditions": null,
+			"alt_text": null,
+			"creator_credit": null,
+			"licence": null,
+			"text": null,
+			"url": "https://example.org/fittizio/scritta",
+			"language": "it"
+		}
+	],
+	"where": {
+		"location": {
+			"id": 15,
+			"path": "15",
+			"title": {
+				"place_description": "Facciata fittizia di un edificio inventato",
+				"surface_type": null,
+				"place": null
+			},
+			"surface_type": "building_wall",
+			"geometry": {
+				"type": "Polygon",
+				"coordinates": [
+					[
+						[12.486, 41.878],
+						[12.4864, 41.878],
+						[12.4864, 41.8783],
+						[12.486, 41.8783],
+						[12.486, 41.878]
+					]
+				]
+			},
+			"approximate": false,
+			"uncertainty_radius": null
+		},
+		"location_withdrawn": false,
+		"site": null,
+		"areas": []
+	},
+	"series": [],
+	"timeline": {
+		"dated": [
+			{
+				"entry": "item",
+				"id": 28,
+				"path": "28",
+				"medium": "link",
+				"observed_date": {
+					"precision": "year",
+					"qualifier": "exact",
+					"first": "2023-01-01",
+					"second": null
+				}
+			},
+			{
+				"entry": "item",
+				"id": 27,
+				"path": "27",
+				"medium": "text",
+				"observed_date": {
+					"precision": "month",
+					"qualifier": "exact",
+					"first": "2023-09-01",
+					"second": null
+				}
+			}
+		],
+		"undated": [
+			{
+				"entry": "event",
+				"id": 15,
+				"type": "condition_recorded",
+				"observed_date": {
+					"precision": "unknown",
+					"qualifier": null,
+					"first": null,
+					"second": null
+				},
+				"condition": "intact",
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 23,
+				"evidence_level": "reported",
+				"citations": [],
+				"note": null,
+				"covering": null
+			}
+		]
+	},
+	"sources": [],
+	"related": {
+		"same_location": [],
+		"same_artist": [],
+		"same_series": []
+	}
+}

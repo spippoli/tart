@@ -1,0 +1,43 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": null,
+	"redactions": [],
+	"kind": "source",
+	"id": 1,
+	"path": "1",
+	"title": "Muri che parlano, n. 3",
+	"author": "Redazione immaginaria",
+	"publication": "Fanzine fittizia",
+	"date": {
+		"precision": "year",
+		"qualifier": "exact",
+		"first": "2019-01-01",
+		"second": null
+	},
+	"url": "https://example.org/fittizio/muri-che-parlano-3",
+	"note": "Fonte fittizia, inventata per i dati di prova.",
+	"language": "it",
+	"cited_by": [
+		{
+			"kind": "series",
+			"id": 6,
+			"path": "6-gatti-di-carta",
+			"name": "Gatti di carta",
+			"location_title": null
+		},
+		{
+			"kind": "artwork",
+			"id": 16,
+			"path": "16-il-gatto-che-legge",
+			"name": "Il gatto che legge",
+			"location_title": null
+		},
+		{
+			"kind": "artwork",
+			"id": 21,
+			"path": "21-due-mani-fittizie",
+			"name": "Due mani fittizie",
+			"location_title": null
+		}
+	]
+}

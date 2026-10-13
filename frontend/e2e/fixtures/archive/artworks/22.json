@@ -1,0 +1,149 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": null,
+	"redactions": [],
+	"kind": "artwork",
+	"id": 22,
+	"path": "22-onda-fittizia",
+	"title": "Onda fittizia",
+	"expression_types": ["mural"],
+	"description": "Opera fittizia in una posizione nota solo approssimativamente.",
+	"condition": {
+		"condition": "modified",
+		"group": "present",
+		"since": {
+			"precision": "year",
+			"qualifier": "after",
+			"first": "2022-01-01",
+			"second": null
+		},
+		"evidence_level": "reported",
+		"event": 14
+	},
+	"last_documented": null,
+	"first_documentation": null,
+	"creation": {
+		"precision": "year",
+		"qualifier": "exact",
+		"first": "2017-01-01",
+		"second": null
+	},
+	"attribution": {
+		"attributed": [
+			{
+				"artist": {
+					"kind": "artist",
+					"id": 8,
+					"path": "8-collettivo-vernice-assente",
+					"name": "Collettivo Vernice Assente",
+					"location_title": null
+				},
+				"certainty": "probable",
+				"alias": null,
+				"note": null,
+				"evidence_level": "reported",
+				"citations": []
+			}
+		],
+		"disputed": []
+	},
+	"gallery": [],
+	"where": {
+		"location": {
+			"id": 13,
+			"path": "13",
+			"title": {
+				"place_description": "Muro fittizio vicino a un sottopasso, posizione approssimativa",
+				"surface_type": null,
+				"place": null
+			},
+			"surface_type": "building_wall",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.51, 41.905]
+			},
+			"approximate": true,
+			"uncertainty_radius": 150
+		},
+		"location_withdrawn": false,
+		"site": null,
+		"areas": [
+			{
+				"kind": "area",
+				"id": 4,
+				"path": "4-rione-di-prova",
+				"name": "Rione di Prova",
+				"location_title": null
+			}
+		]
+	},
+	"series": [],
+	"timeline": {
+		"dated": [
+			{
+				"entry": "event",
+				"id": 12,
+				"type": "created",
+				"observed_date": {
+					"precision": "year",
+					"qualifier": "exact",
+					"first": "2017-01-01",
+					"second": null
+				},
+				"condition": null,
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 22,
+				"evidence_level": "reported",
+				"citations": [],
+				"note": null,
+				"covering": null
+			},
+			{
+				"entry": "event",
+				"id": 13,
+				"type": "damaged",
+				"observed_date": {
+					"precision": "month",
+					"qualifier": "exact",
+					"first": "2021-06-01",
+					"second": null
+				},
+				"condition": null,
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 22,
+				"evidence_level": "reported",
+				"citations": [],
+				"note": null,
+				"covering": null
+			},
+			{
+				"entry": "event",
+				"id": 14,
+				"type": "modified",
+				"observed_date": {
+					"precision": "year",
+					"qualifier": "after",
+					"first": "2022-01-01",
+					"second": null
+				},
+				"condition": null,
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 22,
+				"evidence_level": "reported",
+				"citations": [],
+				"note": null,
+				"covering": null
+			}
+		],
+		"undated": []
+	},
+	"sources": [],
+	"related": {
+		"same_location": [],
+		"same_artist": [],
+		"same_series": []
+	}
+}

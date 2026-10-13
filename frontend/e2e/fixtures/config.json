@@ -51,6 +51,15 @@
 				},
 				"description": null,
 				"retired": false
+			},
+			{
+				"key": "stencil",
+				"label": {
+					"it": "Stencil",
+					"en": "Stencil"
+				},
+				"description": null,
+				"retired": true
 			}
 		],
 		"surface_types": [
@@ -59,6 +68,24 @@
 				"label": {
 					"it": "Muro",
 					"en": "Wall"
+				},
+				"description": null,
+				"retired": false
+			},
+			{
+				"key": "building_wall",
+				"label": {
+					"it": "Muro di edificio",
+					"en": "Building wall"
+				},
+				"description": null,
+				"retired": false
+			},
+			{
+				"key": "shutter",
+				"label": {
+					"it": "Saracinesca",
+					"en": "Shutter"
 				},
 				"description": null,
 				"retired": false

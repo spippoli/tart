@@ -1006,6 +1006,8 @@ export interface components {
             group: components["schemas"]["ConditionGroup"];
             since: components["schemas"]["UncertainDate"] | null;
             evidence_level: components["schemas"]["EvidenceLevel"] | null;
+            /** Event */
+            event: number | null;
         };
         /** Contacts */
         Contacts: {

@@ -1,0 +1,80 @@
+{
+	"record": {
+		"kind": "location",
+		"id": 13,
+		"path": "13",
+		"name": null,
+		"location_title": null
+	},
+	"merged_into": null,
+	"withdrawn_at": null,
+	"revisions": [
+		{
+			"id": 13,
+			"submitter": "Contributrice fittizia",
+			"submitted_at": "2025-01-10T09:31:00Z",
+			"approved_at": "2025-01-12T09:31:00Z",
+			"changes": [
+				{
+					"op": "set",
+					"field": "geometry",
+					"collection": null,
+					"old": null,
+					"new": {
+						"type": "Point",
+						"coordinates": [12.51, 41.905]
+					},
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "surface_type",
+					"collection": null,
+					"old": null,
+					"new": "building_wall",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "approximate",
+					"collection": null,
+					"old": null,
+					"new": true,
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "uncertainty_radius",
+					"collection": null,
+					"old": null,
+					"new": 150,
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "place_description",
+					"collection": null,
+					"old": null,
+					"new": "Muro fittizio vicino a un sottopasso, posizione approssimativa",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				}
+			]
+		}
+	],
+	"records": {}
+}

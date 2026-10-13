@@ -3437,6 +3437,17 @@
                 "type": "null"
               }
             ]
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
           }
         },
         "type": "object",
@@ -3444,7 +3455,8 @@
           "condition",
           "group",
           "since",
-          "evidence_level"
+          "evidence_level",
+          "event"
         ],
         "title": "ConditionView"
       },

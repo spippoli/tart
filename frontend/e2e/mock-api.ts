@@ -14,10 +14,16 @@
  * Passkeys are kept by credential id and checked for nothing else: the browser's
  * virtual authenticator makes them, and the API's own tests verify them.
  *
+ * The archive (`/api/archive/*`) answers with the real API's responses over the
+ * fictional dataset, in `fixtures/archive` (written by the backend's
+ * `test_archive_e2e_fixtures.py`): a Moderator gets the `moderator/` variant where there
+ * is one, everyone the `redacted/` one. Id 9001 is a withdrawn record (410) and 9002 an
+ * Artwork merged into the complete record (301).
+ *
  *     node e2e/mock-api.ts [port]
  */
 import { createHash, randomBytes } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
 const config = JSON.parse(readFileSync(new URL('fixtures/config.json', import.meta.url), 'utf8'));
@@ -290,11 +296,46 @@ async function passkey(
 	send(response, 404);
 }
 
+const ARCHIVE = new URL('fixtures/archive/', import.meta.url);
+export const WITHDRAWN_ID = 9001;
+export const MERGED_ID = 9002;
+
+function archiveFile(name: string): unknown {
+	const file = new URL(name, ARCHIVE);
+	return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+}
+
+function archive(request: IncomingMessage, response: ServerResponse, url: string) {
+	const [path] = url.slice('/api/archive/'.length).split('?');
+	const [segment, id, revisions] = path.split('/');
+	if (Number(id) === WITHDRAWN_ID) return send(response, 410, { code: 'record_withdrawn' });
+	if (Number(id) === MERGED_ID && segment === 'artworks') {
+		const ids = archiveFile('ids.json') as Record<string, number>;
+		return send(response, 301, undefined, {
+			Location: `/api/archive/artworks/${ids.gatto}${revisions ? '/revisions' : ''}`
+		});
+	}
+	const name =
+		id === undefined
+			? `${segment}/index.json`
+			: `${segment}/${id}${revisions ? '.revisions' : ''}.json`;
+	const body =
+		(sessionUser(request)?.moderator ? archiveFile(`moderator/${name}`) : undefined) ??
+		archiveFile(`redacted/${name}`) ??
+		archiveFile(name);
+	if (body === undefined) return send(response, 404, { code: 'record_not_found' });
+	send(response, 200, body);
+}
+
 const port = Number(process.argv[2] ?? 8795);
 createServer((request, response) => {
 	const path = (request.url ?? '').replace(/^\/it-only/, '');
 	if (path.startsWith('/api/auth/')) {
 		auth(request, response, path).catch(() => send(response, 500));
+		return;
+	}
+	if (path.startsWith('/api/archive/')) {
+		archive(request, response, path);
 		return;
 	}
 	const body = variants[request.url ?? ''];

@@ -1,0 +1,14 @@
+{
+	"items": [
+		{
+			"kind": "site",
+			"id": 5,
+			"path": "5-ex-deposito-dei-tram-fittizio",
+			"name": "Ex deposito dei tram fittizio",
+			"location_title": null
+		}
+	],
+	"page": 1,
+	"page_size": 24,
+	"total": 1
+}

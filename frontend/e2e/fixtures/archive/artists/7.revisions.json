@@ -1,0 +1,122 @@
+{
+	"record": {
+		"kind": "artist",
+		"id": 7,
+		"path": "7-nebbia-finta",
+		"name": "Nebbia Finta",
+		"location_title": null
+	},
+	"merged_into": null,
+	"withdrawn_at": null,
+	"revisions": [
+		{
+			"id": 7,
+			"submitter": "Contributrice fittizia",
+			"submitted_at": "2025-01-10T09:31:00Z",
+			"approved_at": "2025-01-12T09:31:00Z",
+			"changes": [
+				{
+					"op": "set",
+					"field": "name",
+					"collection": null,
+					"old": null,
+					"new": "Nebbia Finta",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "kind",
+					"collection": null,
+					"old": null,
+					"new": "individual",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "biography",
+					"collection": null,
+					"old": null,
+					"new": "Artista fittizia, inventata per i dati di prova.",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "period",
+					"collection": null,
+					"old": null,
+					"new": {
+						"end": null,
+						"start": {
+							"first": "2010-01-01",
+							"second": null,
+							"precision": "year",
+							"qualifier": "circa"
+						}
+					},
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "add",
+					"field": null,
+					"collection": "aliases",
+					"old": null,
+					"new": null,
+					"item": "NF",
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "add",
+					"field": null,
+					"collection": "areas",
+					"old": null,
+					"new": null,
+					"item": 3,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "add",
+					"field": null,
+					"collection": "sources",
+					"old": null,
+					"new": null,
+					"item": 2,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				}
+			]
+		}
+	],
+	"records": {
+		"2": {
+			"kind": "source",
+			"id": 2,
+			"path": "2",
+			"name": "Intervista fittizia a Nebbia Finta",
+			"location_title": null
+		},
+		"3": {
+			"kind": "area",
+			"id": 3,
+			"path": "3-quartiere-immaginario",
+			"name": "Quartiere Immaginario",
+			"location_title": null
+		}
+	}
+}

@@ -1,0 +1,102 @@
+{
+	"record": {
+		"kind": "artwork",
+		"id": 20,
+		"path": "20-occhio-fittizio",
+		"name": "Occhio fittizio",
+		"location_title": null
+	},
+	"merged_into": null,
+	"withdrawn_at": null,
+	"revisions": [
+		{
+			"id": 20,
+			"submitter": "Contributrice fittizia",
+			"submitted_at": "2025-01-10T09:31:00Z",
+			"approved_at": "2025-01-12T09:31:00Z",
+			"changes": [
+				{
+					"op": "set",
+					"field": "location",
+					"collection": null,
+					"old": null,
+					"new": 14,
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "expression_types",
+					"collection": null,
+					"old": null,
+					"new": ["stencil"],
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "title",
+					"collection": null,
+					"old": null,
+					"new": "Occhio fittizio",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "set",
+					"field": "description",
+					"collection": null,
+					"old": null,
+					"new": "Opera fittizia di autore sconosciuto.",
+					"item": null,
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				},
+				{
+					"op": "add",
+					"field": null,
+					"collection": "history_events",
+					"old": null,
+					"new": null,
+					"item": {
+						"id": 9,
+						"note": null,
+						"type": "condition_recorded",
+						"covering": null,
+						"citations": [],
+						"condition": "intact",
+						"observed_date": {
+							"first": "2023-01-01",
+							"second": null,
+							"precision": "year",
+							"qualifier": "exact"
+						}
+					},
+					"redacted": false,
+					"redacted_at": null,
+					"old_redacted": false
+				}
+			]
+		}
+	],
+	"records": {
+		"14": {
+			"kind": "location",
+			"id": 14,
+			"path": "14",
+			"name": null,
+			"location_title": {
+				"place_description": "Muro di cinta fittizio lungo via Immaginaria",
+				"surface_type": null,
+				"place": null
+			}
+		}
+	}
+}

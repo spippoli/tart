@@ -86,6 +86,8 @@ class ConditionView(BaseModel):
     since: UncertainDate | None
     """The Observed date of the event that sets it; `null` only for `unknown`."""
     evidence_level: EvidenceLevel | None
+    event: int | None
+    """The History event that sets it, on the Timeline."""
 
 
 class ArtworkCard(BaseModel):

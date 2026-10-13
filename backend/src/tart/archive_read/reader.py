@@ -386,6 +386,7 @@ class Reader:
             group=reading.group,
             since=_date(reading.event.observed_date) if reading.event else None,
             evidence_level=level,
+            event=reading.event.id if reading.event else None,
         )
 
     async def card(self, artwork_id: RecordId) -> v.ArtworkCard:

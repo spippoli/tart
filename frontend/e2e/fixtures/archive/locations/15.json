@@ -1,0 +1,58 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": null,
+	"redactions": [],
+	"kind": "location",
+	"id": 15,
+	"path": "15",
+	"title": {
+		"place_description": "Facciata fittizia di un edificio inventato",
+		"surface_type": null,
+		"place": null
+	},
+	"place_description": "Facciata fittizia di un edificio inventato",
+	"surface_type": "building_wall",
+	"geometry": {
+		"type": "Polygon",
+		"coordinates": [
+			[
+				[12.486, 41.878],
+				[12.4864, 41.878],
+				[12.4864, 41.8783],
+				[12.486, 41.8783],
+				[12.486, 41.878]
+			]
+		]
+	},
+	"approximate": false,
+	"uncertainty_radius": null,
+	"site": null,
+	"areas": [],
+	"stratigraphy": [
+		{
+			"id": 23,
+			"path": "23-scritta-fittizia",
+			"title": "Scritta fittizia",
+			"expression_types": ["mural"],
+			"condition": {
+				"condition": "intact",
+				"group": "present",
+				"since": {
+					"precision": "unknown",
+					"qualifier": null,
+					"first": null,
+					"second": null
+				},
+				"evidence_level": "reported",
+				"event": 15
+			},
+			"last_documented": {
+				"precision": "month",
+				"qualifier": "exact",
+				"first": "2023-09-01",
+				"second": null
+			}
+		}
+	],
+	"disappearances": []
+}

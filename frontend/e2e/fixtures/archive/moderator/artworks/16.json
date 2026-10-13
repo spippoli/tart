@@ -1,0 +1,327 @@
+{
+	"redacted_fields": [],
+	"withdrawn_at": "2026-05-04T09:00:00Z",
+	"redactions": [],
+	"kind": "artwork",
+	"id": 16,
+	"path": "16-il-gatto-che-legge",
+	"title": "Il gatto che legge",
+	"expression_types": ["mural", "stencil"],
+	"description": "Opera fittizia: un gatto nero legge un giornale fittizio, firmato in basso.",
+	"condition": {
+		"condition": "intact",
+		"group": "present",
+		"since": {
+			"precision": "day",
+			"qualifier": "exact",
+			"first": "2024-11-20",
+			"second": null
+		},
+		"evidence_level": "reported",
+		"event": 16
+	},
+	"last_documented": {
+		"precision": "day",
+		"qualifier": "exact",
+		"first": "2024-04-12",
+		"second": null
+	},
+	"first_documentation": {
+		"precision": "day",
+		"qualifier": "exact",
+		"first": "2024-04-12",
+		"second": null
+	},
+	"creation": {
+		"precision": "year",
+		"qualifier": "exact",
+		"first": "2019-01-01",
+		"second": null
+	},
+	"attribution": {
+		"attributed": [
+			{
+				"artist": {
+					"kind": "artist",
+					"id": 7,
+					"path": "7-nebbia-finta",
+					"name": "Nebbia Finta",
+					"location_title": null
+				},
+				"certainty": "confirmed",
+				"alias": null,
+				"note": null,
+				"evidence_level": "documented",
+				"citations": [
+					{
+						"kind": "source",
+						"id": 1,
+						"path": "1",
+						"name": "Muri che parlano, n. 3",
+						"location_title": null
+					}
+				]
+			}
+		],
+		"disputed": []
+	},
+	"gallery": [
+		{
+			"id": 24,
+			"path": "24",
+			"medium": "image",
+			"observed_date": {
+				"precision": "day",
+				"qualifier": "exact",
+				"first": "2024-04-12",
+				"second": null
+			},
+			"file": "00000000-0000-4000-8000-000000000001",
+			"renditions": {
+				"view": {
+					"width": 1280,
+					"height": 960
+				},
+				"large": {
+					"width": 1600,
+					"height": 1200
+				},
+				"thumbnail": {
+					"width": 480,
+					"height": 360
+				}
+			},
+			"alt_text": "Immagine fittizia: un ovale nero su un muro chiaro.",
+			"creator_credit": "Fotografa fittizia",
+			"licence": "CC-BY-SA-4.0",
+			"text": null,
+			"url": null,
+			"language": null
+		}
+	],
+	"where": {
+		"location": {
+			"id": 11,
+			"path": "11",
+			"title": {
+				"place_description": "Muro del cortile dell'ex deposito fittizio",
+				"surface_type": null,
+				"place": null
+			},
+			"surface_type": "building_wall",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.495, 41.895]
+			},
+			"approximate": false,
+			"uncertainty_radius": null
+		},
+		"location_withdrawn": false,
+		"site": {
+			"kind": "site",
+			"id": 5,
+			"path": "5-ex-deposito-dei-tram-fittizio",
+			"name": "Ex deposito dei tram fittizio",
+			"location_title": null
+		},
+		"areas": [
+			{
+				"kind": "area",
+				"id": 3,
+				"path": "3-quartiere-immaginario",
+				"name": "Quartiere Immaginario",
+				"location_title": null
+			},
+			{
+				"kind": "area",
+				"id": 4,
+				"path": "4-rione-di-prova",
+				"name": "Rione di Prova",
+				"location_title": null
+			}
+		]
+	},
+	"series": [
+		{
+			"kind": "series",
+			"id": 6,
+			"path": "6-gatti-di-carta",
+			"name": "Gatti di carta",
+			"location_title": null
+		}
+	],
+	"timeline": {
+		"dated": [
+			{
+				"entry": "event",
+				"id": 1,
+				"type": "created",
+				"observed_date": {
+					"precision": "year",
+					"qualifier": "exact",
+					"first": "2019-01-01",
+					"second": null
+				},
+				"condition": null,
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 16,
+				"evidence_level": "documented",
+				"citations": [
+					{
+						"kind": "source",
+						"id": 1,
+						"path": "1",
+						"name": "Muri che parlano, n. 3",
+						"location_title": null
+					}
+				],
+				"note": null,
+				"covering": null
+			},
+			{
+				"entry": "event",
+				"id": 2,
+				"type": "condition_recorded",
+				"observed_date": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2024-04-12",
+					"second": null
+				},
+				"condition": "intact",
+				"submitted_at": "2025-01-10T09:31:00Z",
+				"approved_at": "2025-01-12T09:31:00Z",
+				"revision": 16,
+				"evidence_level": "documented",
+				"citations": [
+					{
+						"kind": "documentation_item",
+						"id": 24,
+						"path": "24",
+						"name": null,
+						"location_title": null
+					}
+				],
+				"note": null,
+				"covering": null
+			},
+			{
+				"entry": "item",
+				"id": 24,
+				"path": "24",
+				"medium": "image",
+				"observed_date": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2024-04-12",
+					"second": null
+				}
+			},
+			{
+				"entry": "event",
+				"id": 16,
+				"type": "condition_recorded",
+				"observed_date": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2024-11-20",
+					"second": null
+				},
+				"condition": "intact",
+				"submitted_at": "2025-01-10T09:32:00Z",
+				"approved_at": "2025-01-12T09:32:00Z",
+				"revision": 29,
+				"evidence_level": "reported",
+				"citations": [],
+				"note": null,
+				"covering": null
+			}
+		],
+		"undated": []
+	},
+	"sources": [
+		{
+			"kind": "source",
+			"id": 2,
+			"path": "2",
+			"name": "Intervista fittizia a Nebbia Finta",
+			"location_title": null
+		}
+	],
+	"related": {
+		"same_location": [
+			{
+				"id": 17,
+				"path": "17-ritratto-fittizio",
+				"title": "Ritratto fittizio",
+				"expression_types": ["mural"],
+				"condition": {
+					"condition": "covered",
+					"group": "disappeared",
+					"since": {
+						"precision": "year",
+						"qualifier": "exact",
+						"first": "2019-01-01",
+						"second": null
+					},
+					"evidence_level": "reported",
+					"event": 4
+				},
+				"last_documented": null
+			}
+		],
+		"same_artist": [
+			{
+				"id": 18,
+				"path": "18",
+				"title": null,
+				"expression_types": ["stencil"],
+				"condition": {
+					"condition": "missing",
+					"group": "disappeared",
+					"since": {
+						"precision": "year",
+						"qualifier": "circa",
+						"first": "2019-01-01",
+						"second": null
+					},
+					"evidence_level": "reported",
+					"event": 6
+				},
+				"last_documented": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2018-03-03",
+					"second": null
+				}
+			}
+		],
+		"same_series": [
+			{
+				"id": 18,
+				"path": "18",
+				"title": null,
+				"expression_types": ["stencil"],
+				"condition": {
+					"condition": "missing",
+					"group": "disappeared",
+					"since": {
+						"precision": "year",
+						"qualifier": "circa",
+						"first": "2019-01-01",
+						"second": null
+					},
+					"evidence_level": "reported",
+					"event": 6
+				},
+				"last_documented": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2018-03-03",
+					"second": null
+				}
+			}
+		]
+	}
+}
