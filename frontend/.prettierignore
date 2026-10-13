@@ -5,3 +5,6 @@ pnpm-lock.yaml
 # Generated from the backend schema; see scripts/api-schema.ts
 src/lib/api/openapi.json
 src/lib/api/schema.d.ts
+
+# Written by the backend: test_archive_e2e_fixtures.py
+/e2e/fixtures/archive/

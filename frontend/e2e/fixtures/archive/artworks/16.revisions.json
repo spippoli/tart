@@ -1,243 +1,252 @@
 {
-	"record": {
-		"kind": "artwork",
-		"id": 16,
-		"path": "16-il-gatto-che-legge",
-		"name": "Il gatto che legge",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 29,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:32:00Z",
-			"approved_at": "2025-01-12T09:32:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": "Opera fittizia: un gatto nero legge un giornale fittizio.",
-					"new": "Opera fittizia: un gatto nero legge un giornale fittizio, firmato in basso.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 16,
-						"note": null,
-						"type": "condition_recorded",
-						"covering": null,
-						"citations": [],
-						"condition": "intact",
-						"observed_date": {
-							"first": "2024-11-20",
-							"second": null,
-							"precision": "day",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		},
-		{
-			"id": 16,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 11,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "expression_types",
-					"collection": null,
-					"old": null,
-					"new": ["mural", "stencil"],
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "title",
-					"collection": null,
-					"old": null,
-					"new": "Il gatto che legge",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Opera fittizia: un gatto nero legge un giornale fittizio.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "attributions",
-					"old": null,
-					"new": null,
-					"item": {
-						"note": null,
-						"alias": null,
-						"artist": 7,
-						"certainty": "confirmed",
-						"citations": [1]
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 1,
-						"note": null,
-						"type": "created",
-						"covering": null,
-						"citations": [1],
-						"condition": null,
-						"observed_date": {
-							"first": "2019-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 2,
-						"note": null,
-						"type": "condition_recorded",
-						"covering": null,
-						"citations": [24],
-						"condition": "intact",
-						"observed_date": {
-							"first": "2024-04-12",
-							"second": null,
-							"precision": "day",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "series",
-					"old": null,
-					"new": null,
-					"item": 6,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "sources",
-					"old": null,
-					"new": null,
-					"item": 2,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"1": {
-			"kind": "source",
-			"id": 1,
-			"path": "1",
-			"name": "Muri che parlano, n. 3",
-			"location_title": null
-		},
-		"2": {
-			"kind": "source",
-			"id": 2,
-			"path": "2",
-			"name": "Intervista fittizia a Nebbia Finta",
-			"location_title": null
-		},
-		"6": {
-			"kind": "series",
-			"id": 6,
-			"path": "6-gatti-di-carta",
-			"name": "Gatti di carta",
-			"location_title": null
-		},
-		"7": {
-			"kind": "artist",
-			"id": 7,
-			"path": "7-nebbia-finta",
-			"name": "Nebbia Finta",
-			"location_title": null
-		},
-		"11": {
-			"kind": "location",
-			"id": 11,
-			"path": "11",
-			"name": null,
-			"location_title": {
-				"place_description": "Muro del cortile dell'ex deposito fittizio",
-				"surface_type": null,
-				"place": null
-			}
-		},
-		"24": {
-			"kind": "documentation_item",
-			"id": 24,
-			"path": "24",
-			"name": null,
-			"location_title": null
-		}
-	}
+ "record": {
+  "kind": "artwork",
+  "id": 16,
+  "path": "16-il-gatto-che-legge",
+  "name": "Il gatto che legge",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 29,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:32:00Z",
+   "approved_at": "2025-01-12T09:32:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": "Opera fittizia: un gatto nero legge un giornale fittizio.",
+     "new": "Opera fittizia: un gatto nero legge un giornale fittizio, firmato in basso.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 16,
+      "note": null,
+      "type": "condition_recorded",
+      "covering": null,
+      "citations": [],
+      "condition": "intact",
+      "observed_date": {
+       "first": "2024-11-20",
+       "second": null,
+       "precision": "day",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  },
+  {
+   "id": 16,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 11,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "mural",
+      "stencil"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Il gatto che legge",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia: un gatto nero legge un giornale fittizio.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": null,
+      "alias": null,
+      "artist": 7,
+      "certainty": "confirmed",
+      "citations": [
+       1
+      ]
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 1,
+      "note": null,
+      "type": "created",
+      "covering": null,
+      "citations": [
+       1
+      ],
+      "condition": null,
+      "observed_date": {
+       "first": "2019-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 2,
+      "note": null,
+      "type": "condition_recorded",
+      "covering": null,
+      "citations": [
+       24
+      ],
+      "condition": "intact",
+      "observed_date": {
+       "first": "2024-04-12",
+       "second": null,
+       "precision": "day",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "series",
+     "old": null,
+     "new": null,
+     "item": 6,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "sources",
+     "old": null,
+     "new": null,
+     "item": 2,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "1": {
+   "kind": "source",
+   "id": 1,
+   "path": "1",
+   "name": "Muri che parlano, n. 3",
+   "location_title": null
+  },
+  "2": {
+   "kind": "source",
+   "id": 2,
+   "path": "2",
+   "name": "Intervista fittizia a Nebbia Finta",
+   "location_title": null
+  },
+  "6": {
+   "kind": "series",
+   "id": 6,
+   "path": "6-gatti-di-carta",
+   "name": "Gatti di carta",
+   "location_title": null
+  },
+  "7": {
+   "kind": "artist",
+   "id": 7,
+   "path": "7-nebbia-finta",
+   "name": "Nebbia Finta",
+   "location_title": null
+  },
+  "11": {
+   "kind": "location",
+   "id": 11,
+   "path": "11",
+   "name": null,
+   "location_title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   }
+  },
+  "24": {
+   "kind": "documentation_item",
+   "id": 24,
+   "path": "24",
+   "name": null,
+   "location_title": null
+  }
+ }
 }

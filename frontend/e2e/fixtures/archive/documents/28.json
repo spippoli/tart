@@ -1,54 +1,56 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "documentation_item",
-	"id": 28,
-	"path": "28",
-	"medium": "link",
-	"observed_date": {
-		"precision": "year",
-		"qualifier": "exact",
-		"first": "2023-01-01",
-		"second": null
-	},
-	"submitted_at": "2025-01-10T09:31:00Z",
-	"approved_at": "2025-01-12T09:31:00Z",
-	"file": null,
-	"renditions": null,
-	"alt_text": null,
-	"creator_credit": null,
-	"licence": null,
-	"rights_basis": null,
-	"origin_url": null,
-	"text": null,
-	"url": "https://example.org/fittizio/scritta",
-	"language": "it",
-	"artworks": [
-		{
-			"id": 23,
-			"path": "23-scritta-fittizia",
-			"title": "Scritta fittizia",
-			"expression_types": ["mural"],
-			"condition": {
-				"condition": "intact",
-				"group": "present",
-				"since": {
-					"precision": "unknown",
-					"qualifier": null,
-					"first": null,
-					"second": null
-				},
-				"evidence_level": "reported",
-				"event": 15
-			},
-			"last_documented": {
-				"precision": "month",
-				"qualifier": "exact",
-				"first": "2023-09-01",
-				"second": null
-			}
-		}
-	],
-	"location": null
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "documentation_item",
+ "id": 28,
+ "path": "28",
+ "medium": "link",
+ "observed_date": {
+  "precision": "year",
+  "qualifier": "exact",
+  "first": "2023-01-01",
+  "second": null
+ },
+ "submitted_at": "2025-01-10T09:31:00Z",
+ "approved_at": "2025-01-12T09:31:00Z",
+ "file": null,
+ "renditions": null,
+ "alt_text": null,
+ "creator_credit": null,
+ "licence": null,
+ "rights_basis": null,
+ "origin_url": null,
+ "text": null,
+ "url": "https://example.org/fittizio/scritta",
+ "language": "it",
+ "artworks": [
+  {
+   "id": 23,
+   "path": "23-scritta-fittizia",
+   "title": "Scritta fittizia",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "unknown",
+     "qualifier": null,
+     "first": null,
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 15
+   },
+   "last_documented": {
+    "precision": "month",
+    "qualifier": "exact",
+    "first": "2023-09-01",
+    "second": null
+   }
+  }
+ ],
+ "location": null
 }

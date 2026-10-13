@@ -1,43 +1,43 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "source",
-	"id": 2,
-	"path": "2",
-	"title": "Intervista fittizia a Nebbia Finta",
-	"author": null,
-	"publication": null,
-	"date": {
-		"precision": "month",
-		"qualifier": "exact",
-		"first": "2021-05-01",
-		"second": null
-	},
-	"url": null,
-	"note": "Fonte fittizia: l'intervista non è mai avvenuta.",
-	"language": null,
-	"cited_by": [
-		{
-			"kind": "artist",
-			"id": 7,
-			"path": "7-nebbia-finta",
-			"name": "Nebbia Finta",
-			"location_title": null
-		},
-		{
-			"kind": "artwork",
-			"id": 16,
-			"path": "16-il-gatto-che-legge",
-			"name": "Il gatto che legge",
-			"location_title": null
-		},
-		{
-			"kind": "artwork",
-			"id": 21,
-			"path": "21-due-mani-fittizie",
-			"name": "Due mani fittizie",
-			"location_title": null
-		}
-	]
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "source",
+ "id": 2,
+ "path": "2",
+ "title": "Intervista fittizia a Nebbia Finta",
+ "author": null,
+ "publication": null,
+ "date": {
+  "precision": "month",
+  "qualifier": "exact",
+  "first": "2021-05-01",
+  "second": null
+ },
+ "url": null,
+ "note": "Fonte fittizia: l'intervista non è mai avvenuta.",
+ "language": null,
+ "cited_by": [
+  {
+   "kind": "artist",
+   "id": 7,
+   "path": "7-nebbia-finta",
+   "name": "Nebbia Finta",
+   "location_title": null
+  },
+  {
+   "kind": "artwork",
+   "id": 16,
+   "path": "16-il-gatto-che-legge",
+   "name": "Il gatto che legge",
+   "location_title": null
+  },
+  {
+   "kind": "artwork",
+   "id": 21,
+   "path": "21-due-mani-fittizie",
+   "name": "Due mani fittizie",
+   "location_title": null
+  }
+ ]
 }

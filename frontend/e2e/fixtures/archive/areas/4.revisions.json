@@ -1,66 +1,81 @@
 {
-	"record": {
-		"kind": "area",
-		"id": 4,
-		"path": "4-rione-di-prova",
-		"name": "Rione di Prova",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 4,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "name",
-					"collection": null,
-					"old": null,
-					"new": "Rione di Prova",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "geometry",
-					"collection": null,
-					"old": null,
-					"new": {
-						"type": "Polygon",
-						"coordinates": [
-							[
-								[12.49, 41.89],
-								[12.52, 41.89],
-								[12.52, 41.91],
-								[12.49, 41.91],
-								[12.49, 41.89]
-							]
-						]
-					},
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Area fittizia che si sovrappone al Quartiere Immaginario.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {}
+ "record": {
+  "kind": "area",
+  "id": 4,
+  "path": "4-rione-di-prova",
+  "name": "Rione di Prova",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 4,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "name",
+     "collection": null,
+     "old": null,
+     "new": "Rione di Prova",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "geometry",
+     "collection": null,
+     "old": null,
+     "new": {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         12.49,
+         41.89
+        ],
+        [
+         12.52,
+         41.89
+        ],
+        [
+         12.52,
+         41.91
+        ],
+        [
+         12.49,
+         41.91
+        ],
+        [
+         12.49,
+         41.89
+        ]
+       ]
+      ]
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Area fittizia che si sovrappone al Quartiere Immaginario.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
 }

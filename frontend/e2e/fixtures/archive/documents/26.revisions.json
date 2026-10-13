@@ -1,145 +1,145 @@
 {
-	"record": {
-		"kind": "documentation_item",
-		"id": 26,
-		"path": "26",
-		"name": null,
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 26,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "medium",
-					"collection": null,
-					"old": null,
-					"new": "image",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "observed_date",
-					"collection": null,
-					"old": null,
-					"new": {
-						"first": "2020-02-10",
-						"second": null,
-						"precision": "day",
-						"qualifier": "exact"
-					},
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "artworks",
-					"old": null,
-					"new": null,
-					"item": 19,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 12,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "file",
-					"collection": null,
-					"old": null,
-					"new": "00000000-0000-4000-8000-000000000001",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "licence",
-					"collection": null,
-					"old": null,
-					"new": "CC-BY-SA-4.0",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "creator_credit",
-					"collection": null,
-					"old": null,
-					"new": "Fotografa fittizia",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "rights_basis",
-					"collection": null,
-					"old": null,
-					"new": "own_work",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "alt_text",
-					"collection": null,
-					"old": null,
-					"new": "Immagine fittizia: una saracinesca nuova, senza l'opera.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"12": {
-			"kind": "location",
-			"id": 12,
-			"path": "12",
-			"name": null,
-			"location_title": {
-				"place_description": "Saracinesca fittizia di via Inventata 7",
-				"surface_type": null,
-				"place": null
-			}
-		},
-		"19": {
-			"kind": "artwork",
-			"id": 19,
-			"path": "19-fiore-fittizio",
-			"name": "Fiore fittizio",
-			"location_title": null
-		}
-	}
+ "record": {
+  "kind": "documentation_item",
+  "id": 26,
+  "path": "26",
+  "name": null,
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 26,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "medium",
+     "collection": null,
+     "old": null,
+     "new": "image",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "observed_date",
+     "collection": null,
+     "old": null,
+     "new": {
+      "first": "2020-02-10",
+      "second": null,
+      "precision": "day",
+      "qualifier": "exact"
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "artworks",
+     "old": null,
+     "new": null,
+     "item": 19,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 12,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "file",
+     "collection": null,
+     "old": null,
+     "new": "00000000-0000-4000-8000-000000000001",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "licence",
+     "collection": null,
+     "old": null,
+     "new": "CC-BY-SA-4.0",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "creator_credit",
+     "collection": null,
+     "old": null,
+     "new": "Fotografa fittizia",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "rights_basis",
+     "collection": null,
+     "old": null,
+     "new": "own_work",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "alt_text",
+     "collection": null,
+     "old": null,
+     "new": "Immagine fittizia: una saracinesca nuova, senza l'opera.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "12": {
+   "kind": "location",
+   "id": 12,
+   "path": "12",
+   "name": null,
+   "location_title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   }
+  },
+  "19": {
+   "kind": "artwork",
+   "id": 19,
+   "path": "19-fiore-fittizio",
+   "name": "Fiore fittizio",
+   "location_title": null
+  }
+ }
 }

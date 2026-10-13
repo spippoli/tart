@@ -1,69 +1,72 @@
 {
-	"record": {
-		"kind": "location",
-		"id": 12,
-		"path": "12",
-		"name": null,
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 12,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "geometry",
-					"collection": null,
-					"old": null,
-					"new": {
-						"type": "Point",
-						"coordinates": [12.48, 41.885]
-					},
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "surface_type",
-					"collection": null,
-					"old": null,
-					"new": "shutter",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "approximate",
-					"collection": null,
-					"old": null,
-					"new": false,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "place_description",
-					"collection": null,
-					"old": null,
-					"new": "Saracinesca fittizia di via Inventata 7",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {}
+ "record": {
+  "kind": "location",
+  "id": 12,
+  "path": "12",
+  "name": null,
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 12,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "geometry",
+     "collection": null,
+     "old": null,
+     "new": {
+      "type": "Point",
+      "coordinates": [
+       12.48,
+       41.885
+      ]
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "surface_type",
+     "collection": null,
+     "old": null,
+     "new": "shutter",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "approximate",
+     "collection": null,
+     "old": null,
+     "new": false,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "place_description",
+     "collection": null,
+     "old": null,
+     "new": "Saracinesca fittizia di via Inventata 7",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
 }

@@ -1,133 +1,137 @@
 {
-	"record": {
-		"kind": "artwork",
-		"id": 19,
-		"path": "19-fiore-fittizio",
-		"name": "Fiore fittizio",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 19,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 12,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "expression_types",
-					"collection": null,
-					"old": null,
-					"new": ["stencil"],
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "title",
-					"collection": null,
-					"old": null,
-					"new": "Fiore fittizio",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Opera fittizia, distrutta con la sostituzione della saracinesca.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 7,
-						"note": null,
-						"type": "created",
-						"covering": null,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2015-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "circa"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 8,
-						"note": null,
-						"type": "destroyed",
-						"covering": null,
-						"citations": [26],
-						"condition": null,
-						"observed_date": {
-							"first": "2020-02-10",
-							"second": null,
-							"precision": "day",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"12": {
-			"kind": "location",
-			"id": 12,
-			"path": "12",
-			"name": null,
-			"location_title": {
-				"place_description": "Saracinesca fittizia di via Inventata 7",
-				"surface_type": null,
-				"place": null
-			}
-		},
-		"26": {
-			"kind": "documentation_item",
-			"id": 26,
-			"path": "26",
-			"name": null,
-			"location_title": null
-		}
-	}
+ "record": {
+  "kind": "artwork",
+  "id": 19,
+  "path": "19-fiore-fittizio",
+  "name": "Fiore fittizio",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 19,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 12,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "stencil"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Fiore fittizio",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia, distrutta con la sostituzione della saracinesca.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 7,
+      "note": null,
+      "type": "created",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2015-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "circa"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 8,
+      "note": null,
+      "type": "destroyed",
+      "covering": null,
+      "citations": [
+       26
+      ],
+      "condition": null,
+      "observed_date": {
+       "first": "2020-02-10",
+       "second": null,
+       "precision": "day",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "12": {
+   "kind": "location",
+   "id": 12,
+   "path": "12",
+   "name": null,
+   "location_title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   }
+  },
+  "26": {
+   "kind": "documentation_item",
+   "id": 26,
+   "path": "26",
+   "name": null,
+   "location_title": null
+  }
+ }
 }

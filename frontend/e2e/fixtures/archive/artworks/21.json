@@ -1,203 +1,215 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "artwork",
-	"id": 21,
-	"path": "21-due-mani-fittizie",
-	"title": "Due mani fittizie",
-	"expression_types": ["mural"],
-	"description": "Opera fittizia di attribuzione contesa.",
-	"condition": {
-		"condition": "deteriorated",
-		"group": "present",
-		"since": {
-			"precision": "year",
-			"qualifier": "exact",
-			"first": "2022-01-01",
-			"second": null
-		},
-		"evidence_level": "reported",
-		"event": 11
-	},
-	"last_documented": null,
-	"first_documentation": null,
-	"creation": {
-		"precision": "year",
-		"qualifier": "circa",
-		"first": "2016-01-01",
-		"second": null
-	},
-	"attribution": {
-		"attributed": [],
-		"disputed": [
-			{
-				"artist": {
-					"kind": "artist",
-					"id": 9,
-					"path": "9-lupo-inventato",
-					"name": "Lupo Inventato",
-					"location_title": null
-				},
-				"certainty": "disputed",
-				"alias": null,
-				"note": "Nota fittizia: attribuita da un'intervista fittizia.",
-				"evidence_level": "documented",
-				"citations": [
-					{
-						"kind": "source",
-						"id": 2,
-						"path": "2",
-						"name": "Intervista fittizia a Nebbia Finta",
-						"location_title": null
-					}
-				]
-			},
-			{
-				"artist": {
-					"kind": "artist",
-					"id": 10,
-					"path": "10-ombra-supposta",
-					"name": "Ombra Supposta",
-					"location_title": null
-				},
-				"certainty": "disputed",
-				"alias": null,
-				"note": "Nota fittizia: attribuita da una fanzine fittizia.",
-				"evidence_level": "documented",
-				"citations": [
-					{
-						"kind": "source",
-						"id": 1,
-						"path": "1",
-						"name": "Muri che parlano, n. 3",
-						"location_title": null
-					}
-				]
-			}
-		]
-	},
-	"gallery": [],
-	"where": {
-		"location": {
-			"id": 14,
-			"path": "14",
-			"title": {
-				"place_description": "Muro di cinta fittizio lungo via Immaginaria",
-				"surface_type": null,
-				"place": null
-			},
-			"surface_type": "building_wall",
-			"geometry": {
-				"type": "LineString",
-				"coordinates": [
-					[12.47, 41.9],
-					[12.4712, 41.9004]
-				]
-			},
-			"approximate": false,
-			"uncertainty_radius": null
-		},
-		"location_withdrawn": false,
-		"site": null,
-		"areas": [
-			{
-				"kind": "area",
-				"id": 3,
-				"path": "3-quartiere-immaginario",
-				"name": "Quartiere Immaginario",
-				"location_title": null
-			}
-		]
-	},
-	"series": [],
-	"timeline": {
-		"dated": [
-			{
-				"entry": "event",
-				"id": 10,
-				"type": "created",
-				"observed_date": {
-					"precision": "year",
-					"qualifier": "circa",
-					"first": "2016-01-01",
-					"second": null
-				},
-				"condition": null,
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 21,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": null,
-				"covering": null
-			},
-			{
-				"entry": "event",
-				"id": 11,
-				"type": "deteriorated",
-				"observed_date": {
-					"precision": "year",
-					"qualifier": "exact",
-					"first": "2022-01-01",
-					"second": null
-				},
-				"condition": null,
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 21,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": null,
-				"covering": null
-			}
-		],
-		"undated": []
-	},
-	"sources": [],
-	"related": {
-		"same_location": [
-			{
-				"id": 20,
-				"path": "20-occhio-fittizio",
-				"title": "Occhio fittizio",
-				"expression_types": ["stencil"],
-				"condition": {
-					"condition": "intact",
-					"group": "present",
-					"since": {
-						"precision": "year",
-						"qualifier": "exact",
-						"first": "2023-01-01",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 9
-				},
-				"last_documented": null
-			}
-		],
-		"same_artist": [
-			{
-				"id": 17,
-				"path": "17-ritratto-fittizio",
-				"title": "Ritratto fittizio",
-				"expression_types": ["mural"],
-				"condition": {
-					"condition": "covered",
-					"group": "disappeared",
-					"since": {
-						"precision": "year",
-						"qualifier": "exact",
-						"first": "2019-01-01",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 4
-				},
-				"last_documented": null
-			}
-		],
-		"same_series": []
-	}
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artwork",
+ "id": 21,
+ "path": "21-due-mani-fittizie",
+ "title": "Due mani fittizie",
+ "expression_types": [
+  "mural"
+ ],
+ "description": "Opera fittizia di attribuzione contesa.",
+ "condition": {
+  "condition": "deteriorated",
+  "group": "present",
+  "since": {
+   "precision": "year",
+   "qualifier": "exact",
+   "first": "2022-01-01",
+   "second": null
+  },
+  "evidence_level": "reported",
+  "event": 11
+ },
+ "last_documented": null,
+ "first_documentation": null,
+ "creation": {
+  "precision": "year",
+  "qualifier": "circa",
+  "first": "2016-01-01",
+  "second": null
+ },
+ "attribution": {
+  "attributed": [],
+  "disputed": [
+   {
+    "artist": {
+     "kind": "artist",
+     "id": 9,
+     "path": "9-lupo-inventato",
+     "name": "Lupo Inventato",
+     "location_title": null
+    },
+    "certainty": "disputed",
+    "alias": null,
+    "note": "Nota fittizia: attribuita da un'intervista fittizia.",
+    "evidence_level": "documented",
+    "citations": [
+     {
+      "kind": "source",
+      "id": 2,
+      "path": "2",
+      "name": "Intervista fittizia a Nebbia Finta",
+      "location_title": null
+     }
+    ]
+   },
+   {
+    "artist": {
+     "kind": "artist",
+     "id": 10,
+     "path": "10-ombra-supposta",
+     "name": "Ombra Supposta",
+     "location_title": null
+    },
+    "certainty": "disputed",
+    "alias": null,
+    "note": "Nota fittizia: attribuita da una fanzine fittizia.",
+    "evidence_level": "documented",
+    "citations": [
+     {
+      "kind": "source",
+      "id": 1,
+      "path": "1",
+      "name": "Muri che parlano, n. 3",
+      "location_title": null
+     }
+    ]
+   }
+  ]
+ },
+ "gallery": [],
+ "where": {
+  "location": {
+   "id": 14,
+   "path": "14",
+   "title": {
+    "place_description": "Muro di cinta fittizio lungo via Immaginaria",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      12.47,
+      41.9
+     ],
+     [
+      12.4712,
+      41.9004
+     ]
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  "location_withdrawn": false,
+  "site": null,
+  "areas": [
+   {
+    "kind": "area",
+    "id": 3,
+    "path": "3-quartiere-immaginario",
+    "name": "Quartiere Immaginario",
+    "location_title": null
+   }
+  ]
+ },
+ "series": [],
+ "timeline": {
+  "dated": [
+   {
+    "entry": "event",
+    "id": 10,
+    "type": "created",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "circa",
+     "first": "2016-01-01",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 21,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   },
+   {
+    "entry": "event",
+    "id": 11,
+    "type": "deteriorated",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2022-01-01",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 21,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   }
+  ],
+  "undated": []
+ },
+ "sources": [],
+ "related": {
+  "same_location": [
+   {
+    "id": 20,
+    "path": "20-occhio-fittizio",
+    "title": "Occhio fittizio",
+    "expression_types": [
+     "stencil"
+    ],
+    "condition": {
+     "condition": "intact",
+     "group": "present",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2023-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 9
+    },
+    "last_documented": null
+   }
+  ],
+  "same_artist": [
+   {
+    "id": 17,
+    "path": "17-ritratto-fittizio",
+    "title": "Ritratto fittizio",
+    "expression_types": [
+     "mural"
+    ],
+    "condition": {
+     "condition": "covered",
+     "group": "disappeared",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2019-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 4
+    },
+    "last_documented": null
+   }
+  ],
+  "same_series": []
+ }
 }

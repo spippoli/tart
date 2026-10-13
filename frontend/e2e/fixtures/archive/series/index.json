@@ -1,14 +1,14 @@
 {
-	"items": [
-		{
-			"kind": "series",
-			"id": 6,
-			"path": "6-gatti-di-carta",
-			"name": "Gatti di carta",
-			"location_title": null
-		}
-	],
-	"page": 1,
-	"page_size": 24,
-	"total": 1
+ "items": [
+  {
+   "kind": "series",
+   "id": 6,
+   "path": "6-gatti-di-carta",
+   "name": "Gatti di carta",
+   "location_title": null
+  }
+ ],
+ "page": 1,
+ "page_size": 24,
+ "total": 1
 }

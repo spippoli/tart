@@ -1,63 +1,63 @@
 {
-	"record": {
-		"kind": "series",
-		"id": 6,
-		"path": "6-gatti-di-carta",
-		"name": "Gatti di carta",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 6,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "name",
-					"collection": null,
-					"old": null,
-					"new": "Gatti di carta",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Serie fittizia di gatti dipinti e a stencil.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "sources",
-					"old": null,
-					"new": null,
-					"item": 1,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"1": {
-			"kind": "source",
-			"id": 1,
-			"path": "1",
-			"name": "Muri che parlano, n. 3",
-			"location_title": null
-		}
-	}
+ "record": {
+  "kind": "series",
+  "id": 6,
+  "path": "6-gatti-di-carta",
+  "name": "Gatti di carta",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 6,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "name",
+     "collection": null,
+     "old": null,
+     "new": "Gatti di carta",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Serie fittizia di gatti dipinti e a stencil.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "sources",
+     "old": null,
+     "new": null,
+     "item": 1,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "1": {
+   "kind": "source",
+   "id": 1,
+   "path": "1",
+   "name": "Muri che parlano, n. 3",
+   "location_title": null
+  }
+ }
 }

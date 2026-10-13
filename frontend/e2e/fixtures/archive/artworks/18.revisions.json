@@ -1,157 +1,159 @@
 {
-	"record": {
-		"kind": "artwork",
-		"id": 18,
-		"path": "18",
-		"name": null,
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 18,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 12,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "expression_types",
-					"collection": null,
-					"old": null,
-					"new": ["stencil"],
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Opera fittizia senza titolo.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "attributions",
-					"old": null,
-					"new": null,
-					"item": {
-						"note": null,
-						"alias": "NF",
-						"artist": 7,
-						"certainty": "probable",
-						"citations": []
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 5,
-						"note": null,
-						"type": "condition_recorded",
-						"covering": null,
-						"citations": [],
-						"condition": "intact",
-						"observed_date": {
-							"first": "2018-03-03",
-							"second": null,
-							"precision": "day",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 6,
-						"note": null,
-						"type": "condition_recorded",
-						"covering": null,
-						"citations": [],
-						"condition": "missing",
-						"observed_date": {
-							"first": "2019-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "circa"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "series",
-					"old": null,
-					"new": null,
-					"item": 6,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"6": {
-			"kind": "series",
-			"id": 6,
-			"path": "6-gatti-di-carta",
-			"name": "Gatti di carta",
-			"location_title": null
-		},
-		"7": {
-			"kind": "artist",
-			"id": 7,
-			"path": "7-nebbia-finta",
-			"name": "Nebbia Finta",
-			"location_title": null
-		},
-		"12": {
-			"kind": "location",
-			"id": 12,
-			"path": "12",
-			"name": null,
-			"location_title": {
-				"place_description": "Saracinesca fittizia di via Inventata 7",
-				"surface_type": null,
-				"place": null
-			}
-		}
-	}
+ "record": {
+  "kind": "artwork",
+  "id": 18,
+  "path": "18",
+  "name": null,
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 18,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 12,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "stencil"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia senza titolo.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": null,
+      "alias": "NF",
+      "artist": 7,
+      "certainty": "probable",
+      "citations": []
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 5,
+      "note": null,
+      "type": "condition_recorded",
+      "covering": null,
+      "citations": [],
+      "condition": "intact",
+      "observed_date": {
+       "first": "2018-03-03",
+       "second": null,
+       "precision": "day",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 6,
+      "note": null,
+      "type": "condition_recorded",
+      "covering": null,
+      "citations": [],
+      "condition": "missing",
+      "observed_date": {
+       "first": "2019-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "circa"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "series",
+     "old": null,
+     "new": null,
+     "item": 6,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "6": {
+   "kind": "series",
+   "id": 6,
+   "path": "6-gatti-di-carta",
+   "name": "Gatti di carta",
+   "location_title": null
+  },
+  "7": {
+   "kind": "artist",
+   "id": 7,
+   "path": "7-nebbia-finta",
+   "name": "Nebbia Finta",
+   "location_title": null
+  },
+  "12": {
+   "kind": "location",
+   "id": 12,
+   "path": "12",
+   "name": null,
+   "location_title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   }
+  }
+ }
 }

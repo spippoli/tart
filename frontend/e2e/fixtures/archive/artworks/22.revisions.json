@@ -1,174 +1,176 @@
 {
-	"record": {
-		"kind": "artwork",
-		"id": 22,
-		"path": "22-onda-fittizia",
-		"name": "Onda fittizia",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 22,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 13,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "expression_types",
-					"collection": null,
-					"old": null,
-					"new": ["mural"],
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "title",
-					"collection": null,
-					"old": null,
-					"new": "Onda fittizia",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Opera fittizia in una posizione nota solo approssimativamente.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "attributions",
-					"old": null,
-					"new": null,
-					"item": {
-						"note": null,
-						"alias": null,
-						"artist": 8,
-						"certainty": "probable",
-						"citations": []
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 12,
-						"note": null,
-						"type": "created",
-						"covering": null,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2017-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 13,
-						"note": null,
-						"type": "damaged",
-						"covering": null,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2021-06-01",
-							"second": null,
-							"precision": "month",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 14,
-						"note": null,
-						"type": "modified",
-						"covering": null,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2022-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "after"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"8": {
-			"kind": "artist",
-			"id": 8,
-			"path": "8-collettivo-vernice-assente",
-			"name": "Collettivo Vernice Assente",
-			"location_title": null
-		},
-		"13": {
-			"kind": "location",
-			"id": 13,
-			"path": "13",
-			"name": null,
-			"location_title": {
-				"place_description": "Muro fittizio vicino a un sottopasso, posizione approssimativa",
-				"surface_type": null,
-				"place": null
-			}
-		}
-	}
+ "record": {
+  "kind": "artwork",
+  "id": 22,
+  "path": "22-onda-fittizia",
+  "name": "Onda fittizia",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 22,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 13,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "mural"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Onda fittizia",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia in una posizione nota solo approssimativamente.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": null,
+      "alias": null,
+      "artist": 8,
+      "certainty": "probable",
+      "citations": []
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 12,
+      "note": null,
+      "type": "created",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2017-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 13,
+      "note": null,
+      "type": "damaged",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2021-06-01",
+       "second": null,
+       "precision": "month",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 14,
+      "note": null,
+      "type": "modified",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2022-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "after"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "8": {
+   "kind": "artist",
+   "id": 8,
+   "path": "8-collettivo-vernice-assente",
+   "name": "Collettivo Vernice Assente",
+   "location_title": null
+  },
+  "13": {
+   "kind": "location",
+   "id": 13,
+   "path": "13",
+   "name": null,
+   "location_title": {
+    "place_description": "Muro fittizio vicino a un sottopasso, posizione approssimativa",
+    "surface_type": null,
+    "place": null
+   }
+  }
+ }
 }

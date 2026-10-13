@@ -1,194 +1,204 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "artwork",
-	"id": 17,
-	"path": "17-ritratto-fittizio",
-	"title": "Ritratto fittizio",
-	"expression_types": ["mural"],
-	"description": "Opera fittizia, coperta da un'altra opera fittizia.",
-	"condition": {
-		"condition": "covered",
-		"group": "disappeared",
-		"since": {
-			"precision": "year",
-			"qualifier": "exact",
-			"first": "2019-01-01",
-			"second": null
-		},
-		"evidence_level": "reported",
-		"event": 4
-	},
-	"last_documented": null,
-	"first_documentation": null,
-	"creation": {
-		"precision": "year",
-		"qualifier": "before",
-		"first": "2012-01-01",
-		"second": null
-	},
-	"attribution": {
-		"attributed": [
-			{
-				"artist": {
-					"kind": "artist",
-					"id": 9,
-					"path": "9-lupo-inventato",
-					"name": "Lupo Inventato",
-					"location_title": null
-				},
-				"certainty": "probable",
-				"alias": null,
-				"note": null,
-				"evidence_level": "reported",
-				"citations": []
-			}
-		],
-		"disputed": []
-	},
-	"gallery": [],
-	"where": {
-		"location": {
-			"id": 11,
-			"path": "11",
-			"title": {
-				"place_description": "Muro del cortile dell'ex deposito fittizio",
-				"surface_type": null,
-				"place": null
-			},
-			"surface_type": "building_wall",
-			"geometry": {
-				"type": "Point",
-				"coordinates": [12.495, 41.895]
-			},
-			"approximate": false,
-			"uncertainty_radius": null
-		},
-		"location_withdrawn": false,
-		"site": {
-			"kind": "site",
-			"id": 5,
-			"path": "5-ex-deposito-dei-tram-fittizio",
-			"name": "Ex deposito dei tram fittizio",
-			"location_title": null
-		},
-		"areas": [
-			{
-				"kind": "area",
-				"id": 3,
-				"path": "3-quartiere-immaginario",
-				"name": "Quartiere Immaginario",
-				"location_title": null
-			},
-			{
-				"kind": "area",
-				"id": 4,
-				"path": "4-rione-di-prova",
-				"name": "Rione di Prova",
-				"location_title": null
-			}
-		]
-	},
-	"series": [],
-	"timeline": {
-		"dated": [
-			{
-				"entry": "event",
-				"id": 3,
-				"type": "created",
-				"observed_date": {
-					"precision": "year",
-					"qualifier": "before",
-					"first": "2012-01-01",
-					"second": null
-				},
-				"condition": null,
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 17,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": null,
-				"covering": null
-			},
-			{
-				"entry": "event",
-				"id": 4,
-				"type": "covered",
-				"observed_date": {
-					"precision": "year",
-					"qualifier": "exact",
-					"first": "2019-01-01",
-					"second": null
-				},
-				"condition": null,
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 17,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": "Nota fittizia: coperto dal gatto.",
-				"covering": {
-					"kind": "artwork",
-					"id": 16,
-					"path": "16-il-gatto-che-legge",
-					"name": "Il gatto che legge",
-					"location_title": null
-				}
-			}
-		],
-		"undated": []
-	},
-	"sources": [],
-	"related": {
-		"same_location": [
-			{
-				"id": 16,
-				"path": "16-il-gatto-che-legge",
-				"title": "Il gatto che legge",
-				"expression_types": ["mural", "stencil"],
-				"condition": {
-					"condition": "intact",
-					"group": "present",
-					"since": {
-						"precision": "day",
-						"qualifier": "exact",
-						"first": "2024-11-20",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 16
-				},
-				"last_documented": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2024-04-12",
-					"second": null
-				}
-			}
-		],
-		"same_artist": [
-			{
-				"id": 21,
-				"path": "21-due-mani-fittizie",
-				"title": "Due mani fittizie",
-				"expression_types": ["mural"],
-				"condition": {
-					"condition": "deteriorated",
-					"group": "present",
-					"since": {
-						"precision": "year",
-						"qualifier": "exact",
-						"first": "2022-01-01",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 11
-				},
-				"last_documented": null
-			}
-		],
-		"same_series": []
-	}
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artwork",
+ "id": 17,
+ "path": "17-ritratto-fittizio",
+ "title": "Ritratto fittizio",
+ "expression_types": [
+  "mural"
+ ],
+ "description": "Opera fittizia, coperta da un'altra opera fittizia.",
+ "condition": {
+  "condition": "covered",
+  "group": "disappeared",
+  "since": {
+   "precision": "year",
+   "qualifier": "exact",
+   "first": "2019-01-01",
+   "second": null
+  },
+  "evidence_level": "reported",
+  "event": 4
+ },
+ "last_documented": null,
+ "first_documentation": null,
+ "creation": {
+  "precision": "year",
+  "qualifier": "before",
+  "first": "2012-01-01",
+  "second": null
+ },
+ "attribution": {
+  "attributed": [
+   {
+    "artist": {
+     "kind": "artist",
+     "id": 9,
+     "path": "9-lupo-inventato",
+     "name": "Lupo Inventato",
+     "location_title": null
+    },
+    "certainty": "probable",
+    "alias": null,
+    "note": null,
+    "evidence_level": "reported",
+    "citations": []
+   }
+  ],
+  "disputed": []
+ },
+ "gallery": [],
+ "where": {
+  "location": {
+   "id": 11,
+   "path": "11",
+   "title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.495,
+     41.895
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  "location_withdrawn": false,
+  "site": {
+   "kind": "site",
+   "id": 5,
+   "path": "5-ex-deposito-dei-tram-fittizio",
+   "name": "Ex deposito dei tram fittizio",
+   "location_title": null
+  },
+  "areas": [
+   {
+    "kind": "area",
+    "id": 3,
+    "path": "3-quartiere-immaginario",
+    "name": "Quartiere Immaginario",
+    "location_title": null
+   },
+   {
+    "kind": "area",
+    "id": 4,
+    "path": "4-rione-di-prova",
+    "name": "Rione di Prova",
+    "location_title": null
+   }
+  ]
+ },
+ "series": [],
+ "timeline": {
+  "dated": [
+   {
+    "entry": "event",
+    "id": 3,
+    "type": "created",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "before",
+     "first": "2012-01-01",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 17,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   },
+   {
+    "entry": "event",
+    "id": 4,
+    "type": "covered",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 17,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": "Nota fittizia: coperto dal gatto.",
+    "covering": {
+     "kind": "artwork",
+     "id": 16,
+     "path": "16-il-gatto-che-legge",
+     "name": "Il gatto che legge",
+     "location_title": null
+    }
+   }
+  ],
+  "undated": []
+ },
+ "sources": [],
+ "related": {
+  "same_location": [
+   {
+    "id": 16,
+    "path": "16-il-gatto-che-legge",
+    "title": "Il gatto che legge",
+    "expression_types": [
+     "mural",
+     "stencil"
+    ],
+    "condition": {
+     "condition": "intact",
+     "group": "present",
+     "since": {
+      "precision": "day",
+      "qualifier": "exact",
+      "first": "2024-11-20",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 16
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-04-12",
+     "second": null
+    }
+   }
+  ],
+  "same_artist": [
+   {
+    "id": 21,
+    "path": "21-due-mani-fittizie",
+    "title": "Due mani fittizie",
+    "expression_types": [
+     "mural"
+    ],
+    "condition": {
+     "condition": "deteriorated",
+     "group": "present",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2022-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 11
+    },
+    "last_documented": null
+   }
+  ],
+  "same_series": []
+ }
 }

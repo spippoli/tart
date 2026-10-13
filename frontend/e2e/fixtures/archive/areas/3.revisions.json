@@ -1,66 +1,81 @@
 {
-	"record": {
-		"kind": "area",
-		"id": 3,
-		"path": "3-quartiere-immaginario",
-		"name": "Quartiere Immaginario",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 3,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "name",
-					"collection": null,
-					"old": null,
-					"new": "Quartiere Immaginario",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "geometry",
-					"collection": null,
-					"old": null,
-					"new": {
-						"type": "Polygon",
-						"coordinates": [
-							[
-								[12.47, 41.88],
-								[12.5, 41.88],
-								[12.5, 41.9],
-								[12.47, 41.9],
-								[12.47, 41.88]
-							]
-						]
-					},
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Area fittizia dei dati di prova.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {}
+ "record": {
+  "kind": "area",
+  "id": 3,
+  "path": "3-quartiere-immaginario",
+  "name": "Quartiere Immaginario",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 3,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "name",
+     "collection": null,
+     "old": null,
+     "new": "Quartiere Immaginario",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "geometry",
+     "collection": null,
+     "old": null,
+     "new": {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         12.47,
+         41.88
+        ],
+        [
+         12.5,
+         41.88
+        ],
+        [
+         12.5,
+         41.9
+        ],
+        [
+         12.47,
+         41.9
+        ],
+        [
+         12.47,
+         41.88
+        ]
+       ]
+      ]
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Area fittizia dei dati di prova.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
 }

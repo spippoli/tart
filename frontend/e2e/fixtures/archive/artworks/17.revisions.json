@@ -1,157 +1,159 @@
 {
-	"record": {
-		"kind": "artwork",
-		"id": 17,
-		"path": "17-ritratto-fittizio",
-		"name": "Ritratto fittizio",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 17,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "location",
-					"collection": null,
-					"old": null,
-					"new": 11,
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "expression_types",
-					"collection": null,
-					"old": null,
-					"new": ["mural"],
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "title",
-					"collection": null,
-					"old": null,
-					"new": "Ritratto fittizio",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "description",
-					"collection": null,
-					"old": null,
-					"new": "Opera fittizia, coperta da un'altra opera fittizia.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "attributions",
-					"old": null,
-					"new": null,
-					"item": {
-						"note": null,
-						"alias": null,
-						"artist": 9,
-						"certainty": "probable",
-						"citations": []
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 3,
-						"note": null,
-						"type": "created",
-						"covering": null,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2012-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "before"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "add",
-					"field": null,
-					"collection": "history_events",
-					"old": null,
-					"new": null,
-					"item": {
-						"id": 4,
-						"note": "Nota fittizia: coperto dal gatto.",
-						"type": "covered",
-						"covering": 16,
-						"citations": [],
-						"condition": null,
-						"observed_date": {
-							"first": "2019-01-01",
-							"second": null,
-							"precision": "year",
-							"qualifier": "exact"
-						}
-					},
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {
-		"9": {
-			"kind": "artist",
-			"id": 9,
-			"path": "9-lupo-inventato",
-			"name": "Lupo Inventato",
-			"location_title": null
-		},
-		"11": {
-			"kind": "location",
-			"id": 11,
-			"path": "11",
-			"name": null,
-			"location_title": {
-				"place_description": "Muro del cortile dell'ex deposito fittizio",
-				"surface_type": null,
-				"place": null
-			}
-		},
-		"16": {
-			"kind": "artwork",
-			"id": 16,
-			"path": "16-il-gatto-che-legge",
-			"name": "Il gatto che legge",
-			"location_title": null
-		}
-	}
+ "record": {
+  "kind": "artwork",
+  "id": 17,
+  "path": "17-ritratto-fittizio",
+  "name": "Ritratto fittizio",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 17,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 11,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "mural"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Ritratto fittizio",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia, coperta da un'altra opera fittizia.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": null,
+      "alias": null,
+      "artist": 9,
+      "certainty": "probable",
+      "citations": []
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 3,
+      "note": null,
+      "type": "created",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2012-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "before"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 4,
+      "note": "Nota fittizia: coperto dal gatto.",
+      "type": "covered",
+      "covering": 16,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2019-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "9": {
+   "kind": "artist",
+   "id": 9,
+   "path": "9-lupo-inventato",
+   "name": "Lupo Inventato",
+   "location_title": null
+  },
+  "11": {
+   "kind": "location",
+   "id": 11,
+   "path": "11",
+   "name": null,
+   "location_title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   }
+  },
+  "16": {
+   "kind": "artwork",
+   "id": 16,
+   "path": "16-il-gatto-che-legge",
+   "name": "Il gatto che legge",
+   "location_title": null
+  }
+ }
 }

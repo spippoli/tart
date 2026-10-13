@@ -1,89 +1,93 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "artist",
-	"id": 9,
-	"path": "9-lupo-inventato",
-	"name": "Lupo Inventato",
-	"artist_kind": "individual",
-	"aliases": [],
-	"period": null,
-	"biography": "Artista fittizio, membro di un collettivo fittizio.",
-	"areas": [],
-	"collectives": [
-		{
-			"artist": {
-				"kind": "artist",
-				"id": 8,
-				"path": "8-collettivo-vernice-assente",
-				"name": "Collettivo Vernice Assente",
-				"location_title": null
-			},
-			"period": {
-				"start": {
-					"precision": "year",
-					"qualifier": "exact",
-					"first": "2016-01-01",
-					"second": null
-				},
-				"end": {
-					"precision": "year",
-					"qualifier": "exact",
-					"first": "2019-01-01",
-					"second": null
-				}
-			}
-		}
-	],
-	"members": [],
-	"artworks": [
-		{
-			"artwork": {
-				"id": 17,
-				"path": "17-ritratto-fittizio",
-				"title": "Ritratto fittizio",
-				"expression_types": ["mural"],
-				"condition": {
-					"condition": "covered",
-					"group": "disappeared",
-					"since": {
-						"precision": "year",
-						"qualifier": "exact",
-						"first": "2019-01-01",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 4
-				},
-				"last_documented": null
-			},
-			"certainty": "probable",
-			"alias": null
-		},
-		{
-			"artwork": {
-				"id": 21,
-				"path": "21-due-mani-fittizie",
-				"title": "Due mani fittizie",
-				"expression_types": ["mural"],
-				"condition": {
-					"condition": "deteriorated",
-					"group": "present",
-					"since": {
-						"precision": "year",
-						"qualifier": "exact",
-						"first": "2022-01-01",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 11
-				},
-				"last_documented": null
-			},
-			"certainty": "disputed",
-			"alias": null
-		}
-	],
-	"sources": []
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artist",
+ "id": 9,
+ "path": "9-lupo-inventato",
+ "name": "Lupo Inventato",
+ "artist_kind": "individual",
+ "aliases": [],
+ "period": null,
+ "biography": "Artista fittizio, membro di un collettivo fittizio.",
+ "areas": [],
+ "collectives": [
+  {
+   "artist": {
+    "kind": "artist",
+    "id": 8,
+    "path": "8-collettivo-vernice-assente",
+    "name": "Collettivo Vernice Assente",
+    "location_title": null
+   },
+   "period": {
+    "start": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2016-01-01",
+     "second": null
+    },
+    "end": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2019-01-01",
+     "second": null
+    }
+   }
+  }
+ ],
+ "members": [],
+ "artworks": [
+  {
+   "artwork": {
+    "id": 17,
+    "path": "17-ritratto-fittizio",
+    "title": "Ritratto fittizio",
+    "expression_types": [
+     "mural"
+    ],
+    "condition": {
+     "condition": "covered",
+     "group": "disappeared",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2019-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 4
+    },
+    "last_documented": null
+   },
+   "certainty": "probable",
+   "alias": null
+  },
+  {
+   "artwork": {
+    "id": 21,
+    "path": "21-due-mani-fittizie",
+    "title": "Due mani fittizie",
+    "expression_types": [
+     "mural"
+    ],
+    "condition": {
+     "condition": "deteriorated",
+     "group": "present",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2022-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 11
+    },
+    "last_documented": null
+   },
+   "certainty": "disputed",
+   "alias": null
+  }
+ ],
+ "sources": []
 }

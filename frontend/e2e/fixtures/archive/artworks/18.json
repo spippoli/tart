@@ -1,263 +1,276 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "artwork",
-	"id": 18,
-	"path": "18",
-	"title": null,
-	"expression_types": ["stencil"],
-	"description": "Opera fittizia senza titolo.",
-	"condition": {
-		"condition": "missing",
-		"group": "disappeared",
-		"since": {
-			"precision": "year",
-			"qualifier": "circa",
-			"first": "2019-01-01",
-			"second": null
-		},
-		"evidence_level": "reported",
-		"event": 6
-	},
-	"last_documented": {
-		"precision": "day",
-		"qualifier": "exact",
-		"first": "2018-03-03",
-		"second": null
-	},
-	"first_documentation": {
-		"precision": "day",
-		"qualifier": "exact",
-		"first": "2018-03-03",
-		"second": null
-	},
-	"creation": null,
-	"attribution": {
-		"attributed": [
-			{
-				"artist": {
-					"kind": "artist",
-					"id": 7,
-					"path": "7-nebbia-finta",
-					"name": "Nebbia Finta",
-					"location_title": null
-				},
-				"certainty": "probable",
-				"alias": "NF",
-				"note": null,
-				"evidence_level": "reported",
-				"citations": []
-			}
-		],
-		"disputed": []
-	},
-	"gallery": [
-		{
-			"id": 25,
-			"path": "25",
-			"medium": "image",
-			"observed_date": {
-				"precision": "day",
-				"qualifier": "exact",
-				"first": "2018-03-03",
-				"second": null
-			},
-			"file": "00000000-0000-4000-8000-000000000001",
-			"renditions": {
-				"view": {
-					"width": 1280,
-					"height": 960
-				},
-				"large": {
-					"width": 1600,
-					"height": 1200
-				},
-				"thumbnail": {
-					"width": 480,
-					"height": 360
-				}
-			},
-			"alt_text": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",
-			"creator_credit": "Fotografa fittizia",
-			"licence": "CC-BY-SA-4.0",
-			"text": null,
-			"url": null,
-			"language": null
-		}
-	],
-	"where": {
-		"location": {
-			"id": 12,
-			"path": "12",
-			"title": {
-				"place_description": "Saracinesca fittizia di via Inventata 7",
-				"surface_type": null,
-				"place": null
-			},
-			"surface_type": "shutter",
-			"geometry": {
-				"type": "Point",
-				"coordinates": [12.48, 41.885]
-			},
-			"approximate": false,
-			"uncertainty_radius": null
-		},
-		"location_withdrawn": false,
-		"site": null,
-		"areas": [
-			{
-				"kind": "area",
-				"id": 3,
-				"path": "3-quartiere-immaginario",
-				"name": "Quartiere Immaginario",
-				"location_title": null
-			}
-		]
-	},
-	"series": [
-		{
-			"kind": "series",
-			"id": 6,
-			"path": "6-gatti-di-carta",
-			"name": "Gatti di carta",
-			"location_title": null
-		}
-	],
-	"timeline": {
-		"dated": [
-			{
-				"entry": "event",
-				"id": 5,
-				"type": "condition_recorded",
-				"observed_date": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2018-03-03",
-					"second": null
-				},
-				"condition": "intact",
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 18,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": null,
-				"covering": null
-			},
-			{
-				"entry": "item",
-				"id": 25,
-				"path": "25",
-				"medium": "image",
-				"observed_date": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2018-03-03",
-					"second": null
-				}
-			},
-			{
-				"entry": "event",
-				"id": 6,
-				"type": "condition_recorded",
-				"observed_date": {
-					"precision": "year",
-					"qualifier": "circa",
-					"first": "2019-01-01",
-					"second": null
-				},
-				"condition": "missing",
-				"submitted_at": "2025-01-10T09:31:00Z",
-				"approved_at": "2025-01-12T09:31:00Z",
-				"revision": 18,
-				"evidence_level": "reported",
-				"citations": [],
-				"note": null,
-				"covering": null
-			}
-		],
-		"undated": []
-	},
-	"sources": [],
-	"related": {
-		"same_location": [
-			{
-				"id": 19,
-				"path": "19-fiore-fittizio",
-				"title": "Fiore fittizio",
-				"expression_types": ["stencil"],
-				"condition": {
-					"condition": "destroyed",
-					"group": "disappeared",
-					"since": {
-						"precision": "day",
-						"qualifier": "exact",
-						"first": "2020-02-10",
-						"second": null
-					},
-					"evidence_level": "documented",
-					"event": 8
-				},
-				"last_documented": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2020-02-10",
-					"second": null
-				}
-			}
-		],
-		"same_artist": [
-			{
-				"id": 16,
-				"path": "16-il-gatto-che-legge",
-				"title": "Il gatto che legge",
-				"expression_types": ["mural", "stencil"],
-				"condition": {
-					"condition": "intact",
-					"group": "present",
-					"since": {
-						"precision": "day",
-						"qualifier": "exact",
-						"first": "2024-11-20",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 16
-				},
-				"last_documented": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2024-04-12",
-					"second": null
-				}
-			}
-		],
-		"same_series": [
-			{
-				"id": 16,
-				"path": "16-il-gatto-che-legge",
-				"title": "Il gatto che legge",
-				"expression_types": ["mural", "stencil"],
-				"condition": {
-					"condition": "intact",
-					"group": "present",
-					"since": {
-						"precision": "day",
-						"qualifier": "exact",
-						"first": "2024-11-20",
-						"second": null
-					},
-					"evidence_level": "reported",
-					"event": 16
-				},
-				"last_documented": {
-					"precision": "day",
-					"qualifier": "exact",
-					"first": "2024-04-12",
-					"second": null
-				}
-			}
-		]
-	}
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artwork",
+ "id": 18,
+ "path": "18",
+ "title": null,
+ "expression_types": [
+  "stencil"
+ ],
+ "description": "Opera fittizia senza titolo.",
+ "condition": {
+  "condition": "missing",
+  "group": "disappeared",
+  "since": {
+   "precision": "year",
+   "qualifier": "circa",
+   "first": "2019-01-01",
+   "second": null
+  },
+  "evidence_level": "reported",
+  "event": 6
+ },
+ "last_documented": {
+  "precision": "day",
+  "qualifier": "exact",
+  "first": "2018-03-03",
+  "second": null
+ },
+ "first_documentation": {
+  "precision": "day",
+  "qualifier": "exact",
+  "first": "2018-03-03",
+  "second": null
+ },
+ "creation": null,
+ "attribution": {
+  "attributed": [
+   {
+    "artist": {
+     "kind": "artist",
+     "id": 7,
+     "path": "7-nebbia-finta",
+     "name": "Nebbia Finta",
+     "location_title": null
+    },
+    "certainty": "probable",
+    "alias": "NF",
+    "note": null,
+    "evidence_level": "reported",
+    "citations": []
+   }
+  ],
+  "disputed": []
+ },
+ "gallery": [
+  {
+   "id": 25,
+   "path": "25",
+   "medium": "image",
+   "observed_date": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2018-03-03",
+    "second": null
+   },
+   "file": "00000000-0000-4000-8000-000000000001",
+   "renditions": {
+    "view": {
+     "width": 1280,
+     "height": 960
+    },
+    "large": {
+     "width": 1600,
+     "height": 1200
+    },
+    "thumbnail": {
+     "width": 480,
+     "height": 360
+    }
+   },
+   "alt_text": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",
+   "creator_credit": "Fotografa fittizia",
+   "licence": "CC-BY-SA-4.0",
+   "text": null,
+   "url": null,
+   "language": null
+  }
+ ],
+ "where": {
+  "location": {
+   "id": 12,
+   "path": "12",
+   "title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "shutter",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.48,
+     41.885
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  "location_withdrawn": false,
+  "site": null,
+  "areas": [
+   {
+    "kind": "area",
+    "id": 3,
+    "path": "3-quartiere-immaginario",
+    "name": "Quartiere Immaginario",
+    "location_title": null
+   }
+  ]
+ },
+ "series": [
+  {
+   "kind": "series",
+   "id": 6,
+   "path": "6-gatti-di-carta",
+   "name": "Gatti di carta",
+   "location_title": null
+  }
+ ],
+ "timeline": {
+  "dated": [
+   {
+    "entry": "event",
+    "id": 5,
+    "type": "condition_recorded",
+    "observed_date": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2018-03-03",
+     "second": null
+    },
+    "condition": "intact",
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 18,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   },
+   {
+    "entry": "item",
+    "id": 25,
+    "path": "25",
+    "medium": "image",
+    "observed_date": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2018-03-03",
+     "second": null
+    }
+   },
+   {
+    "entry": "event",
+    "id": 6,
+    "type": "condition_recorded",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "circa",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "condition": "missing",
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 18,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   }
+  ],
+  "undated": []
+ },
+ "sources": [],
+ "related": {
+  "same_location": [
+   {
+    "id": 19,
+    "path": "19-fiore-fittizio",
+    "title": "Fiore fittizio",
+    "expression_types": [
+     "stencil"
+    ],
+    "condition": {
+     "condition": "destroyed",
+     "group": "disappeared",
+     "since": {
+      "precision": "day",
+      "qualifier": "exact",
+      "first": "2020-02-10",
+      "second": null
+     },
+     "evidence_level": "documented",
+     "event": 8
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2020-02-10",
+     "second": null
+    }
+   }
+  ],
+  "same_artist": [
+   {
+    "id": 16,
+    "path": "16-il-gatto-che-legge",
+    "title": "Il gatto che legge",
+    "expression_types": [
+     "mural",
+     "stencil"
+    ],
+    "condition": {
+     "condition": "intact",
+     "group": "present",
+     "since": {
+      "precision": "day",
+      "qualifier": "exact",
+      "first": "2024-11-20",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 16
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-04-12",
+     "second": null
+    }
+   }
+  ],
+  "same_series": [
+   {
+    "id": 16,
+    "path": "16-il-gatto-che-legge",
+    "title": "Il gatto che legge",
+    "expression_types": [
+     "mural",
+     "stencil"
+    ],
+    "condition": {
+     "condition": "intact",
+     "group": "present",
+     "since": {
+      "precision": "day",
+      "qualifier": "exact",
+      "first": "2024-11-20",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 16
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-04-12",
+     "second": null
+    }
+   }
+  ]
+ }
 }

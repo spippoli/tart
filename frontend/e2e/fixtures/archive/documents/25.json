@@ -1,67 +1,69 @@
 {
-	"redacted_fields": [],
-	"withdrawn_at": null,
-	"redactions": [],
-	"kind": "documentation_item",
-	"id": 25,
-	"path": "25",
-	"medium": "image",
-	"observed_date": {
-		"precision": "day",
-		"qualifier": "exact",
-		"first": "2018-03-03",
-		"second": null
-	},
-	"submitted_at": "2025-01-10T09:31:00Z",
-	"approved_at": "2025-01-12T09:31:00Z",
-	"file": "00000000-0000-4000-8000-000000000001",
-	"renditions": {
-		"view": {
-			"width": 1280,
-			"height": 960
-		},
-		"large": {
-			"width": 1600,
-			"height": 1200
-		},
-		"thumbnail": {
-			"width": 480,
-			"height": 360
-		}
-	},
-	"alt_text": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",
-	"creator_credit": "Fotografa fittizia",
-	"licence": "CC-BY-SA-4.0",
-	"rights_basis": "own_work",
-	"origin_url": null,
-	"text": null,
-	"url": null,
-	"language": null,
-	"artworks": [
-		{
-			"id": 18,
-			"path": "18",
-			"title": null,
-			"expression_types": ["stencil"],
-			"condition": {
-				"condition": "missing",
-				"group": "disappeared",
-				"since": {
-					"precision": "year",
-					"qualifier": "circa",
-					"first": "2019-01-01",
-					"second": null
-				},
-				"evidence_level": "reported",
-				"event": 6
-			},
-			"last_documented": {
-				"precision": "day",
-				"qualifier": "exact",
-				"first": "2018-03-03",
-				"second": null
-			}
-		}
-	],
-	"location": null
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "documentation_item",
+ "id": 25,
+ "path": "25",
+ "medium": "image",
+ "observed_date": {
+  "precision": "day",
+  "qualifier": "exact",
+  "first": "2018-03-03",
+  "second": null
+ },
+ "submitted_at": "2025-01-10T09:31:00Z",
+ "approved_at": "2025-01-12T09:31:00Z",
+ "file": "00000000-0000-4000-8000-000000000001",
+ "renditions": {
+  "view": {
+   "width": 1280,
+   "height": 960
+  },
+  "large": {
+   "width": 1600,
+   "height": 1200
+  },
+  "thumbnail": {
+   "width": 480,
+   "height": 360
+  }
+ },
+ "alt_text": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",
+ "creator_credit": "Fotografa fittizia",
+ "licence": "CC-BY-SA-4.0",
+ "rights_basis": "own_work",
+ "origin_url": null,
+ "text": null,
+ "url": null,
+ "language": null,
+ "artworks": [
+  {
+   "id": 18,
+   "path": "18",
+   "title": null,
+   "expression_types": [
+    "stencil"
+   ],
+   "condition": {
+    "condition": "missing",
+    "group": "disappeared",
+    "since": {
+     "precision": "year",
+     "qualifier": "circa",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 6
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2018-03-03",
+    "second": null
+   }
+  }
+ ],
+ "location": null
 }

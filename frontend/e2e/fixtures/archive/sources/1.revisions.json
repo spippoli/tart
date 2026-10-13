@@ -1,104 +1,104 @@
 {
-	"record": {
-		"kind": "source",
-		"id": 1,
-		"path": "1",
-		"name": "Muri che parlano, n. 3",
-		"location_title": null
-	},
-	"merged_into": null,
-	"withdrawn_at": null,
-	"revisions": [
-		{
-			"id": 1,
-			"submitter": "Contributrice fittizia",
-			"submitted_at": "2025-01-10T09:31:00Z",
-			"approved_at": "2025-01-12T09:31:00Z",
-			"changes": [
-				{
-					"op": "set",
-					"field": "title",
-					"collection": null,
-					"old": null,
-					"new": "Muri che parlano, n. 3",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "author",
-					"collection": null,
-					"old": null,
-					"new": "Redazione immaginaria",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "publication",
-					"collection": null,
-					"old": null,
-					"new": "Fanzine fittizia",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "date",
-					"collection": null,
-					"old": null,
-					"new": {
-						"first": "2019-01-01",
-						"second": null,
-						"precision": "year",
-						"qualifier": "exact"
-					},
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "url",
-					"collection": null,
-					"old": null,
-					"new": "https://example.org/fittizio/muri-che-parlano-3",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "note",
-					"collection": null,
-					"old": null,
-					"new": "Fonte fittizia, inventata per i dati di prova.",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				},
-				{
-					"op": "set",
-					"field": "language",
-					"collection": null,
-					"old": null,
-					"new": "it",
-					"item": null,
-					"redacted": false,
-					"redacted_at": null,
-					"old_redacted": false
-				}
-			]
-		}
-	],
-	"records": {}
+ "record": {
+  "kind": "source",
+  "id": 1,
+  "path": "1",
+  "name": "Muri che parlano, n. 3",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 1,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Muri che parlano, n. 3",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "author",
+     "collection": null,
+     "old": null,
+     "new": "Redazione immaginaria",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "publication",
+     "collection": null,
+     "old": null,
+     "new": "Fanzine fittizia",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "date",
+     "collection": null,
+     "old": null,
+     "new": {
+      "first": "2019-01-01",
+      "second": null,
+      "precision": "year",
+      "qualifier": "exact"
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "url",
+     "collection": null,
+     "old": null,
+     "new": "https://example.org/fittizio/muri-che-parlano-3",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "note",
+     "collection": null,
+     "old": null,
+     "new": "Fonte fittizia, inventata per i dati di prova.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "language",
+     "collection": null,
+     "old": null,
+     "new": "it",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
 }
