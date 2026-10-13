@@ -20,6 +20,7 @@ export function archiveContext() {
 		dates: { locale, timeZone: data.timeZone },
 		contentLanguage: data.contentLanguage,
 		expressionType: vocabularyLabels(data.expressionTypes ?? [], locale),
-		surfaceType: vocabularyLabels(data.surfaceTypes ?? [], locale)
+		surfaceType: vocabularyLabels(data.surfaceTypes ?? [], locale),
+		separator: ', '
 	};
 }
