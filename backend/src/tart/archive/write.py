@@ -24,6 +24,7 @@ from tart.archive.records import (
     Certainty,
     CrewMembership,
     DocumentationItem,
+    HistoryEvent,
     Kind,
     Location,
     Medium,
@@ -38,7 +39,15 @@ from tart.archive.records import (
 from tart.archive.revisions import Provenance, Revision, change_list
 from tart.archive.rules import InstanceRules, check_record
 
-_HOLDS_REFERENCES = (Record, Attribution, CrewMembership, SetField, AddItem, ChangeItem)
+_HOLDS_REFERENCES = (
+    Record,
+    Attribution,
+    CrewMembership,
+    HistoryEvent,
+    SetField,
+    AddItem,
+    ChangeItem,
+)
 
 
 def _resolve(value: Any, ids: dict[str, RecordId]) -> Any:
@@ -122,6 +131,42 @@ def _collection(record: Record, collection: str) -> tuple[Any, ...]:
     return getattr(record, collection)
 
 
+def _new_events(operation: Operation) -> tuple[HistoryEvent, ...]:
+    """The History events the operation creates.
+
+    A History event gets its id from the write operation, so a new one is named by
+    `New`, in a namespace of its own: an event's key never names a record.
+    """
+    match operation:
+        case Create(record=Artwork() as artwork):
+            events = artwork.history_events
+        case AddItem(item=HistoryEvent() as event):
+            events = (event,)
+        case ChangeItem(item=HistoryEvent(id=New())):
+            raise ArchiveRuleViolation("changeset.unknown_item")
+        case _:
+            return ()
+    if not all(isinstance(event.id, New) for event in events):
+        raise ArchiveRuleViolation("changeset.history_event_not_new")
+    return events
+
+
+def _with_event_ids(operation: Operation, event_ids: dict[str, int]) -> Operation:
+    """The operation with each new History event given its allocated id."""
+
+    def named(event: HistoryEvent) -> HistoryEvent:
+        assert isinstance(event.id, New)
+        return replace(event, id=event_ids[event.id.key])
+
+    match operation:
+        case Create(record=Artwork() as artwork):
+            events = tuple(named(event) for event in artwork.history_events)
+            return Create(operation.ref, replace(artwork, history_events=events))
+        case AddItem(item=HistoryEvent() as event):
+            return replace(operation, item=named(event))
+    return operation
+
+
 def _references(record: Record) -> list[tuple[RecordId, tuple[Kind, ...]]]:
     """Every record this one links to, with the kinds the link accepts."""
     sources = [(source, (Kind.SOURCE,)) for source in getattr(record, "sources", ())]
@@ -129,14 +174,20 @@ def _references(record: Record) -> list[tuple[RecordId, tuple[Kind, ...]]]:
         case Artwork():
             citations = [
                 (cited, (Kind.SOURCE, Kind.DOCUMENTATION_ITEM))
-                for attribution in record.attributions
-                for cited in attribution.citations
+                for claim in (*record.attributions, *record.history_events)
+                for cited in claim.citations
+            ]
+            covering = [
+                (event.covering, (Kind.ARTWORK,))
+                for event in record.history_events
+                if event.covering is not None
             ]
             return [
                 (record.location, (Kind.LOCATION,)),
                 *[(series, (Kind.SERIES,)) for series in record.series],
                 *[(attribution.artist, (Kind.ARTIST,)) for attribution in record.attributions],
                 *citations,
+                *covering,
                 *sources,
             ]
         case Location():
@@ -161,6 +212,12 @@ async def _check_references(changes: _Changes) -> None:
             target = await changes.current(record_id)
             if target is None or target.KIND not in kinds:
                 raise ArchiveRuleViolation("changeset.invalid_reference")
+
+
+def _check_covering(changes: _Changes) -> None:
+    for artwork_id, artwork in changes.of_type(Artwork).items():
+        if any(event.covering == artwork_id for event in artwork.history_events):
+            raise ArchiveRuleViolation("history_event.covering_itself")
 
 
 async def _check_attributions(changes: _Changes) -> None:
@@ -267,15 +324,21 @@ async def apply_changeset(
     """
     submitted_on = provenance.submitted_at.astimezone(rules.time_zone).date()
     ids: dict[str, RecordId] = {}
+    event_ids: dict[str, int] = {}
     for operation in changeset:
         if isinstance(operation, Create):
             if operation.ref.key in ids:
                 raise ArchiveRuleViolation("changeset.duplicate_new_record")
             ids[operation.ref.key] = await store.allocate_id(operation.record.KIND)
+        for event in _new_events(operation):
+            assert isinstance(event.id, New)
+            if event.id.key in event_ids:
+                raise ArchiveRuleViolation("changeset.duplicate_new_event")
+            event_ids[event.id.key] = await store.allocate_history_event_id()
 
     changes = _Changes(store)
     for operation in changeset:
-        resolved = _resolve(operation, ids)
+        resolved = _resolve(_with_event_ids(operation, event_ids), ids)
         if isinstance(resolved, Create):
             record_id = ids[resolved.ref.key]
             changes.before[record_id] = None
@@ -287,6 +350,7 @@ async def apply_changeset(
     for record_id, record in changes.after.items():
         check_record(record, changes.before[record_id], rules, submitted_on)
     await _check_references(changes)
+    _check_covering(changes)
     await _check_attributions(changes)
     await _check_aliases_in_use(changes)
     await _check_crews(changes)

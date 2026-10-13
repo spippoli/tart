@@ -6,13 +6,16 @@ from importlib.metadata import version
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import PlainTextResponse
 
-from tart import tiles
-from tart.api import map_style
+from tart import health, jobs, tiles
+from tart.api import auth, csrf, map_style, media
+from tart.api import health as health_api
 from tart.config import config_dir
 from tart.config.public import PublicConfiguration, public_configuration
+from tart.db import create_engine
+from tart.messages import load_catalogue
 from tart.startup import start
+from tart.storage import open_storage
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +32,18 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         config_dir(os.environ), configuration.environment.PMTILES_PATH
     ):
         logger.warning("basemap: %s", warning)
-    yield
+    app.state.catalogue = load_catalogue()
+    app.state.health_settings = health.Settings.from_environment(configuration.environment)
+    database_url = configuration.environment.DATABASE_URL.get_secret_value()
+    app.state.engine = create_engine(database_url)
+    # The api only defers jobs, such as emails; the `worker` runs them.
+    app.state.jobs = jobs.create_app(jobs.connector_for(database_url))
+    try:
+        async with open_storage(configuration.environment) as storage, app.state.jobs.open_async():
+            app.state.storage = storage
+            yield
+    finally:
+        await app.state.engine.dispose()
 
 
 def get_public_configuration(request: Request) -> PublicConfiguration:
@@ -48,11 +62,6 @@ def create_app() -> FastAPI:
         lifespan=_lifespan,
     )
 
-    @app.get("/api/health", response_class=PlainTextResponse)
-    def health() -> str:
-        # Liveness only; the Health module (Operations spec) adds the checks.
-        return "ok"
-
     @app.get("/api/config")
     def config(
         public: Annotated[PublicConfiguration, Depends(get_public_configuration)],
@@ -60,5 +69,9 @@ def create_app() -> FastAPI:
         """The public subset of the Instance configuration, which the frontend caches."""
         return public
 
+    app.middleware("http")(csrf.check)
+    app.include_router(auth.router)
+    app.include_router(health_api.router)
     app.include_router(map_style.router)
+    app.include_router(media.router)
     return app

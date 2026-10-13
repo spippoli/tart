@@ -219,6 +219,7 @@ def test_the_endpoint_carries_the_public_subset() -> None:
         "map_tile_origins",
         "vocabularies",
         "registration",
+        "min_age",
         "licenses",
         "terms_version",
         "texts",
@@ -226,5 +227,6 @@ def test_the_endpoint_carries_the_public_subset() -> None:
     assert body["identity"]["logo"]["light"].startswith("<svg")
     assert body["identity"]["accent"] == {"light": "#7A2E1C", "dark": "#F0A08C"}
     assert body["contacts"]["dsa"] == "dsa@example.org"
+    assert (body["registration"], body["min_age"]) == ("open", 14)
     assert body["geography"]["bounds"] == [12.40, 41.85, 12.56, 41.95]
     assert body["texts"]["privacy"].startswith("# privacy")

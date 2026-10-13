@@ -33,29 +33,29 @@ font.
 
 ## Map
 
-**Placeholder.** The map style files (`map/style.light.json`, `map/style.dark.json`)
-and their assets in `map/` are a provisional copy of the tests' fixture style, there
-only so that this directory passes the map style rules: the font, glyph, and sprite
-files are empty, and the map would not render. Rome's real style, the ADR 0017
-reference style with its fonts and the walls and archaeology overlay, replaces them
-in [#144](https://github.com/spippoli/tart/issues/144).
+`map/` holds Rome's map style, the ADR 0017 reference style, with its fonts and the
+walls and archaeology overlay; `map/README.md` describes it and how to rebuild its
+derived files.
 
 ## Licences
 
 The content of this directory (`instance.toml`, the vocabularies, the texts, the
-identity files, and the map style files when they arrive) is licensed under
+identity files, and the map style files) is licensed under
 [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
 (SPDX `CC-BY-4.0`), so that another Instance can start from it. Credit it as "Rome
 Urban Art Archive configuration, from the TART repository". CC BY covers copyright
 only: it grants no right to use the archive's name or logo as the identity of
 another archive.
 
-Two exceptions:
+The exceptions:
 
-- `geography/boundary.geojson` is OpenStreetMap data under the ODbL (see
-  `geography/README.md`).
-- The scripts in `geography/` (`boundary.py`, `boundary.overpassql`) are software,
-  under the TART software licence (`LICENSE` at the repository root).
+- `geography/boundary.geojson` and `map/overlay.geojson` are OpenStreetMap data under
+  the ODbL (see `geography/README.md` and `map/README.md`).
+- The fonts and glyphs in `map/fonts/` and `map/glyphs/` are under the SIL Open Font
+  License 1.1, whose text is beside them.
+- The scripts (`geography/boundary.py`, `geography/boundary.overpassql`,
+  `map/small_caps.py`, `map/overlay.overpassql`, `map/overlay.jq`) are software, under
+  the TART software licence (`LICENSE` at the repository root).
 
 The TART software licence does not cover the rest of this directory, and the Data
 licence of the archive's records (`licenses.data` in `instance.toml`) is a separate

@@ -39,6 +39,8 @@ jobs:
             frontend:
               - *workflow
               - frontend/**
+              # The frontend checks Rome's reference style and its vendored fonts.
+              - instances/rome/map/**
             images:
               - *workflow
               - backend/**
@@ -128,6 +130,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm check
       - run: pnpm test:unit
+      # Style-spec conformance of the reference style (Discovery spec, Map style ownership).
+      - run: pnpm check:styles
       - name: Read Playwright version
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"

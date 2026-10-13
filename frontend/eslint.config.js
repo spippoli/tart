@@ -27,6 +27,23 @@ export default defineConfig(
 		}
 	},
 	{
+		// The map module's engine is the only code that imports MapLibre (ADR 0004).
+		ignores: ['src/lib/map/engine.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							regex: '^(maplibre-gl|pmtiles)(/|$)',
+							message: 'Only src/lib/map/engine.ts imports MapLibre (ADR 0004).'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {

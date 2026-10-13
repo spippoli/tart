@@ -38,7 +38,8 @@ const PERMISSIVE = new Set([
 	'PSF-2.0',
 	'Python-2.0',
 	'Zlib',
-	'BlueOak-1.0.0'
+	'BlueOak-1.0.0',
+	'MIT-0'
 ]);
 const WEAK_COPYLEFT = new Set([
 	'LGPL-2.1-only',

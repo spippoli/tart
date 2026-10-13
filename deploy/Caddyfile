@@ -1,7 +1,32 @@
 {$TART_SITE_ADDRESS:localhost} {
+	# The access log, with full client IP addresses, for abuse and incident handling. It
+	# goes to stderr and so to the host's journal, which drops it after 14 days at most;
+	# Caddy leaves the Cookie and Authorization headers out (Operations spec, 5. Monitoring).
+	log
+	# The client's address goes to `api` and `frontend` in this header, which Caddy
+	# always overwrites; the app reads the client IP from nowhere else, never from
+	# X-Forwarded-For (Foundations spec, Rate limits). `api` must stay unreachable
+	# except through Caddy and `frontend`.
+	# Uploads (Foundations spec, 3): one file per request, at most the Instance's
+	# `media.max_upload_mb` plus 1 MB of multipart framing, set as
+	# TART_UPLOAD_BODY_LIMIT; `api` checks the file's exact size. A larger body gets
+	# the same translatable error code as the app's refusal.
+	@upload {
+		method POST
+		path /api/media
+	}
+	request_body @upload {
+		max_size {$TART_UPLOAD_BODY_LIMIT:26MiB}
+	}
+	handle_errors 413 {
+		header Content-Type application/json
+		respond `{"code":"file_too_large"}` 413
+	}
 	@api path /api /api/*
 	handle @api {
-		reverse_proxy api:8000
+		reverse_proxy api:8000 {
+			header_up X-Tart-Client-IP {client_ip}
+		}
 	}
 	# Basemap extracts from the tiles volume (Discovery spec, Basemap tiles): byte
 	# ranges, no `encode`, and immutable, since each file name carries its build.
@@ -25,6 +50,8 @@
 		}
 	}
 	handle {
-		reverse_proxy frontend:3000
+		reverse_proxy frontend:3000 {
+			header_up X-Tart-Client-IP {client_ip}
+		}
 	}
 }

@@ -4,7 +4,9 @@ Every name and text here is fictional and describes no real artwork or artist.
 """
 
 import asyncio
+import itertools
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -12,11 +14,15 @@ from conftest import VALID_CONFIG
 
 from tart.archive import (
     Artwork,
+    Condition,
     DocumentationItem,
     Geometry,
     GeometryKind,
+    HistoryEvent,
+    HistoryEventType,
     Location,
     Medium,
+    New,
     Operation,
     Precision,
     Provenance,
@@ -62,8 +68,44 @@ def location(**values: Any) -> Location:
     return Location(**{"geometry": point(), "surface_type": "building_wall", **values})
 
 
+_event_keys = itertools.count(1)
+
+
+def event(
+    event_type: HistoryEventType = HistoryEventType.CONDITION_RECORDED, **values: Any
+) -> HistoryEvent:
+    """A new History event; a Condition record of `intact` unless told otherwise."""
+    if event_type is HistoryEventType.CONDITION_RECORDED:
+        values.setdefault("condition", Condition.INTACT)
+    return HistoryEvent(
+        **{
+            "id": New(f"event-{next(_event_keys)}"),
+            "type": event_type,
+            "observed_date": OBSERVED,
+            **values,
+        }
+    )
+
+
 def artwork(location_ref: Ref, **values: Any) -> Artwork:
-    return Artwork(**{"location": location_ref, "expression_types": ("stencil",), **values})
+    """A new Artwork with the Condition record every new Artwork needs."""
+    return Artwork(
+        **{
+            "location": location_ref,
+            "expression_types": ("stencil",),
+            "history_events": (event(),),
+            **values,
+        }
+    )
+
+
+def without_event_ids(record: Record | None) -> Record | None:
+    """The record with its History events' ids blanked, to compare a stored record with
+    what a builder made: the write operation gives each new event its id."""
+    if not isinstance(record, Artwork):
+        return record
+    events = tuple(replace(event, id=0) for event in record.history_events)
+    return replace(record, history_events=events)
 
 
 def image(*artworks: Ref, **values: Any) -> DocumentationItem:

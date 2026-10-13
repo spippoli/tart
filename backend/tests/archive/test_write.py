@@ -16,6 +16,7 @@ from archive_fixtures import (
     location,
     point,
     square,
+    without_event_ids,
 )
 from conftest import VALID_CONFIG, fetch_value
 
@@ -97,7 +98,11 @@ def test_a_changeset_creates_its_records_with_one_revision_each(archive: Archive
         Kind.DOCUMENTATION_ITEM,
     ]
     location_id, artwork_id, image_id = archive.ids(revisions)
-    assert archive.get(artwork_id) == artwork(location_id, title="Fictional cat")
+    stored = archive.get(artwork_id)
+    assert isinstance(stored, Artwork)
+    assert without_event_ids(stored) == without_event_ids(
+        artwork(location_id, title="Fictional cat")
+    )
     assert archive.get(image_id) == image(artwork_id)
     for revision in revisions:
         assert revision.provenance == PROVENANCE
@@ -109,6 +114,24 @@ def test_a_changeset_creates_its_records_with_one_revision_each(archive: Archive
         {"op": "set", "field": "location", "old": None, "new": location_id},
         {"op": "set", "field": "expression_types", "old": None, "new": ["stencil"]},
         {"op": "set", "field": "title", "old": None, "new": "Fictional cat"},
+        {
+            "op": "add",
+            "collection": "history_events",
+            "item": {
+                "id": stored.history_events[0].id,
+                "type": "condition_recorded",
+                "observed_date": {
+                    "precision": "year",
+                    "qualifier": "exact",
+                    "first": "2024-01-01",
+                    "second": None,
+                },
+                "condition": "intact",
+                "note": None,
+                "citations": [],
+                "covering": None,
+            },
+        },
     )
 
 
@@ -199,7 +222,7 @@ def test_criterion_4_removing_items_never_deletes_records(archive: Archive) -> N
     archive.write(RemoveItem(artwork_id, "series", series_id))
 
     assert archive.get(series_id) == Series("Fictional cats")
-    assert archive.get(artwork_id) == artwork(location_id)
+    assert without_event_ids(archive.get(artwork_id)) == without_event_ids(artwork(location_id))
     assert _rejected(archive, SetField(artwork_id, "location", None)) == (
         "artwork.location_required"
     )
@@ -433,7 +456,9 @@ def test_criterion_47_an_artwork_can_belong_to_several_series(archive: Archive) 
         )
     )[:2]
 
-    assert archive.get(artwork_id) == artwork(location_id, series=(first, second))
+    assert without_event_ids(archive.get(artwork_id)) == without_event_ids(
+        artwork(location_id, series=(first, second))
+    )
 
 
 def test_criterion_47_a_collective_cannot_be_its_own_member(archive: Archive) -> None:
@@ -676,7 +701,9 @@ def test_every_record_kind_reads_back_as_written(archive: Archive) -> None:
 
     ids = dict(zip(records, archive.ids(revisions), strict=True))
     for key, record in records.items():
-        assert archive.get(ids[key]) == _with_ids(record, ids)
+        assert without_event_ids(archive.get(ids[key])) == without_event_ids(
+            _with_ids(record, ids)  # type: ignore[arg-type]
+        )
 
 
 def _with_ids(value: object, ids: dict[str, int]) -> object:
@@ -707,7 +734,7 @@ def test_the_vocabulary_keys_in_use_are_checked_against_the_configuration(
         "surface_types": (),
     }
 
-    issues = asyncio.run(check_database(replace(instance, vocabularies=without_stencil)))
+    issues = asyncio.run(check_database(replace(instance, vocabularies=without_stencil))).issues
 
     assert [(issue.file, "artwork" in issue.message) for issue in issues] == [
         ("vocabularies/expression_types.toml", True),
