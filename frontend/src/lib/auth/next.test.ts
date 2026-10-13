@@ -16,7 +16,12 @@ describe('the return page after sign-in', () => {
 		'//evil.example/',
 		'/\\evil.example',
 		'javascript:alert(1)',
-		'en/about'
+		'en/about',
+		'/.//evil.example',
+		'/..//evil.example',
+		'/a/..//evil.example',
+		'/%2e//evil.example',
+		'/.\t//evil.example'
 	])('refuses %s', (value) => {
 		expect(safeNext(value, ORIGIN)).toBeNull();
 	});
