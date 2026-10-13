@@ -20,6 +20,9 @@ importers:
       '@inlang/plugin-message-format':
         specifier: 4.4.4
         version: 4.4.4
+      '@maplibre/maplibre-gl-style-spec':
+        specifier: 26.4.4
+        version: 26.4.4
       '@playwright/test':
         specifier: 1.64.0
         version: 1.64.0

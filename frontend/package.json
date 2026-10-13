@@ -17,6 +17,7 @@
 		"api:generate": "node scripts/api-schema.ts",
 		"check:licences": "node scripts/licences.ts",
 		"check:assets": "node scripts/assets.ts",
+		"check:styles": "gl-style-validate ../instances/rome/map/style.light.json ../instances/rome/map/style.dark.json",
 		"test": "pnpm test:unit && pnpm test:e2e"
 	},
 	"devDependencies": {
@@ -24,6 +25,7 @@
 		"@eslint/js": "10.0.1",
 		"@inlang/paraglide-js": "2.25.4",
 		"@inlang/plugin-message-format": "4.4.4",
+		"@maplibre/maplibre-gl-style-spec": "26.4.4",
 		"@playwright/test": "1.64.0",
 		"@sveltejs/adapter-node": "6.0.0",
 		"@sveltejs/kit": "3.0.1",

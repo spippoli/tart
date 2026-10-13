@@ -1,5 +1,20 @@
 {
 	"$comment": "Third-party assets vendored into the repository (ADR 0016 §3); checked by scripts/assets.ts. Paths are relative to the repository root. Each entry: path, licence (SPDX), source, credit, and reservedFontName (string or null) for a font.",
-	"directories": [],
-	"assets": []
+	"directories": ["instances/rome/map/fonts", "instances/rome/map/glyphs"],
+	"assets": [
+		{
+			"path": "instances/rome/map/fonts",
+			"licence": "OFL-1.1",
+			"source": "https://github.com/google/fonts/tree/main/ofl/sortsmillgoudy (SortsMillGoudy-SmallCaps.ttf derived from the Regular by instances/rome/map/small_caps.py)",
+			"credit": "Sorts Mill Goudy by Barry Schwartz",
+			"reservedFontName": null
+		},
+		{
+			"path": "instances/rome/map/glyphs",
+			"licence": "OFL-1.1",
+			"source": "https://github.com/protomaps/basemaps-assets/tree/main/fonts/Noto%20Sans%20Regular",
+			"credit": "Noto Sans by the Noto Project Authors, glyphs by Protomaps",
+			"reservedFontName": null
+		}
+	]
 }
