@@ -379,7 +379,7 @@ From [#38](https://github.com/spippoli/tart/issues/38), recorded in [ADR 0009](.
 ### Overlays
 
 - The Instance configuration repository holds each overlay GeoJSON under `map/`, together with the Overpass QL query that produces it and a README with the command (Overpass API plus `osmtogeojson`, MIT). The Operator regenerates and commits it by hand, which meets the ODbL "method to recreate" duty ([ADR 0016](../adr/0016-licence-policy-for-map-assets-and-data.md)). There is no platform command.
-- Rome's overlay: `historic=city_walls`, `archaeological_site`, and `ruins` within the boundary.
+- Rome's overlay: city walls (`barrier=city_wall` or `historic=citywalls`; OpenStreetMap has no `historic=city_walls`) and `historic=archaeological_site` or `ruins`, drawn as lines or areas within the boundary.
 - Overlays are drawn by the Instance style, below the archive layers. They never flow into archive data.
 
 ## Testing Decisions
