@@ -5,6 +5,9 @@ what it gives to store: the original, the renditions, the suggestions, or an err
 """
 
 import io
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from media_fixtures import (
@@ -250,3 +253,43 @@ def test_an_animated_webp_keeps_only_its_first_frame() -> None:
     assert red > 245 and green < 10 and blue < 10
     thumbnail = _open(result.renditions[Rendition.THUMBNAIL][0]).convert("RGB")
     assert thumbnail.getpixel((10, 10))[0] > 200
+
+
+# Processing a 100-megapixel image, the largest accepted, in a fresh interpreter: its peak
+# memory in MB past the interpreter's own. A full-size RGBA bitmap is 400 MB; WebP and AVIF
+# decoders hold their own buffers besides. The worker's memory limit (WORKER_MEMORY_LIMIT,
+# 2g by default) holds the worst case with room for the worker itself (#227).
+PEAK_MB = {"JPEG": 200, "PNG": 750, "AVIF": 1000, "WEBP": 1650}
+_PEAK = r"""
+import re, sys
+from tart.media.processing import Processed, process
+
+def kilobytes(field):
+    with open("/proc/self/status") as status:
+        return int(re.search(field + r":\s+(\d+) kB", status.read())[1])
+
+data = open(sys.argv[1], "rb").read()
+before = kilobytes("VmRSS")
+assert isinstance(process(data, int(sys.argv[2])), Processed)
+print((kilobytes("VmHWM") - before) // 1024)
+"""
+
+
+@pytest.mark.skipif(not Path("/proc/self/status").exists(), reason="reads Linux's /proc")
+@pytest.mark.parametrize("file_format", PEAK_MB)
+def test_a_100_megapixel_image_fits_the_worker_memory(file_format: str, tmp_path: Path) -> None:
+    mode = "RGBA" if file_format == "PNG" else "RGB"  # PNG with alpha is the worst of PNGs
+    options = {"PNG": {"compress_level": 1}, "WEBP": {"method": 0}, "AVIF": {"speed": 10}}
+    path = tmp_path / "image"
+    path.write_bytes(
+        encode(picture(10_000, 10_000, mode), file_format, **options.get(file_format, {}))
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", _PEAK, str(path), str(CAP)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert int(result.stdout) < PEAK_MB[file_format]
