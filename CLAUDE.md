@@ -72,6 +72,7 @@ pnpm build                 # fails on a message key missing from any catalogue i
 pnpm api:generate          # regenerate src/lib/api/schema.d.ts from openapi.json
 pnpm check:licences        # dependency licence allow-list (reviews in licences.json)
 pnpm check:assets          # third-party asset manifest (third-party-assets.json)
+pnpm check:styles          # gl-style-validate on Rome's reference map style
 ```
 
 The message catalogues are `frontend/messages/{it,en}.json` (Paraglide) and `backend/src/tart/messages/{it,en}.json` (emails). The unit tests of both sides run the missing-key, OpenAPI drift, licence, and asset manifest checks, so CI fails on any of them.
@@ -97,6 +98,12 @@ Rome's configuration directory, the reference Instance (run in `instances/rome/g
 
 ```sh
 uv run boundary.py         # rebuild boundary.geojson from OpenStreetMap (Overpass API, ODbL)
+```
+
+In `instances/rome/map/` (the overlay's command, with `osmtogeojson` and `jq`, is in its README):
+
+```sh
+uv run small_caps.py       # rebuild the Sorts Mill Goudy small caps face from the Regular
 ```
 
 Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls the released images at `TART_VERSION`. Development layers `compose.dev.yaml` over it to build from source: copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, `SESSION_KEY`, `SMTP_HOST`, and `SMTP_FROM` (with `--profile dev`, Mailpit: `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`), point `CONFIG_DIR` at a configuration directory, set `TART_VERSION=dev`, and uncomment `COMPOSE_FILE=compose.yaml:compose.dev.yaml`. Every service logs into the host's journal; without journald (Docker Desktop), set `TART_LOG_DRIVER=json-file`.
