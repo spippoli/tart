@@ -192,6 +192,9 @@ class ListEntry(ArtworkCard):
 
     location: int
     """The Location it is on: what "Show on map" selects."""
+    location_point: tuple[float, float] | None = None
+    """Where that Location's sign sits (longitude, latitude), to centre the map on; `null`
+    when redacted."""
     site: RecordLink | None
     area: RecordLink | None
     """The first of its Areas by name; the "where" line shows the Site, else this."""

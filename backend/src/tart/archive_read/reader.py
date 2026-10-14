@@ -540,6 +540,7 @@ class Reader:
         return v.ListEntry(
             **card.model_dump(),
             location=artwork.location,  # type: ignore[arg-type]
+            location_point=where.location.point if where.location else None,
             site=where.site,
             area=where.areas[0] if where.areas else None,
             approximate=bool(where.location and where.location.approximate),

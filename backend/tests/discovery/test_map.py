@@ -254,3 +254,15 @@ def test_the_panel_entries_carry_what_a_list_entry_shows(
     assert entry["condition"]["group"] == "present"
     assert entry["last_documented"]["first"] == "2020-01-01"
     assert entry["thumbnail"] is not None and entry["latest_item_medium"] == "image"
+
+
+def test_an_entry_says_where_its_locations_sign_sits_for_show_on_map(
+    world: World, discovery: Discovery
+) -> None:
+    place = world.place()
+    world.artwork("Qui", at=place)
+
+    [entry] = discovery.artworks()["entries"]
+
+    assert entry["location"] == place
+    assert entry["location_point"] == [12.4823, 41.8955]
