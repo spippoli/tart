@@ -1,0 +1,44 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artist",
+ "id": 10,
+ "path": "10-ombra-supposta",
+ "name": "Ombra Supposta",
+ "artist_kind": "individual",
+ "aliases": [],
+ "period": null,
+ "biography": "Artista fittizio, di cui nessuna fonte è certa.",
+ "areas": [],
+ "collectives": [],
+ "members": [],
+ "artworks": [
+  {
+   "artwork": {
+    "id": 21,
+    "path": "21-due-mani-fittizie",
+    "title": "Due mani fittizie",
+    "expression_types": [
+     "mural"
+    ],
+    "condition": {
+     "condition": "deteriorated",
+     "group": "present",
+     "since": {
+      "precision": "year",
+      "qualifier": "exact",
+      "first": "2022-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 11
+    },
+    "last_documented": null
+   },
+   "certainty": "disputed",
+   "alias": null
+  }
+ ],
+ "sources": []
+}

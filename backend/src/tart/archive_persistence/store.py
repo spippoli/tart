@@ -101,9 +101,10 @@ class PostgresArchiveStore:
         return Revision(revision_id, record_id, kind, provenance, changes)
 
     async def public_records(self, record_ids: Iterable[RecordId]) -> frozenset[RecordId]:
-        # Every stored record is public until Withdrawal (Rights and legal actions) exists.
         result = await self.connection.scalars(
-            select(t.record.c.id).where(t.record.c.id.in_(list(record_ids)))
+            select(t.record.c.id).where(
+                t.record.c.id.in_(list(record_ids)), t.record.c.withdrawn_at.is_(None)
+            )
         )
         return frozenset(result)
 

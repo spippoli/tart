@@ -1,0 +1,44 @@
+{
+ "record": {
+  "kind": "site",
+  "id": 5,
+  "path": "5-ex-deposito-dei-tram-fittizio",
+  "name": "Ex deposito dei tram fittizio",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 5,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "name",
+     "collection": null,
+     "old": null,
+     "new": "Ex deposito dei tram fittizio",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Sito fittizio: un deposito dismesso che non esiste.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
+}

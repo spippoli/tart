@@ -1,0 +1,247 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "area",
+ "id": 3,
+ "path": "3-quartiere-immaginario",
+ "name": "Quartiere Immaginario",
+ "description": "Area fittizia dei dati di prova.",
+ "geometry": {
+  "type": "Polygon",
+  "coordinates": [
+   [
+    [
+     12.47,
+     41.88
+    ],
+    [
+     12.5,
+     41.88
+    ],
+    [
+     12.5,
+     41.9
+    ],
+    [
+     12.47,
+     41.9
+    ],
+    [
+     12.47,
+     41.88
+    ]
+   ]
+  ]
+ },
+ "locations": [
+  {
+   "id": 11,
+   "path": "11",
+   "title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.495,
+     41.895
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  {
+   "id": 12,
+   "path": "12",
+   "title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "shutter",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.48,
+     41.885
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  {
+   "id": 14,
+   "path": "14",
+   "title": {
+    "place_description": "Muro di cinta fittizio lungo via Immaginaria",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      12.47,
+      41.9
+     ],
+     [
+      12.4712,
+      41.9004
+     ]
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  }
+ ],
+ "artworks": [
+  {
+   "id": 16,
+   "path": "16-il-gatto-che-legge",
+   "title": "Il gatto che legge",
+   "expression_types": [
+    "mural",
+    "stencil"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-11-20",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 16
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2024-04-12",
+    "second": null
+   }
+  },
+  {
+   "id": 17,
+   "path": "17-ritratto-fittizio",
+   "title": "Ritratto fittizio",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "covered",
+    "group": "disappeared",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 4
+   },
+   "last_documented": null
+  },
+  {
+   "id": 18,
+   "path": "18",
+   "title": null,
+   "expression_types": [
+    "stencil"
+   ],
+   "condition": {
+    "condition": "missing",
+    "group": "disappeared",
+    "since": {
+     "precision": "year",
+     "qualifier": "circa",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 6
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2018-03-03",
+    "second": null
+   }
+  },
+  {
+   "id": 19,
+   "path": "19-fiore-fittizio",
+   "title": "Fiore fittizio",
+   "expression_types": [
+    "stencil"
+   ],
+   "condition": {
+    "condition": "destroyed",
+    "group": "disappeared",
+    "since": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2020-02-10",
+     "second": null
+    },
+    "evidence_level": "documented",
+    "event": 8
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2020-02-10",
+    "second": null
+   }
+  },
+  {
+   "id": 20,
+   "path": "20-occhio-fittizio",
+   "title": "Occhio fittizio",
+   "expression_types": [
+    "stencil"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2023-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 9
+   },
+   "last_documented": null
+  },
+  {
+   "id": 21,
+   "path": "21-due-mani-fittizie",
+   "title": "Due mani fittizie",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "deteriorated",
+    "group": "present",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2022-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 11
+   },
+   "last_documented": null
+  }
+ ],
+ "sources": []
+}

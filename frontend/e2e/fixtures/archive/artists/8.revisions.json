@@ -1,0 +1,79 @@
+{
+ "record": {
+  "kind": "artist",
+  "id": 8,
+  "path": "8-collettivo-vernice-assente",
+  "name": "Collettivo Vernice Assente",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 8,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "name",
+     "collection": null,
+     "old": null,
+     "new": "Collettivo Vernice Assente",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "kind",
+     "collection": null,
+     "old": null,
+     "new": "collective",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "biography",
+     "collection": null,
+     "old": null,
+     "new": "Collettivo fittizio.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "period",
+     "collection": null,
+     "old": null,
+     "new": {
+      "end": {
+       "first": "2020-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      },
+      "start": {
+       "first": "2015-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      }
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
+}

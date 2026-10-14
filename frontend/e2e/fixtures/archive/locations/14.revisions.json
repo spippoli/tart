@@ -1,0 +1,78 @@
+{
+ "record": {
+  "kind": "location",
+  "id": 14,
+  "path": "14",
+  "name": null,
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 14,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "geometry",
+     "collection": null,
+     "old": null,
+     "new": {
+      "type": "LineString",
+      "coordinates": [
+       [
+        12.47,
+        41.9
+       ],
+       [
+        12.4712,
+        41.9004
+       ]
+      ]
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "surface_type",
+     "collection": null,
+     "old": null,
+     "new": "building_wall",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "approximate",
+     "collection": null,
+     "old": null,
+     "new": false,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "place_description",
+     "collection": null,
+     "old": null,
+     "new": "Muro di cinta fittizio lungo via Immaginaria",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {}
+}

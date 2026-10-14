@@ -51,8 +51,10 @@ uv run tart users suspend <email> --reason TEXT   # and `unsuspend <email>`; the
 uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
 uv run tart jobs failed     # failed background jobs, never their arguments; `jobs retry <id|--all>` queues them again
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
+uv run python -m tart.fictional seed [--locations 10000]   # fictional dataset into an empty archive, with its images; development and tests only
 uv run python -m tart.api.openapi > ../frontend/src/lib/api/openapi.json   # after an API change; then pnpm api:generate
 uv run python tools/licences.py    # dependency licence allow-list (also run by pytest; reviews in licences.toml)
+TART_WRITE_FIXTURES=1 uv run pytest tests/archive/test_archive_e2e_fixtures.py   # after an archive API change: the frontend e2e fixtures
 ```
 
 The tests that need a database start a PostGIS container through testcontainers, so they need Docker. `api` and `worker` refuse to start unless the database at `DATABASE_URL` (`postgresql+asyncpg://...`) is at the code's migration head; nothing migrates at startup. They also refuse an invalid Instance configuration: the directory at `CONFIG_DIR` plus the environment (`PUBLIC_BASE_URL`, `SESSION_KEY`, `SMTP_HOST`, `SMTP_FROM`, ...; see `deploy/.env.example`). The tests' fictional configuration is `backend/tests/fixtures/config/valid`, with one fixture directory per failure beside it. The worker runs Procrastinate (`tart.jobs`); its tables come from the Alembic chain, so never run `procrastinate schema --apply`.
@@ -113,6 +115,7 @@ docker compose up --build              # caddy, frontend, api, worker, db
 docker compose run --rm api tart migrate   # first start and after pulling migrations
 docker compose run --rm api tart config check --database   # before a deploy
 docker compose run --rm api tart tiles update   # at installation and after a boundary change; Caddy serves /tiles/
+docker compose run --rm api python -m tart.fictional seed   # development only: the fictional dataset, into an empty archive
 docker compose --profile dev up --build   # also Mailpit, UI on :8025
 docker compose down                    # add -v to drop the volumes
 ```

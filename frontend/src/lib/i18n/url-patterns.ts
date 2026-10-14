@@ -33,6 +33,40 @@ const pages: Record<string, Record<PlatformLanguage, string>> = {
 	'/about/tart': { it: '/informazioni/tart', en: '/about/tart' }
 };
 
+/**
+ * Record routes (archive-records spec, Public record pages): the kind's segment, then
+ * the record's `{id}-{slug}` (or bare id), then its `/revisions` subpage. The indexes
+ * of Artists, Sites, Areas, and Series are the bare segment.
+ */
+const records: Record<string, Record<PlatformLanguage, string>> = {
+	'/artworks': { it: '/opere', en: '/artworks' },
+	'/artists': { it: '/artisti', en: '/artists' },
+	'/locations': { it: '/superfici', en: '/locations' },
+	'/sites': { it: '/luoghi', en: '/sites' },
+	'/areas': { it: '/aree', en: '/areas' },
+	'/series': { it: '/serie', en: '/series' },
+	'/sources': { it: '/fonti', en: '/sources' },
+	'/documents': { it: '/documenti', en: '/documents' }
+};
+
+/** The report form of Rights and legal actions, which every record page links to. */
+pages['/report'] = { it: '/segnala', en: '/report' };
+
+const revisions: Record<PlatformLanguage, string> = { it: 'revisioni', en: 'revisions' };
+
+for (const [route, paths] of Object.entries(records)) {
+	const each = (suffix: (language: PlatformLanguage) => string) =>
+		Object.fromEntries(
+			Object.entries(paths).map(([language, path]) => [
+				language,
+				path + suffix(language as PlatformLanguage)
+			])
+		) as Record<PlatformLanguage, string>;
+	pages[`${route}/:ref/revisions`] = each((language) => `/:ref/${revisions[language]}`);
+	pages[`${route}/:ref`] = each(() => '/:ref');
+	pages[route] = paths;
+}
+
 const languages: PlatformLanguage[] = ['it', 'en'];
 
 export interface UrlPattern {

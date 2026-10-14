@@ -1,0 +1,210 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artwork",
+ "id": 19,
+ "path": "19-fiore-fittizio",
+ "title": "Fiore fittizio",
+ "expression_types": [
+  "stencil"
+ ],
+ "description": "Opera fittizia, distrutta con la sostituzione della saracinesca.",
+ "condition": {
+  "condition": "destroyed",
+  "group": "disappeared",
+  "since": {
+   "precision": "day",
+   "qualifier": "exact",
+   "first": "2020-02-10",
+   "second": null
+  },
+  "evidence_level": "documented",
+  "event": 8
+ },
+ "last_documented": {
+  "precision": "day",
+  "qualifier": "exact",
+  "first": "2020-02-10",
+  "second": null
+ },
+ "first_documentation": {
+  "precision": "day",
+  "qualifier": "exact",
+  "first": "2020-02-10",
+  "second": null
+ },
+ "creation": {
+  "precision": "year",
+  "qualifier": "circa",
+  "first": "2015-01-01",
+  "second": null
+ },
+ "attribution": {
+  "attributed": [],
+  "disputed": []
+ },
+ "gallery": [
+  {
+   "id": 26,
+   "path": "26",
+   "medium": "image",
+   "observed_date": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2020-02-10",
+    "second": null
+   },
+   "file": "00000000-0000-4000-8000-000000000001",
+   "renditions": {
+    "view": {
+     "width": 1280,
+     "height": 960
+    },
+    "large": {
+     "width": 1600,
+     "height": 1200
+    },
+    "thumbnail": {
+     "width": 480,
+     "height": 360
+    }
+   },
+   "alt_text": "Immagine fittizia: una saracinesca nuova, senza l'opera.",
+   "creator_credit": "Fotografa fittizia",
+   "licence": "CC-BY-SA-4.0",
+   "text": null,
+   "url": null,
+   "language": null
+  }
+ ],
+ "where": {
+  "location": {
+   "id": 12,
+   "path": "12",
+   "title": {
+    "place_description": "Saracinesca fittizia di via Inventata 7",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "shutter",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.48,
+     41.885
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  "location_withdrawn": false,
+  "site": null,
+  "areas": [
+   {
+    "kind": "area",
+    "id": 3,
+    "path": "3-quartiere-immaginario",
+    "name": "Quartiere Immaginario",
+    "location_title": null
+   }
+  ]
+ },
+ "series": [],
+ "timeline": {
+  "dated": [
+   {
+    "entry": "event",
+    "id": 7,
+    "type": "created",
+    "observed_date": {
+     "precision": "year",
+     "qualifier": "circa",
+     "first": "2015-01-01",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 19,
+    "evidence_level": "reported",
+    "citations": [],
+    "note": null,
+    "covering": null
+   },
+   {
+    "entry": "event",
+    "id": 8,
+    "type": "destroyed",
+    "observed_date": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2020-02-10",
+     "second": null
+    },
+    "condition": null,
+    "submitted_at": "2025-01-10T09:31:00Z",
+    "approved_at": "2025-01-12T09:31:00Z",
+    "revision": 19,
+    "evidence_level": "documented",
+    "citations": [
+     {
+      "kind": "documentation_item",
+      "id": 26,
+      "path": "26",
+      "name": null,
+      "location_title": null
+     }
+    ],
+    "note": null,
+    "covering": null
+   },
+   {
+    "entry": "item",
+    "id": 26,
+    "path": "26",
+    "medium": "image",
+    "observed_date": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2020-02-10",
+     "second": null
+    }
+   }
+  ],
+  "undated": []
+ },
+ "sources": [],
+ "related": {
+  "same_location": [
+   {
+    "id": 18,
+    "path": "18",
+    "title": null,
+    "expression_types": [
+     "stencil"
+    ],
+    "condition": {
+     "condition": "missing",
+     "group": "disappeared",
+     "since": {
+      "precision": "year",
+      "qualifier": "circa",
+      "first": "2019-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 6
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2018-03-03",
+     "second": null
+    }
+   }
+  ],
+  "same_artist": [],
+  "same_series": []
+ }
+}

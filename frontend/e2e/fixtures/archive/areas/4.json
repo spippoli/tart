@@ -1,0 +1,149 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "area",
+ "id": 4,
+ "path": "4-rione-di-prova",
+ "name": "Rione di Prova",
+ "description": "Area fittizia che si sovrappone al Quartiere Immaginario.",
+ "geometry": {
+  "type": "Polygon",
+  "coordinates": [
+   [
+    [
+     12.49,
+     41.89
+    ],
+    [
+     12.52,
+     41.89
+    ],
+    [
+     12.52,
+     41.91
+    ],
+    [
+     12.49,
+     41.91
+    ],
+    [
+     12.49,
+     41.89
+    ]
+   ]
+  ]
+ },
+ "locations": [
+  {
+   "id": 11,
+   "path": "11",
+   "title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.495,
+     41.895
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  },
+  {
+   "id": 13,
+   "path": "13",
+   "title": {
+    "place_description": "Muro fittizio vicino a un sottopasso, posizione approssimativa",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.51,
+     41.905
+    ]
+   },
+   "approximate": true,
+   "uncertainty_radius": 150
+  }
+ ],
+ "artworks": [
+  {
+   "id": 16,
+   "path": "16-il-gatto-che-legge",
+   "title": "Il gatto che legge",
+   "expression_types": [
+    "mural",
+    "stencil"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-11-20",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 16
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2024-04-12",
+    "second": null
+   }
+  },
+  {
+   "id": 17,
+   "path": "17-ritratto-fittizio",
+   "title": "Ritratto fittizio",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "covered",
+    "group": "disappeared",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 4
+   },
+   "last_documented": null
+  },
+  {
+   "id": 22,
+   "path": "22-onda-fittizia",
+   "title": "Onda fittizia",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "modified",
+    "group": "present",
+    "since": {
+     "precision": "year",
+     "qualifier": "after",
+     "first": "2022-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 14
+   },
+   "last_documented": null
+  }
+ ],
+ "sources": []
+}

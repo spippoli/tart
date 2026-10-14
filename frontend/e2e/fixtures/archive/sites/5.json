@@ -1,0 +1,83 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "site",
+ "id": 5,
+ "path": "5-ex-deposito-dei-tram-fittizio",
+ "name": "Ex deposito dei tram fittizio",
+ "description": "Sito fittizio: un deposito dismesso che non esiste.",
+ "geometry": null,
+ "locations": [
+  {
+   "id": 11,
+   "path": "11",
+   "title": {
+    "place_description": "Muro del cortile dell'ex deposito fittizio",
+    "surface_type": null,
+    "place": null
+   },
+   "surface_type": "building_wall",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     12.495,
+     41.895
+    ]
+   },
+   "approximate": false,
+   "uncertainty_radius": null
+  }
+ ],
+ "artworks": [
+  {
+   "id": 16,
+   "path": "16-il-gatto-che-legge",
+   "title": "Il gatto che legge",
+   "expression_types": [
+    "mural",
+    "stencil"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-11-20",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 16
+   },
+   "last_documented": {
+    "precision": "day",
+    "qualifier": "exact",
+    "first": "2024-04-12",
+    "second": null
+   }
+  },
+  {
+   "id": 17,
+   "path": "17-ritratto-fittizio",
+   "title": "Ritratto fittizio",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "covered",
+    "group": "disappeared",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2019-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 4
+   },
+   "last_documented": null
+  }
+ ],
+ "sources": []
+}

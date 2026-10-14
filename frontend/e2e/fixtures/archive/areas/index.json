@@ -1,0 +1,21 @@
+{
+ "items": [
+  {
+   "kind": "area",
+   "id": 3,
+   "path": "3-quartiere-immaginario",
+   "name": "Quartiere Immaginario",
+   "location_title": null
+  },
+  {
+   "kind": "area",
+   "id": 4,
+   "path": "4-rione-di-prova",
+   "name": "Rione di Prova",
+   "location_title": null
+  }
+ ],
+ "page": 1,
+ "page_size": 24,
+ "total": 2
+}

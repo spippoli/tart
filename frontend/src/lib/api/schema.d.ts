@@ -21,6 +21,346 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/archive/artworks/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a artwork */
+        get: operations["artwork_view_api_archive_artworks__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/artworks/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a artwork */
+        get: operations["artwork_revisions_api_archive_artworks__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/artists/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a artist */
+        get: operations["artist_view_api_archive_artists__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/artists/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a artist */
+        get: operations["artist_revisions_api_archive_artists__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/artists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The index of artists, by name */
+        get: operations["artist_index_api_archive_artists_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/locations/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a location */
+        get: operations["location_view_api_archive_locations__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/locations/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a location */
+        get: operations["location_revisions_api_archive_locations__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/sites/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a site */
+        get: operations["site_view_api_archive_sites__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/sites/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a site */
+        get: operations["site_revisions_api_archive_sites__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/sites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The index of sites, by name */
+        get: operations["site_index_api_archive_sites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/areas/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a area */
+        get: operations["area_view_api_archive_areas__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/areas/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a area */
+        get: operations["area_revisions_api_archive_areas__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The index of areas, by name */
+        get: operations["area_index_api_archive_areas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/series/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a series */
+        get: operations["series_view_api_archive_series__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/series/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a series */
+        get: operations["series_revisions_api_archive_series__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The index of series, by name */
+        get: operations["series_index_api_archive_series_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/sources/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a source */
+        get: operations["source_view_api_archive_sources__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/sources/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a source */
+        get: operations["source_revisions_api_archive_sources__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/documents/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The view of a documentation item */
+        get: operations["document_view_api_archive_documents__record_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/archive/documents/{record_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Revisions of a documentation item */
+        get: operations["document_revisions_api_archive_documents__record_id__revisions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/code": {
         parameters: {
             query?: never;
@@ -441,12 +781,190 @@ export interface components {
             /** Preferred Language */
             preferred_language: string;
         };
+        /**
+         * ArtistKind
+         * @enum {string}
+         */
+        ArtistKind: "individual" | "collective";
+        /** ArtistView */
+        ArtistView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @default artist
+             * @constant
+             */
+            kind: "artist";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Name */
+            name: string | null;
+            artist_kind: components["schemas"]["ArtistKind"];
+            /** Aliases */
+            aliases: string[];
+            period: components["schemas"]["Period"] | null;
+            /** Biography */
+            biography: string | null;
+            /** Areas */
+            areas: components["schemas"]["RecordLink"][];
+            /** Collectives */
+            collectives: components["schemas"]["Membership"][];
+            /** Members */
+            members: components["schemas"]["Membership"][];
+            /** Artworks */
+            artworks: components["schemas"]["AttributedArtwork"][];
+            /** Sources */
+            sources: components["schemas"]["RecordLink"][];
+        };
+        /**
+         * ArtworkCard
+         * @description An Artwork in a list: its Condition and latest documentation date only.
+         */
+        ArtworkCard: {
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Title */
+            title: string | null;
+            /** Expression Types */
+            expression_types: string[];
+            condition: components["schemas"]["ConditionView"];
+            last_documented: components["schemas"]["UncertainDate"] | null;
+        };
+        /** ArtworkView */
+        ArtworkView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @default artwork
+             * @constant
+             */
+            kind: "artwork";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Title */
+            title: string | null;
+            /** Expression Types */
+            expression_types: string[];
+            /** Description */
+            description: string | null;
+            condition: components["schemas"]["ConditionView"];
+            last_documented: components["schemas"]["UncertainDate"] | null;
+            first_documentation: components["schemas"]["UncertainDate"] | null;
+            creation: components["schemas"]["UncertainDate"] | null;
+            attribution: components["schemas"]["AttributionReadout"];
+            /** Gallery */
+            gallery: components["schemas"]["DocumentationSummary"][];
+            where: components["schemas"]["Where"];
+            /** Series */
+            series: components["schemas"]["RecordLink"][];
+            timeline: components["schemas"]["TimelineView"];
+            /** Sources */
+            sources: components["schemas"]["RecordLink"][];
+            related: components["schemas"]["Related"];
+        };
+        /** AttributedArtwork */
+        AttributedArtwork: {
+            artwork: components["schemas"]["ArtworkCard"];
+            certainty: components["schemas"]["Certainty"];
+            /** Alias */
+            alias: string | null;
+        };
         /** Attribution */
         Attribution: {
             /** Text */
             text: string;
             /** Url */
             url: string;
+        };
+        /**
+         * AttributionReadout
+         * @description Both empty: "Unknown artist".
+         */
+        AttributionReadout: {
+            /** Attributed */
+            attributed: components["schemas"]["ShownAttribution"][];
+            /** Disputed */
+            disputed: components["schemas"]["ShownAttribution"][];
+        };
+        /**
+         * Certainty
+         * @enum {string}
+         */
+        Certainty: "confirmed" | "probable" | "disputed";
+        /**
+         * Change
+         * @description One operation of a Revision's change list, values as stored.
+         */
+        Change: {
+            /**
+             * Op
+             * @enum {string}
+             */
+            op: "set" | "add" | "change" | "remove";
+            /** Field */
+            field?: string | null;
+            /** Collection */
+            collection?: string | null;
+            /** Old */
+            old?: unknown;
+            /** New */
+            new?: unknown;
+            /** Item */
+            item?: unknown;
+            /**
+             * Redacted
+             * @default false
+             */
+            redacted: boolean;
+            /** Redacted At */
+            redacted_at?: string | null;
+            /**
+             * Old Redacted
+             * @default false
+             */
+            old_redacted: boolean;
+        };
+        /**
+         * Citation
+         * @description A cited Source or Documentation item.
+         */
+        Citation: {
+            kind: components["schemas"]["Kind"];
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Name */
+            name?: string | null;
+            location_title?: components["schemas"]["LocationTitle"] | null;
         };
         /** CodeAttemptBody */
         CodeAttemptBody: {
@@ -470,6 +988,27 @@ export interface components {
              */
             website: string;
         };
+        /**
+         * Condition
+         * @description An Artwork's physical state, always derived from its physical history.
+         * @enum {string}
+         */
+        Condition: "intact" | "deteriorated" | "damaged" | "modified" | "covered" | "removed" | "destroyed" | "missing" | "unknown";
+        /**
+         * ConditionGroup
+         * @description Whether the Artwork can still be seen where it is, never whether it is public.
+         * @enum {string}
+         */
+        ConditionGroup: "present" | "disappeared" | "unknown";
+        /** ConditionView */
+        ConditionView: {
+            condition: components["schemas"]["Condition"];
+            group: components["schemas"]["ConditionGroup"];
+            since: components["schemas"]["UncertainDate"] | null;
+            evidence_level: components["schemas"]["EvidenceLevel"] | null;
+            /** Event */
+            event: number | null;
+        };
         /** Contacts */
         Contacts: {
             /** General */
@@ -488,6 +1027,97 @@ export interface components {
             /** Zoom */
             zoom: number;
         };
+        /** DocumentationItemView */
+        DocumentationItemView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @default documentation_item
+             * @constant
+             */
+            kind: "documentation_item";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            medium: components["schemas"]["Medium"];
+            observed_date: components["schemas"]["UncertainDate"];
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Approved At
+             * Format: date-time
+             */
+            approved_at: string;
+            /** File */
+            file: string | null;
+            /** Renditions */
+            renditions: {
+                [key: string]: components["schemas"]["tart__archive_read__views__Rendition"];
+            } | null;
+            /** Alt Text */
+            alt_text: string | null;
+            /** Creator Credit */
+            creator_credit: string | null;
+            /** Licence */
+            licence: string | null;
+            rights_basis: components["schemas"]["RightsBasis"] | null;
+            /** Origin Url */
+            origin_url: string | null;
+            /** Text */
+            text: string | null;
+            /** Url */
+            url: string | null;
+            /** Language */
+            language: string | null;
+            /** Artworks */
+            artworks: components["schemas"]["ArtworkCard"][];
+            location: components["schemas"]["LocationSummary"] | null;
+        };
+        /**
+         * DocumentationSummary
+         * @description A Documentation item in a gallery or a list.
+         */
+        DocumentationSummary: {
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            medium: components["schemas"]["Medium"];
+            observed_date: components["schemas"]["UncertainDate"];
+            /** File */
+            file?: string | null;
+            /** Renditions */
+            renditions?: {
+                [key: string]: components["schemas"]["tart__archive_read__views__Rendition"];
+            } | null;
+            /** Alt Text */
+            alt_text?: string | null;
+            /** Creator Credit */
+            creator_credit?: string | null;
+            /** Licence */
+            licence?: string | null;
+            /** Text */
+            text?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Language */
+            language?: string | null;
+        };
         /** EmailChangeBody */
         EmailChangeBody: {
             /** Email */
@@ -503,6 +1133,42 @@ export interface components {
             /** Code */
             code: string;
         };
+        /** EventEntry */
+        EventEntry: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            entry: "event";
+            /** Id */
+            id: number;
+            type: components["schemas"]["HistoryEventType"];
+            observed_date: components["schemas"]["UncertainDate"];
+            condition: components["schemas"]["Condition"] | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Approved At
+             * Format: date-time
+             */
+            approved_at: string;
+            /** Revision */
+            revision: number;
+            evidence_level: components["schemas"]["EvidenceLevel"];
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            /** Note */
+            note: string | null;
+            covering: components["schemas"]["RecordLink"] | null;
+        };
+        /**
+         * EvidenceLevel
+         * @enum {string}
+         */
+        EvidenceLevel: "documented" | "reported";
         /** Geography */
         Geography: {
             /** Country */
@@ -546,6 +1212,12 @@ export interface components {
             /** Checks */
             checks: components["schemas"]["HealthCheck"][];
         };
+        /**
+         * HistoryEventType
+         * @description The closed vocabulary of History event types (ADR 0009).
+         * @enum {string}
+         */
+        HistoryEventType: "created" | "condition_recorded" | "deteriorated" | "damaged" | "modified" | "covered" | "removed" | "destroyed" | "attribution_changed";
         /** Identity */
         Identity: {
             /** Name */
@@ -557,6 +1229,36 @@ export interface components {
             favicon: string;
             accent: components["schemas"]["Accent"];
         };
+        /** IndexPage */
+        IndexPage: {
+            /** Items */
+            items: components["schemas"]["RecordLink"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** ItemEntry */
+        ItemEntry: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            entry: "item";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            medium: components["schemas"]["Medium"];
+            observed_date: components["schemas"]["UncertainDate"];
+        };
+        /**
+         * Kind
+         * @enum {string}
+         */
+        Kind: "artwork" | "location" | "site" | "area" | "series" | "artist" | "source" | "documentation_item";
         /** Languages */
         Languages: {
             /** Content */
@@ -573,6 +1275,81 @@ export interface components {
             /** Data Attribution */
             data_attribution: string | null;
         };
+        /** LocationSummary */
+        LocationSummary: {
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            title: components["schemas"]["LocationTitle"];
+            /** Surface Type */
+            surface_type: string;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            } | null;
+            /** Approximate */
+            approximate: boolean;
+            /** Uncertainty Radius */
+            uncertainty_radius: number | null;
+        };
+        /**
+         * LocationTitle
+         * @description What the title is made of; with all three absent the UI shows "Location {id}".
+         */
+        LocationTitle: {
+            /** Place Description */
+            place_description?: string | null;
+            /** Surface Type */
+            surface_type?: string | null;
+            /** Place */
+            place?: string | null;
+        };
+        /** LocationView */
+        LocationView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @default location
+             * @constant
+             */
+            kind: "location";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            title: components["schemas"]["LocationTitle"];
+            /** Place Description */
+            place_description: string | null;
+            /** Surface Type */
+            surface_type: string;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            } | null;
+            /** Approximate */
+            approximate: boolean;
+            /** Uncertainty Radius */
+            uncertainty_radius: number | null;
+            site: components["schemas"]["RecordLink"] | null;
+            /** Areas */
+            areas: components["schemas"]["RecordLink"][];
+            /** Stratigraphy */
+            stratigraphy: components["schemas"]["ArtworkCard"][];
+            /** Disappearances */
+            disappearances: components["schemas"]["DocumentationSummary"][];
+        };
         /** Logo */
         Logo: {
             /** Light */
@@ -581,6 +1358,16 @@ export interface components {
             dark: string;
             /** Alt */
             alt: string;
+        };
+        /**
+         * Medium
+         * @enum {string}
+         */
+        Medium: "image" | "pdf" | "text" | "link";
+        /** Membership */
+        Membership: {
+            artist: components["schemas"]["RecordLink"];
+            period: components["schemas"]["Period"] | null;
         };
         /** NewPasskey */
         NewPasskey: {
@@ -610,6 +1397,57 @@ export interface components {
              */
             created_at: string;
         };
+        /** Period */
+        Period: {
+            start?: components["schemas"]["UncertainDate"] | null;
+            end?: components["schemas"]["UncertainDate"] | null;
+        };
+        /**
+         * PlaceView
+         * @description A Site, an Area, or a Series.
+         */
+        PlaceView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "site" | "area" | "series";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Name */
+            name: string | null;
+            /** Description */
+            description: string | null;
+            /** Geometry */
+            geometry?: {
+                [key: string]: unknown;
+            } | null;
+            /** Locations */
+            locations: components["schemas"]["LocationSummary"][];
+            /** Artworks */
+            artworks: components["schemas"]["ArtworkCard"][];
+            /** Sources */
+            sources: components["schemas"]["RecordLink"][];
+        };
+        /**
+         * Precision
+         * @enum {string}
+         */
+        Precision: "day" | "month" | "year" | "decade" | "unknown";
         /** PublicConfiguration */
         PublicConfiguration: {
             identity: components["schemas"]["Identity"];
@@ -635,6 +1473,11 @@ export interface components {
             terms_version: number;
             texts: components["schemas"]["Texts"];
         };
+        /**
+         * Qualifier
+         * @enum {string}
+         */
+        Qualifier: "exact" | "circa" | "before" | "after";
         /** RateLimitedError */
         RateLimitedError: {
             /**
@@ -645,6 +1488,35 @@ export interface components {
             /** Retry After */
             retry_after: number;
         };
+        /**
+         * RecordLink
+         * @description A link to a public record page.
+         */
+        RecordLink: {
+            kind: components["schemas"]["Kind"];
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Name */
+            name?: string | null;
+            location_title?: components["schemas"]["LocationTitle"] | null;
+        };
+        /**
+         * Redaction
+         * @description For Moderators: a value or item hidden from the public by a Redaction.
+         */
+        Redaction: {
+            /** Field */
+            field: string;
+            /** Item */
+            item?: unknown;
+            /**
+             * Redacted At
+             * Format: date-time
+             */
+            redacted_at: string;
+        };
         /** RegistrationBody */
         RegistrationBody: {
             /** Display Name */
@@ -652,15 +1524,73 @@ export interface components {
             /** Age Confirmed */
             age_confirmed: boolean;
         };
+        /** Related */
+        Related: {
+            /** Same Location */
+            same_location: components["schemas"]["ArtworkCard"][];
+            /** Same Artist */
+            same_artist: components["schemas"]["ArtworkCard"][];
+            /** Same Series */
+            same_series: components["schemas"]["ArtworkCard"][];
+        };
         /**
          * Rendition
          * @description The public renditions, all WebP, by long edge.
          * @enum {string}
          */
-        Rendition: "thumbnail" | "view" | "large";
+        "Rendition-Input": "thumbnail" | "view" | "large";
+        /** RevisionView */
+        RevisionView: {
+            /** Id */
+            id: number;
+            /** Submitter */
+            submitter: string | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Approved At
+             * Format: date-time
+             */
+            approved_at: string;
+            /** Changes */
+            changes: components["schemas"]["Change"][];
+        };
+        /** RevisionsView */
+        RevisionsView: {
+            record: components["schemas"]["RecordLink"];
+            merged_into: components["schemas"]["RecordLink"] | null;
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /** Revisions */
+            revisions: components["schemas"]["RevisionView"][];
+            /** Records */
+            records: {
+                [key: string]: components["schemas"]["RecordLink"];
+            };
+        };
+        /**
+         * RightsBasis
+         * @enum {string}
+         */
+        RightsBasis: "own_work" | "third_party";
         /** SessionState */
         SessionState: {
             user: components["schemas"]["SignedInUser"] | null;
+        };
+        /** ShownAttribution */
+        ShownAttribution: {
+            artist: components["schemas"]["RecordLink"];
+            certainty: components["schemas"]["Certainty"];
+            /** Alias */
+            alias: string | null;
+            /** Note */
+            note: string | null;
+            evidence_level: components["schemas"]["EvidenceLevel"];
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
         };
         /** SignedInUser */
         SignedInUser: {
@@ -679,6 +1609,46 @@ export interface components {
             width: number;
             /** Height */
             height: number;
+        };
+        /** SourceView */
+        SourceView: {
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Withdrawn At */
+            withdrawn_at?: string | null;
+            /**
+             * Redactions
+             * @default []
+             */
+            redactions: components["schemas"]["Redaction"][];
+            /**
+             * Kind
+             * @default source
+             * @constant
+             */
+            kind: "source";
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Title */
+            title: string | null;
+            /** Author */
+            author: string | null;
+            /** Publication */
+            publication: string | null;
+            date: components["schemas"]["UncertainDate"] | null;
+            /** Url */
+            url: string | null;
+            /** Note */
+            note: string | null;
+            /** Language */
+            language: string | null;
+            /** Cited By */
+            cited_by: components["schemas"]["RecordLink"][];
         };
         /**
          * Suggestions
@@ -708,6 +1678,25 @@ export interface components {
             terms: string;
             /** Privacy */
             privacy: string;
+        };
+        /** TimelineView */
+        TimelineView: {
+            /** Dated */
+            dated: (components["schemas"]["EventEntry"] | components["schemas"]["ItemEntry"])[];
+            /** Undated */
+            undated: (components["schemas"]["EventEntry"] | components["schemas"]["ItemEntry"])[];
+        };
+        /**
+         * UncertainDate
+         * @description As the archive stores it: each value the first day of the unit it names.
+         */
+        UncertainDate: {
+            precision: components["schemas"]["Precision"];
+            qualifier?: components["schemas"]["Qualifier"] | null;
+            /** First */
+            first?: string | null;
+            /** Second */
+            second?: string | null;
         };
         /** UploadState */
         UploadState: {
@@ -781,6 +1770,28 @@ export interface components {
             /** Retired */
             retired: boolean;
         };
+        /** Where */
+        Where: {
+            location: components["schemas"]["LocationSummary"] | null;
+            /** Location Withdrawn */
+            location_withdrawn: boolean;
+            site: components["schemas"]["RecordLink"] | null;
+            /** Areas */
+            areas: components["schemas"]["RecordLink"][];
+        };
+        /** Rendition */
+        tart__archive_read__views__Rendition: {
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+        };
+        /**
+         * Rendition
+         * @description The public renditions, all WebP, by long edge.
+         * @enum {string}
+         */
+        tart__media__Rendition: "thumbnail" | "view" | "large";
     };
     responses: never;
     parameters: never;
@@ -806,6 +1817,1010 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicConfiguration"];
+                };
+            };
+        };
+    };
+    artwork_view_api_archive_artworks__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtworkView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artwork_revisions_api_archive_artworks__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artist_view_api_archive_artists__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtistView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artist_revisions_api_archive_artists__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artist_index_api_archive_artists_get: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_view_api_archive_locations__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_revisions_api_archive_locations__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    site_view_api_archive_sites__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    site_revisions_api_archive_sites__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    site_index_api_archive_sites_get: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    area_view_api_archive_areas__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    area_revisions_api_archive_areas__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    area_index_api_archive_areas_get: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    series_view_api_archive_series__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    series_revisions_api_archive_series__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    series_index_api_archive_series_get: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    source_view_api_archive_sources__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    source_revisions_api_archive_sources__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_view_api_archive_documents__record_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentationItemView"];
+                };
+            };
+            /** @description A merged duplicate: the surviving record's view. */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_revisions_api_archive_documents__record_id__revisions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                record_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsView"];
+                };
+            };
+            /** @description `record_not_found` */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `record_withdrawn` */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1672,7 +3687,7 @@ export interface operations {
             header?: never;
             path: {
                 upload_id: string;
-                rendition: components["schemas"]["Rendition"];
+                rendition: components["schemas"]["Rendition-Input"];
             };
             cookie?: {
                 tart_session?: string | null;

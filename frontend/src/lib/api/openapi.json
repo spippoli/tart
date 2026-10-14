@@ -24,6 +24,1458 @@
         }
       }
     },
+    "/api/archive/artworks/{record_id}": {
+      "get": {
+        "summary": "The view of a artwork",
+        "operationId": "artwork_view_api_archive_artworks__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtworkView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/artworks/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a artwork",
+        "operationId": "artwork_revisions_api_archive_artworks__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/artists/{record_id}": {
+      "get": {
+        "summary": "The view of a artist",
+        "operationId": "artist_view_api_archive_artists__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/artists/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a artist",
+        "operationId": "artist_revisions_api_archive_artists__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/artists": {
+      "get": {
+        "summary": "The index of artists, by name",
+        "operationId": "artist_index_api_archive_artists_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/locations/{record_id}": {
+      "get": {
+        "summary": "The view of a location",
+        "operationId": "location_view_api_archive_locations__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/locations/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a location",
+        "operationId": "location_revisions_api_archive_locations__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/sites/{record_id}": {
+      "get": {
+        "summary": "The view of a site",
+        "operationId": "site_view_api_archive_sites__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/sites/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a site",
+        "operationId": "site_revisions_api_archive_sites__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/sites": {
+      "get": {
+        "summary": "The index of sites, by name",
+        "operationId": "site_index_api_archive_sites_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/areas/{record_id}": {
+      "get": {
+        "summary": "The view of a area",
+        "operationId": "area_view_api_archive_areas__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/areas/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a area",
+        "operationId": "area_revisions_api_archive_areas__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/areas": {
+      "get": {
+        "summary": "The index of areas, by name",
+        "operationId": "area_index_api_archive_areas_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/series/{record_id}": {
+      "get": {
+        "summary": "The view of a series",
+        "operationId": "series_view_api_archive_series__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/series/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a series",
+        "operationId": "series_revisions_api_archive_series__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/series": {
+      "get": {
+        "summary": "The index of series, by name",
+        "operationId": "series_index_api_archive_series_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/sources/{record_id}": {
+      "get": {
+        "summary": "The view of a source",
+        "operationId": "source_view_api_archive_sources__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/sources/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a source",
+        "operationId": "source_revisions_api_archive_sources__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/documents/{record_id}": {
+      "get": {
+        "summary": "The view of a documentation item",
+        "operationId": "document_view_api_archive_documents__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentationItemView"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "A merged duplicate: the surviving record's view."
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/archive/documents/{record_id}/revisions": {
+      "get": {
+        "summary": "The Revisions of a documentation item",
+        "operationId": "document_revisions_api_archive_documents__record_id__revisions_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`record_not_found`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`record_withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/code": {
       "post": {
         "summary": "Request Code",
@@ -1187,7 +2639,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/Rendition"
+              "$ref": "#/components/schemas/Rendition-Input"
             }
           },
           {
@@ -1317,6 +2769,396 @@
         ],
         "title": "AccountState"
       },
+      "ArtistKind": {
+        "type": "string",
+        "enum": [
+          "individual",
+          "collective"
+        ],
+        "title": "ArtistKind"
+      },
+      "ArtistView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "const": "artist",
+            "title": "Kind",
+            "default": "artist"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "artist_kind": {
+            "$ref": "#/components/schemas/ArtistKind"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "biography": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Biography"
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "collectives": {
+            "items": {
+              "$ref": "#/components/schemas/Membership"
+            },
+            "type": "array",
+            "title": "Collectives"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/Membership"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "artworks": {
+            "items": {
+              "$ref": "#/components/schemas/AttributedArtwork"
+            },
+            "type": "array",
+            "title": "Artworks"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "name",
+          "artist_kind",
+          "aliases",
+          "period",
+          "biography",
+          "areas",
+          "collectives",
+          "members",
+          "artworks",
+          "sources"
+        ],
+        "title": "ArtistView"
+      },
+      "ArtworkCard": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "expression_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Expression Types"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/ConditionView"
+          },
+          "last_documented": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "expression_types",
+          "condition",
+          "last_documented"
+        ],
+        "title": "ArtworkCard",
+        "description": "An Artwork in a list: its Condition and latest documentation date only."
+      },
+      "ArtworkView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "const": "artwork",
+            "title": "Kind",
+            "default": "artwork"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "expression_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Expression Types"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/ConditionView"
+          },
+          "last_documented": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "first_documentation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "creation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionReadout"
+          },
+          "gallery": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentationSummary"
+            },
+            "type": "array",
+            "title": "Gallery"
+          },
+          "where": {
+            "$ref": "#/components/schemas/Where"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Series"
+          },
+          "timeline": {
+            "$ref": "#/components/schemas/TimelineView"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "related": {
+            "$ref": "#/components/schemas/Related"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "expression_types",
+          "description",
+          "condition",
+          "last_documented",
+          "first_documentation",
+          "creation",
+          "attribution",
+          "gallery",
+          "where",
+          "series",
+          "timeline",
+          "sources",
+          "related"
+        ],
+        "title": "ArtworkView"
+      },
+      "AttributedArtwork": {
+        "properties": {
+          "artwork": {
+            "$ref": "#/components/schemas/ArtworkCard"
+          },
+          "certainty": {
+            "$ref": "#/components/schemas/Certainty"
+          },
+          "alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alias"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artwork",
+          "certainty",
+          "alias"
+        ],
+        "title": "AttributedArtwork"
+      },
       "Attribution": {
         "properties": {
           "text": {
@@ -1334,6 +3176,157 @@
           "url"
         ],
         "title": "Attribution"
+      },
+      "AttributionReadout": {
+        "properties": {
+          "attributed": {
+            "items": {
+              "$ref": "#/components/schemas/ShownAttribution"
+            },
+            "type": "array",
+            "title": "Attributed"
+          },
+          "disputed": {
+            "items": {
+              "$ref": "#/components/schemas/ShownAttribution"
+            },
+            "type": "array",
+            "title": "Disputed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attributed",
+          "disputed"
+        ],
+        "title": "AttributionReadout",
+        "description": "Both empty: \"Unknown artist\"."
+      },
+      "Certainty": {
+        "type": "string",
+        "enum": [
+          "confirmed",
+          "probable",
+          "disputed"
+        ],
+        "title": "Certainty"
+      },
+      "Change": {
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "set",
+              "add",
+              "change",
+              "remove"
+            ],
+            "title": "Op"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          },
+          "old": {
+            "title": "Old"
+          },
+          "new": {
+            "title": "New"
+          },
+          "item": {
+            "title": "Item"
+          },
+          "redacted": {
+            "type": "boolean",
+            "title": "Redacted",
+            "default": false
+          },
+          "redacted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redacted At"
+          },
+          "old_redacted": {
+            "type": "boolean",
+            "title": "Old Redacted",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "op"
+        ],
+        "title": "Change",
+        "description": "One operation of a Revision's change list, values as stored."
+      },
+      "Citation": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "location_title": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationTitle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "path"
+        ],
+        "title": "Citation",
+        "description": "A cited Source or Documentation item."
       },
       "CodeAttemptBody": {
         "properties": {
@@ -1390,6 +3383,82 @@
           "language"
         ],
         "title": "CodeRequestBody"
+      },
+      "Condition": {
+        "type": "string",
+        "enum": [
+          "intact",
+          "deteriorated",
+          "damaged",
+          "modified",
+          "covered",
+          "removed",
+          "destroyed",
+          "missing",
+          "unknown"
+        ],
+        "title": "Condition",
+        "description": "An Artwork's physical state, always derived from its physical history."
+      },
+      "ConditionGroup": {
+        "type": "string",
+        "enum": [
+          "present",
+          "disappeared",
+          "unknown"
+        ],
+        "title": "ConditionGroup",
+        "description": "Whether the Artwork can still be seen where it is, never whether it is public."
+      },
+      "ConditionView": {
+        "properties": {
+          "condition": {
+            "$ref": "#/components/schemas/Condition"
+          },
+          "group": {
+            "$ref": "#/components/schemas/ConditionGroup"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "condition",
+          "group",
+          "since",
+          "evidence_level",
+          "event"
+        ],
+        "title": "ConditionView"
       },
       "Contacts": {
         "properties": {
@@ -1452,6 +3521,337 @@
         ],
         "title": "DefaultView"
       },
+      "DocumentationItemView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "const": "documentation_item",
+            "title": "Kind",
+            "default": "documentation_item"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "medium": {
+            "$ref": "#/components/schemas/Medium"
+          },
+          "observed_date": {
+            "$ref": "#/components/schemas/UncertainDate"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Approved At"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "renditions": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/tart__archive_read__views__Rendition"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renditions"
+          },
+          "alt_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt Text"
+          },
+          "creator_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Credit"
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence"
+          },
+          "rights_basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RightsBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Url"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "artworks": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Artworks"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "medium",
+          "observed_date",
+          "submitted_at",
+          "approved_at",
+          "file",
+          "renditions",
+          "alt_text",
+          "creator_credit",
+          "licence",
+          "rights_basis",
+          "origin_url",
+          "text",
+          "url",
+          "language",
+          "artworks",
+          "location"
+        ],
+        "title": "DocumentationItemView"
+      },
+      "DocumentationSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "medium": {
+            "$ref": "#/components/schemas/Medium"
+          },
+          "observed_date": {
+            "$ref": "#/components/schemas/UncertainDate"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "renditions": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/tart__archive_read__views__Rendition"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renditions"
+          },
+          "alt_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt Text"
+          },
+          "creator_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Credit"
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "medium",
+          "observed_date"
+        ],
+        "title": "DocumentationSummary",
+        "description": "A Documentation item in a gallery or a list."
+      },
       "EmailChangeBody": {
         "properties": {
           "email": {
@@ -1490,6 +3890,104 @@
           "code"
         ],
         "title": "Error"
+      },
+      "EventEntry": {
+        "properties": {
+          "entry": {
+            "type": "string",
+            "const": "event",
+            "title": "Entry",
+            "default": "event"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/HistoryEventType"
+          },
+          "observed_date": {
+            "$ref": "#/components/schemas/UncertainDate"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Condition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Approved At"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "evidence_level": {
+            "$ref": "#/components/schemas/EvidenceLevel"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "covering": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "observed_date",
+          "condition",
+          "submitted_at",
+          "approved_at",
+          "revision",
+          "evidence_level",
+          "citations",
+          "note",
+          "covering"
+        ],
+        "title": "EventEntry"
+      },
+      "EvidenceLevel": {
+        "type": "string",
+        "enum": [
+          "documented",
+          "reported"
+        ],
+        "title": "EvidenceLevel"
       },
       "Geography": {
         "properties": {
@@ -1634,6 +4132,22 @@
         ],
         "title": "HealthDetails"
       },
+      "HistoryEventType": {
+        "type": "string",
+        "enum": [
+          "created",
+          "condition_recorded",
+          "deteriorated",
+          "damaged",
+          "modified",
+          "covered",
+          "removed",
+          "destroyed",
+          "attribution_changed"
+        ],
+        "title": "HistoryEventType",
+        "description": "The closed vocabulary of History event types (ADR 0009)."
+      },
       "Identity": {
         "properties": {
           "name": {
@@ -1664,6 +4178,83 @@
           "accent"
         ],
         "title": "Identity"
+      },
+      "IndexPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "IndexPage"
+      },
+      "ItemEntry": {
+        "properties": {
+          "entry": {
+            "type": "string",
+            "const": "item",
+            "title": "Entry",
+            "default": "item"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "medium": {
+            "$ref": "#/components/schemas/Medium"
+          },
+          "observed_date": {
+            "$ref": "#/components/schemas/UncertainDate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "medium",
+          "observed_date"
+        ],
+        "title": "ItemEntry"
+      },
+      "Kind": {
+        "type": "string",
+        "enum": [
+          "artwork",
+          "location",
+          "site",
+          "area",
+          "series",
+          "artist",
+          "source",
+          "documentation_item"
+        ],
+        "title": "Kind"
       },
       "Languages": {
         "properties": {
@@ -1719,6 +4310,241 @@
         ],
         "title": "Licenses"
       },
+      "LocationSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocationTitle"
+          },
+          "surface_type": {
+            "type": "string",
+            "title": "Surface Type"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "approximate": {
+            "type": "boolean",
+            "title": "Approximate"
+          },
+          "uncertainty_radius": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty Radius"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "surface_type",
+          "geometry",
+          "approximate",
+          "uncertainty_radius"
+        ],
+        "title": "LocationSummary"
+      },
+      "LocationTitle": {
+        "properties": {
+          "place_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Description"
+          },
+          "surface_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Surface Type"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "title": "LocationTitle",
+        "description": "What the title is made of; with all three absent the UI shows \"Location {id}\"."
+      },
+      "LocationView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "const": "location",
+            "title": "Kind",
+            "default": "location"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocationTitle"
+          },
+          "place_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Description"
+          },
+          "surface_type": {
+            "type": "string",
+            "title": "Surface Type"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "approximate": {
+            "type": "boolean",
+            "title": "Approximate"
+          },
+          "uncertainty_radius": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty Radius"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "stratigraphy": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Stratigraphy"
+          },
+          "disappearances": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentationSummary"
+            },
+            "type": "array",
+            "title": "Disappearances"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "place_description",
+          "surface_type",
+          "geometry",
+          "approximate",
+          "uncertainty_radius",
+          "site",
+          "areas",
+          "stratigraphy",
+          "disappearances"
+        ],
+        "title": "LocationView"
+      },
       "Logo": {
         "properties": {
           "light": {
@@ -1741,6 +4567,39 @@
           "alt"
         ],
         "title": "Logo"
+      },
+      "Medium": {
+        "type": "string",
+        "enum": [
+          "image",
+          "pdf",
+          "text",
+          "link"
+        ],
+        "title": "Medium"
+      },
+      "Membership": {
+        "properties": {
+          "artist": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "artist",
+          "period"
+        ],
+        "title": "Membership"
       },
       "NewPasskey": {
         "properties": {
@@ -1798,6 +4657,160 @@
           "created_at"
         ],
         "title": "PasskeySummary"
+      },
+      "Period": {
+        "properties": {
+          "start": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "end": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Period"
+      },
+      "PlaceView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "site",
+              "area",
+              "series"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationSummary"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "artworks": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Artworks"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "path",
+          "name",
+          "description",
+          "locations",
+          "artworks",
+          "sources"
+        ],
+        "title": "PlaceView",
+        "description": "A Site, an Area, or a Series."
+      },
+      "Precision": {
+        "type": "string",
+        "enum": [
+          "day",
+          "month",
+          "year",
+          "decade",
+          "unknown"
+        ],
+        "title": "Precision"
       },
       "PublicConfiguration": {
         "properties": {
@@ -1876,6 +4889,16 @@
         ],
         "title": "PublicConfiguration"
       },
+      "Qualifier": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "circa",
+          "before",
+          "after"
+        ],
+        "title": "Qualifier"
+      },
       "RateLimitedError": {
         "properties": {
           "code": {
@@ -1895,6 +4918,73 @@
         ],
         "title": "RateLimitedError"
       },
+      "RecordLink": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "location_title": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationTitle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "path"
+        ],
+        "title": "RecordLink",
+        "description": "A link to a public record page."
+      },
+      "Redaction": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "item": {
+            "title": "Item"
+          },
+          "redacted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Redacted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "redacted_at"
+        ],
+        "title": "Redaction",
+        "description": "For Moderators: a value or item hidden from the public by a Redaction."
+      },
       "RegistrationBody": {
         "properties": {
           "display_name": {
@@ -1913,7 +5003,39 @@
         ],
         "title": "RegistrationBody"
       },
-      "Rendition": {
+      "Related": {
+        "properties": {
+          "same_location": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Same Location"
+          },
+          "same_artist": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Same Artist"
+          },
+          "same_series": {
+            "items": {
+              "$ref": "#/components/schemas/ArtworkCard"
+            },
+            "type": "array",
+            "title": "Same Series"
+          }
+        },
+        "type": "object",
+        "required": [
+          "same_location",
+          "same_artist",
+          "same_series"
+        ],
+        "title": "Related"
+      },
+      "Rendition-Input": {
         "type": "string",
         "enum": [
           "thumbnail",
@@ -1922,6 +5044,110 @@
         ],
         "title": "Rendition",
         "description": "The public renditions, all WebP, by long edge."
+      },
+      "RevisionView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "submitter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitter"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Approved At"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/Change"
+            },
+            "type": "array",
+            "title": "Changes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "submitter",
+          "submitted_at",
+          "approved_at",
+          "changes"
+        ],
+        "title": "RevisionView"
+      },
+      "RevisionsView": {
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "merged_into": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/RevisionView"
+            },
+            "type": "array",
+            "title": "Revisions"
+          },
+          "records": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "object",
+            "title": "Records"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record",
+          "merged_into",
+          "revisions",
+          "records"
+        ],
+        "title": "RevisionsView"
+      },
+      "RightsBasis": {
+        "type": "string",
+        "enum": [
+          "own_work",
+          "third_party"
+        ],
+        "title": "RightsBasis"
       },
       "SessionState": {
         "properties": {
@@ -1941,6 +5167,58 @@
           "user"
         ],
         "title": "SessionState"
+      },
+      "ShownAttribution": {
+        "properties": {
+          "artist": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "certainty": {
+            "$ref": "#/components/schemas/Certainty"
+          },
+          "alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alias"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "evidence_level": {
+            "$ref": "#/components/schemas/EvidenceLevel"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artist",
+          "certainty",
+          "alias",
+          "note",
+          "evidence_level",
+          "citations"
+        ],
+        "title": "ShownAttribution"
       },
       "SignedInUser": {
         "properties": {
@@ -1987,6 +5265,149 @@
           "height"
         ],
         "title": "Size"
+      },
+      "SourceView": {
+        "properties": {
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/Redaction"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "const": "source",
+            "title": "Kind",
+            "default": "source"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "publication": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UncertainDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "cited_by": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Cited By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "author",
+          "publication",
+          "date",
+          "url",
+          "note",
+          "language",
+          "cited_by"
+        ],
+        "title": "SourceView"
       },
       "Suggestions": {
         "properties": {
@@ -2086,6 +5507,103 @@
         "title": "Texts",
         "description": "The Operator texts, Markdown in the Content language."
       },
+      "TimelineView": {
+        "properties": {
+          "dated": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/EventEntry"
+                },
+                {
+                  "$ref": "#/components/schemas/ItemEntry"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "entry",
+                "mapping": {
+                  "event": "#/components/schemas/EventEntry",
+                  "item": "#/components/schemas/ItemEntry"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Dated"
+          },
+          "undated": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/EventEntry"
+                },
+                {
+                  "$ref": "#/components/schemas/ItemEntry"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "entry",
+                "mapping": {
+                  "event": "#/components/schemas/EventEntry",
+                  "item": "#/components/schemas/ItemEntry"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Undated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dated",
+          "undated"
+        ],
+        "title": "TimelineView"
+      },
+      "UncertainDate": {
+        "properties": {
+          "precision": {
+            "$ref": "#/components/schemas/Precision"
+          },
+          "qualifier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Qualifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "first": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First"
+          },
+          "second": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Second"
+          }
+        },
+        "type": "object",
+        "required": [
+          "precision"
+        ],
+        "title": "UncertainDate",
+        "description": "As the archive stores it: each value the first day of the unit it names."
+      },
       "UploadState": {
         "properties": {
           "id": {
@@ -2139,7 +5657,7 @@
                   "$ref": "#/components/schemas/Size"
                 },
                 "propertyNames": {
-                  "$ref": "#/components/schemas/Rendition"
+                  "$ref": "#/components/schemas/tart__media__Rendition"
                 },
                 "type": "object"
               },
@@ -2305,6 +5823,77 @@
           "retired"
         ],
         "title": "VocabularyEntry"
+      },
+      "Where": {
+        "properties": {
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "location_withdrawn": {
+            "type": "boolean",
+            "title": "Location Withdrawn"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Areas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "location_withdrawn",
+          "site",
+          "areas"
+        ],
+        "title": "Where"
+      },
+      "tart__archive_read__views__Rendition": {
+        "properties": {
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          }
+        },
+        "type": "object",
+        "required": [
+          "width",
+          "height"
+        ],
+        "title": "Rendition"
+      },
+      "tart__media__Rendition": {
+        "type": "string",
+        "enum": [
+          "thumbnail",
+          "view",
+          "large"
+        ],
+        "title": "Rendition",
+        "description": "The public renditions, all WebP, by long edge."
       }
     },
     "securitySchemes": {

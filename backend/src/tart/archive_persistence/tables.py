@@ -56,7 +56,13 @@ record = Table(
     metadata,
     Column("id", BigInteger, Identity(), primary_key=True),
     Column("kind", Text, nullable=False),
+    # Set by a Withdrawal and cleared by a Reinstatement (Rights and legal actions).
+    Column("withdrawn_at", DateTime(timezone=True)),
+    # The surviving record of a Merge, or of a retired Documentation item (ADR 0018);
+    # always the final one, so a redirect never chains.
+    Column("merged_into", BigInteger, _link("record.id")),
     _one_of("kind", Kind),
+    CheckConstraint("merged_into <> id", name="not_merged_into_itself"),
 )
 
 site = Table(
@@ -305,4 +311,15 @@ revision = Table(
     Column("approved_at", DateTime(timezone=True), nullable=False),
     Column("changes", JSONB, nullable=False),
     Index("ix_revision_record_id", "record_id"),
+)
+
+redaction = Table(
+    "redaction",
+    metadata,
+    # One redacted operation of a Revision: its index in the change list
+    # (Rights and legal actions, Redaction). The Revision itself never changes.
+    Column("revision_id", BigInteger, _link("revision.id"), primary_key=True),
+    Column("operation", Integer, primary_key=True),
+    Column("redacted_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("operation >= 0", name="operation_index"),
 )

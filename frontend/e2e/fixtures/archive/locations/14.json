@@ -1,0 +1,85 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "location",
+ "id": 14,
+ "path": "14",
+ "title": {
+  "place_description": "Muro di cinta fittizio lungo via Immaginaria",
+  "surface_type": null,
+  "place": null
+ },
+ "place_description": "Muro di cinta fittizio lungo via Immaginaria",
+ "surface_type": "building_wall",
+ "geometry": {
+  "type": "LineString",
+  "coordinates": [
+   [
+    12.47,
+    41.9
+   ],
+   [
+    12.4712,
+    41.9004
+   ]
+  ]
+ },
+ "approximate": false,
+ "uncertainty_radius": null,
+ "site": null,
+ "areas": [
+  {
+   "kind": "area",
+   "id": 3,
+   "path": "3-quartiere-immaginario",
+   "name": "Quartiere Immaginario",
+   "location_title": null
+  }
+ ],
+ "stratigraphy": [
+  {
+   "id": 21,
+   "path": "21-due-mani-fittizie",
+   "title": "Due mani fittizie",
+   "expression_types": [
+    "mural"
+   ],
+   "condition": {
+    "condition": "deteriorated",
+    "group": "present",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2022-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 11
+   },
+   "last_documented": null
+  },
+  {
+   "id": 20,
+   "path": "20-occhio-fittizio",
+   "title": "Occhio fittizio",
+   "expression_types": [
+    "stencil"
+   ],
+   "condition": {
+    "condition": "intact",
+    "group": "present",
+    "since": {
+     "precision": "year",
+     "qualifier": "exact",
+     "first": "2023-01-01",
+     "second": null
+    },
+    "evidence_level": "reported",
+    "event": 9
+   },
+   "last_documented": null
+  }
+ ],
+ "disappearances": []
+}

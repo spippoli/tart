@@ -1,0 +1,90 @@
+{
+ "record": {
+  "kind": "documentation_item",
+  "id": 27,
+  "path": "27",
+  "name": null,
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 27,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "medium",
+     "collection": null,
+     "old": null,
+     "new": "text",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "observed_date",
+     "collection": null,
+     "old": null,
+     "new": {
+      "first": "2023-09-01",
+      "second": null,
+      "precision": "month",
+      "qualifier": "exact"
+     },
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "artworks",
+     "old": null,
+     "new": null,
+     "item": 23,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "text",
+     "collection": null,
+     "old": null,
+     "new": "Testimonianza fittizia: la scritta era ancora leggibile.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "language",
+     "collection": null,
+     "old": null,
+     "new": "it",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "23": {
+   "kind": "artwork",
+   "id": 23,
+   "path": "23-scritta-fittizia",
+   "name": "Scritta fittizia",
+   "location_title": null
+  }
+ }
+}

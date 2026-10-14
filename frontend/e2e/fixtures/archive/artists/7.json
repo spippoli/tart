@@ -1,0 +1,106 @@
+{
+ "redacted_fields": [],
+ "withdrawn_at": null,
+ "redactions": [],
+ "kind": "artist",
+ "id": 7,
+ "path": "7-nebbia-finta",
+ "name": "Nebbia Finta",
+ "artist_kind": "individual",
+ "aliases": [
+  "NF"
+ ],
+ "period": {
+  "start": {
+   "precision": "year",
+   "qualifier": "circa",
+   "first": "2010-01-01",
+   "second": null
+  },
+  "end": null
+ },
+ "biography": "Artista fittizia, inventata per i dati di prova.",
+ "areas": [
+  {
+   "kind": "area",
+   "id": 3,
+   "path": "3-quartiere-immaginario",
+   "name": "Quartiere Immaginario",
+   "location_title": null
+  }
+ ],
+ "collectives": [],
+ "members": [],
+ "artworks": [
+  {
+   "artwork": {
+    "id": 16,
+    "path": "16-il-gatto-che-legge",
+    "title": "Il gatto che legge",
+    "expression_types": [
+     "mural",
+     "stencil"
+    ],
+    "condition": {
+     "condition": "intact",
+     "group": "present",
+     "since": {
+      "precision": "day",
+      "qualifier": "exact",
+      "first": "2024-11-20",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 16
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2024-04-12",
+     "second": null
+    }
+   },
+   "certainty": "confirmed",
+   "alias": null
+  },
+  {
+   "artwork": {
+    "id": 18,
+    "path": "18",
+    "title": null,
+    "expression_types": [
+     "stencil"
+    ],
+    "condition": {
+     "condition": "missing",
+     "group": "disappeared",
+     "since": {
+      "precision": "year",
+      "qualifier": "circa",
+      "first": "2019-01-01",
+      "second": null
+     },
+     "evidence_level": "reported",
+     "event": 6
+    },
+    "last_documented": {
+     "precision": "day",
+     "qualifier": "exact",
+     "first": "2018-03-03",
+     "second": null
+    }
+   },
+   "certainty": "probable",
+   "alias": "NF"
+  }
+ ],
+ "sources": [
+  {
+   "kind": "source",
+   "id": 2,
+   "path": "2",
+   "name": "Intervista fittizia a Nebbia Finta",
+   "location_title": null
+  }
+ ]
+}

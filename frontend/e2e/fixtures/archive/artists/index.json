@@ -1,0 +1,35 @@
+{
+ "items": [
+  {
+   "kind": "artist",
+   "id": 8,
+   "path": "8-collettivo-vernice-assente",
+   "name": "Collettivo Vernice Assente",
+   "location_title": null
+  },
+  {
+   "kind": "artist",
+   "id": 9,
+   "path": "9-lupo-inventato",
+   "name": "Lupo Inventato",
+   "location_title": null
+  },
+  {
+   "kind": "artist",
+   "id": 7,
+   "path": "7-nebbia-finta",
+   "name": "Nebbia Finta",
+   "location_title": null
+  },
+  {
+   "kind": "artist",
+   "id": 10,
+   "path": "10-ombra-supposta",
+   "name": "Ombra Supposta",
+   "location_title": null
+  }
+ ],
+ "page": 1,
+ "page_size": 24,
+ "total": 4
+}

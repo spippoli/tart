@@ -1,0 +1,104 @@
+{
+ "record": {
+  "kind": "artwork",
+  "id": 23,
+  "path": "23-scritta-fittizia",
+  "name": "Scritta fittizia",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 23,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 15,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "mural"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Scritta fittizia",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia documentata solo da un collegamento e da un testo.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 15,
+      "note": null,
+      "type": "condition_recorded",
+      "covering": null,
+      "citations": [],
+      "condition": "intact",
+      "observed_date": {
+       "first": null,
+       "second": null,
+       "precision": "unknown",
+       "qualifier": null
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "15": {
+   "kind": "location",
+   "id": 15,
+   "path": "15",
+   "name": null,
+   "location_title": {
+    "place_description": "Facciata fittizia di un edificio inventato",
+    "surface_type": null,
+    "place": null
+   }
+  }
+ }
+}

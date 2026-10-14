@@ -1,0 +1,194 @@
+{
+ "record": {
+  "kind": "artwork",
+  "id": 21,
+  "path": "21-due-mani-fittizie",
+  "name": "Due mani fittizie",
+  "location_title": null
+ },
+ "merged_into": null,
+ "withdrawn_at": null,
+ "revisions": [
+  {
+   "id": 21,
+   "submitter": "Contributrice fittizia",
+   "submitted_at": "2025-01-10T09:31:00Z",
+   "approved_at": "2025-01-12T09:31:00Z",
+   "changes": [
+    {
+     "op": "set",
+     "field": "location",
+     "collection": null,
+     "old": null,
+     "new": 14,
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "expression_types",
+     "collection": null,
+     "old": null,
+     "new": [
+      "mural"
+     ],
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "title",
+     "collection": null,
+     "old": null,
+     "new": "Due mani fittizie",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "set",
+     "field": "description",
+     "collection": null,
+     "old": null,
+     "new": "Opera fittizia di attribuzione contesa.",
+     "item": null,
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": "Nota fittizia: attribuita da un'intervista fittizia.",
+      "alias": null,
+      "artist": 9,
+      "certainty": "disputed",
+      "citations": [
+       2
+      ]
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "attributions",
+     "old": null,
+     "new": null,
+     "item": {
+      "note": "Nota fittizia: attribuita da una fanzine fittizia.",
+      "alias": null,
+      "artist": 10,
+      "certainty": "disputed",
+      "citations": [
+       1
+      ]
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 10,
+      "note": null,
+      "type": "created",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2016-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "circa"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    },
+    {
+     "op": "add",
+     "field": null,
+     "collection": "history_events",
+     "old": null,
+     "new": null,
+     "item": {
+      "id": 11,
+      "note": null,
+      "type": "deteriorated",
+      "covering": null,
+      "citations": [],
+      "condition": null,
+      "observed_date": {
+       "first": "2022-01-01",
+       "second": null,
+       "precision": "year",
+       "qualifier": "exact"
+      }
+     },
+     "redacted": false,
+     "redacted_at": null,
+     "old_redacted": false
+    }
+   ]
+  }
+ ],
+ "records": {
+  "1": {
+   "kind": "source",
+   "id": 1,
+   "path": "1",
+   "name": "Muri che parlano, n. 3",
+   "location_title": null
+  },
+  "2": {
+   "kind": "source",
+   "id": 2,
+   "path": "2",
+   "name": "Intervista fittizia a Nebbia Finta",
+   "location_title": null
+  },
+  "9": {
+   "kind": "artist",
+   "id": 9,
+   "path": "9-lupo-inventato",
+   "name": "Lupo Inventato",
+   "location_title": null
+  },
+  "10": {
+   "kind": "artist",
+   "id": 10,
+   "path": "10-ombra-supposta",
+   "name": "Ombra Supposta",
+   "location_title": null
+  },
+  "14": {
+   "kind": "location",
+   "id": 14,
+   "path": "14",
+   "name": null,
+   "location_title": {
+    "place_description": "Muro di cinta fittizio lungo via Immaginaria",
+    "surface_type": null,
+    "place": null
+   }
+  }
+ }
+}
