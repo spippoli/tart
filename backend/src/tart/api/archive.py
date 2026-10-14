@@ -129,8 +129,9 @@ def _register(kind: Kind) -> None:
             user: Annotated[Caller, Depends(current_user)],
             engine: Annotated[AsyncEngine, Depends(get_engine)],
             page: Annotated[int, Query(ge=1)] = 1,
+            name: Annotated[str | None, Query(max_length=200)] = None,
         ) -> Any:
-            return await _read(engine, user, kind, lambda reader: reader.index(kind, page))
+            return await _read(engine, user, kind, lambda reader: reader.index(kind, page, name))
 
         router.add_api_route(
             f"/{segment}",

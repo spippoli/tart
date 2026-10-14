@@ -1497,6 +1497,11 @@ export interface components {
             site: components["schemas"]["RecordLink"] | null;
             /** Areas */
             areas: components["schemas"]["RecordLink"][];
+            /**
+             * Nearby
+             * @default []
+             */
+            nearby: components["schemas"]["NearbyLocation"][];
             /** Stratigraphy */
             stratigraphy: components["schemas"]["ArtworkCard"][];
             /** Disappearances */
@@ -1571,6 +1576,19 @@ export interface components {
         Membership: {
             artist: components["schemas"]["RecordLink"];
             period: components["schemas"]["Period"] | null;
+        };
+        /**
+         * NearbyLocation
+         * @description A public Location near the record's, drawn muted on the mini-map.
+         */
+        NearbyLocation: {
+            /** Id */
+            id: number;
+            /** Point */
+            point: [
+                number,
+                number
+            ];
         };
         /** NewPasskey */
         NewPasskey: {
@@ -1997,6 +2015,11 @@ export interface components {
             site: components["schemas"]["RecordLink"] | null;
             /** Areas */
             areas: components["schemas"]["RecordLink"][];
+            /**
+             * Nearby
+             * @default []
+             */
+            nearby: components["schemas"]["NearbyLocation"][];
         };
         /** Rendition */
         tart__archive_read__views__Rendition: {
@@ -2262,6 +2285,7 @@ export interface operations {
         parameters: {
             query?: {
                 page?: number;
+                name?: string | null;
             };
             header?: never;
             path?: never;
@@ -2513,6 +2537,7 @@ export interface operations {
         parameters: {
             query?: {
                 page?: number;
+                name?: string | null;
             };
             header?: never;
             path?: never;
@@ -2655,6 +2680,7 @@ export interface operations {
         parameters: {
             query?: {
                 page?: number;
+                name?: string | null;
             };
             header?: never;
             path?: never;
@@ -2797,6 +2823,7 @@ export interface operations {
         parameters: {
             query?: {
                 page?: number;
+                name?: string | null;
             };
             header?: never;
             path?: never;

@@ -156,6 +156,14 @@ class LocationSummary(BaseModel):
     uncertainty_radius: int | None
 
 
+class NearbyLocation(BaseModel):
+    """A public Location near the record's, drawn muted on the mini-map."""
+
+    id: int
+    point: tuple[float, float]
+    """The representative point (longitude, latitude)."""
+
+
 class Where(BaseModel):
     location: LocationSummary | None
     location_withdrawn: bool
@@ -163,6 +171,8 @@ class Where(BaseModel):
     no mini-map, Site, or Areas."""
     site: RecordLink | None
     areas: list[RecordLink]
+    nearby: list[NearbyLocation] = []
+    """The public Locations within 500 m of this one, for the mini-map."""
 
 
 class ListEntry(ArtworkCard):
@@ -287,6 +297,8 @@ class LocationView(Visibility):
     uncertainty_radius: int | None
     site: RecordLink | None
     areas: list[RecordLink]
+    nearby: list[NearbyLocation] = []
+    """The public Locations within 500 m of this one, for the mini-map."""
     stratigraphy: list[ArtworkCard]
     """Most recent first; empty: "No public artworks here"."""
     disappearances: list[DocumentationSummary]

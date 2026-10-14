@@ -347,6 +347,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -710,6 +727,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -920,6 +954,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -1127,6 +1178,23 @@
               "minimum": 1,
               "default": 1,
               "title": "Page"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
             }
           },
           {
@@ -5542,6 +5610,14 @@
             "type": "array",
             "title": "Areas"
           },
+          "nearby": {
+            "items": {
+              "$ref": "#/components/schemas/NearbyLocation"
+            },
+            "type": "array",
+            "title": "Nearby",
+            "default": []
+          },
           "stratigraphy": {
             "items": {
               "$ref": "#/components/schemas/ArtworkCard"
@@ -5759,6 +5835,35 @@
           "period"
         ],
         "title": "Membership"
+      },
+      "NearbyLocation": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "point": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Point"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "point"
+        ],
+        "title": "NearbyLocation",
+        "description": "A public Location near the record's, drawn muted on the mini-map."
       },
       "NewPasskey": {
         "properties": {
@@ -7057,6 +7162,14 @@
             },
             "type": "array",
             "title": "Areas"
+          },
+          "nearby": {
+            "items": {
+              "$ref": "#/components/schemas/NearbyLocation"
+            },
+            "type": "array",
+            "title": "Nearby",
+            "default": []
           }
         },
         "type": "object",

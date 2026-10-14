@@ -121,7 +121,8 @@
   },
   "location_withdrawn": false,
   "site": null,
-  "areas": []
+  "areas": [],
+  "nearby": []
  },
  "series": [],
  "timeline": {

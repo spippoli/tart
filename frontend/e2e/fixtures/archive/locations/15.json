@@ -43,6 +43,7 @@
  "uncertainty_radius": null,
  "site": null,
  "areas": [],
+ "nearby": [],
  "stratigraphy": [
   {
    "id": 23,
