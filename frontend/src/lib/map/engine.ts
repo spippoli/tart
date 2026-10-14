@@ -1,5 +1,5 @@
 /**
- * The only code that imports MapLibre GL JS and the `pmtiles` protocol (ADR 0004).
+ * The only code, with `archive.ts`, that imports MapLibre GL JS and the `pmtiles` protocol (ADR 0004).
  * Callers of the map module never touch MapLibre objects: `Map.svelte` loads this
  * file in the browser only, and drives the map through `Engine`.
  */
@@ -15,7 +15,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // builds the worker, with the code it shares with the main thread, as its own file.
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Protocol } from 'pmtiles';
+import { createArchive, type ArchiveOptions } from './archive';
 import { MAX_ZOOM, type Bounds } from './bounds';
+import type { MapData } from './locations';
 import type { Style, Unavailable } from './style';
 
 export interface View {
@@ -38,6 +40,7 @@ export interface EngineOptions {
 	/** The few strings MapLibre itself shows, in the UI language. */
 	labels: { canvas: string; attributionToggle: string };
 	onMoveEnd: (camera: Camera) => void;
+	archive: ArchiveOptions;
 }
 
 export interface Engine {
@@ -49,6 +52,8 @@ export interface Engine {
 	reset(): void;
 	/** Switches the style without a reload (a theme change). */
 	setStyle(style: Style): void;
+	/** The Locations, Sites, and Areas to draw. */
+	setData(data: MapData): void;
 	destroy(): void;
 }
 
@@ -59,6 +64,18 @@ function escapeHtml(text: string): string {
 		/[&<>"']/g,
 		(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
 	);
+}
+
+/** The style's own fonts, for the page's text that goes over the map (Site labels). */
+function loadFonts(style: Style) {
+	const faces = (style as { 'font-faces'?: Record<string, string> })['font-faces'] ?? {};
+	for (const [family, url] of Object.entries(faces)) {
+		const face = new FontFace(family, `url(${JSON.stringify(url)})`);
+		face.load().then(
+			() => document.fonts.add(face),
+			() => undefined
+		);
+	}
 }
 
 function attributionHtml(entry: { text: string; url: string }): string {
@@ -107,6 +124,10 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 			reject('webgl2');
 			return;
 		}
+		let style = options.style;
+		const archive = createArchive(map, options.archive);
+		map.on('style.load', () => archive.install(style));
+		loadFonts(style);
 		map.keyboard.disableRotation();
 		map.touchZoomRotate.disableRotation();
 
@@ -121,8 +142,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 			};
 		};
 		map.on('moveend', () => options.onMoveEnd(camera()));
-		map.on('error', () => {
-			if (loaded) return;
+		map.on('error', (event) => {
+			// A font or glyph that is missing leaves labels out, not the map.
+			if (loaded || /glyph|font/i.test(String(event.error?.message))) return;
 			map.remove();
 			reject('style');
 		});
@@ -143,8 +165,16 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 						bearing: 0,
 						pitch: 0
 					}),
-				setStyle: (style) => map.setStyle(style as unknown as StyleSpecification),
-				destroy: () => map.remove()
+				setStyle(next) {
+					style = next;
+					// A full reload, so that the archive layers are added to the new style.
+					map.setStyle(next as unknown as StyleSpecification, { diff: false });
+				},
+				setData: (data) => archive.setData(data),
+				destroy() {
+					archive.destroy();
+					map.remove();
+				}
 			});
 		});
 	});

@@ -1,17 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { mapBounds, type Bounds } from './bounds';
 	import type { Camera, Engine, View } from './engine';
 	import Legend from './Legend.svelte';
+	import { EMPTY_MAP_DATA, type MapData } from './locations';
 	import MapControl from './MapControl.svelte';
+	import { clusterName, signName } from './names';
 	import { DARK_SCHEME, fetchStyle, type Theme, type Tokens, type Unavailable } from './style';
 	import { supportsWebGL2 } from './webgl';
 
 	/**
 	 * The map module (Discovery spec, Modules): renders a map from the served style
 	 * of the UI theme into its container, with the map control, the legend, and the
-	 * attribution, kept within the boundary plus 2 km and below z19. It reports
+	 * attribution, kept within the boundary plus 2 km and below z19, and draws `data`:
+	 * a sign per Location, clusters, geometries, and Site and Area labels. Each Location
+	 * and cluster in view is also one focusable button; `onselect` gets a Location's id.
+	 * It reports
 	 * `onunavailable` without WebGL2, when the style fails to load, or when the tile
 	 * extract is missing, and then renders nothing. The camera after each move is
 	 * on the root's `data-*` attributes and given to `onmoveend`.
@@ -20,6 +26,8 @@
 		view,
 		boundary,
 		attribution,
+		data = EMPTY_MAP_DATA,
+		onselect,
 		onunavailable,
 		onmoveend
 	}: {
@@ -28,6 +36,8 @@
 		/** The bounding box of the Instance boundary. */
 		boundary: Bounds;
 		attribution: readonly { text: string; url: string }[];
+		data?: MapData;
+		onselect?: (id: number) => void;
 		onunavailable: (reason: Unavailable) => void;
 		onmoveend?: (camera: Camera) => void;
 	} = $props();
@@ -70,6 +80,13 @@
 					onMoveEnd(moved) {
 						camera = moved;
 						onmoveend?.(moved);
+					},
+					archive: {
+						describe: {
+							sign: (properties) => signName(properties, getLocale()),
+							cluster: (artworks, locations) => clusterName(artworks, locations, getLocale())
+						},
+						onSelect: (id) => onselect?.(id)
 					}
 				});
 				if (gone) created.destroy();
@@ -96,6 +113,10 @@
 			engine?.destroy();
 		};
 	});
+
+	$effect(() => {
+		engine?.setData(data);
+	});
 </script>
 
 {#if !unavailable}
@@ -107,6 +128,8 @@
 		data-lat={camera?.center[1]}
 		data-bearing={camera?.bearing}
 		data-pitch={camera?.pitch}
+		style:--map-ink={tokens?.['map.ink']}
+		style:--map-paper={tokens?.['map.paper']}
 	>
 		<div class="overlay" role="group" aria-label={m.map_controls()}>
 			{#if engine}
@@ -121,6 +144,33 @@
 {/if}
 
 <style>
+	/* The focusable elements over the canvas: a hit target of at least 24 × 24 px (WCAG 2.5.8). */
+	.map :global(.tart-sign) {
+		inline-size: 1.5rem;
+		block-size: 1.5rem;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+	}
+
+	.map :global(.tart-sign:focus-visible),
+	.map :global(.tart-site:focus-visible) {
+		outline: 3px solid var(--map-ink);
+		outline-offset: 1px;
+	}
+
+	.map :global(.tart-site) {
+		padding: 0.1rem 0.3rem;
+		font-family: 'Sorts Mill Goudy Small Caps', serif;
+		font-size: 0.9rem;
+		letter-spacing: 0.05em;
+		color: var(--map-ink);
+		background: var(--map-paper);
+		text-decoration: underline;
+		white-space: nowrap;
+	}
+
 	.map {
 		position: relative;
 		block-size: min(70vh, 40rem);

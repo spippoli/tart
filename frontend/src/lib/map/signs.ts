@@ -110,3 +110,61 @@ export function signShapes(kind: SignKind, tokens: Tokens, size = SIGN_SIZE): Sh
 		}
 	}
 }
+
+/** The Condition groups a sign can stand for, in priority order (ADR 0015). */
+export type Group = 'present' | 'unknown' | 'disappeared';
+
+/** A sign as the map draws it: shapes placed in a `width` × `height` box. */
+export interface SignImage {
+	size: number;
+	parts: { x: number; y: number; shapes: Shape[] }[];
+}
+
+/**
+ * The sign of a Location on the map: the square of its prevailing `group`, with the
+ * stack outline offset behind it when it has more than one matching Artwork, at the
+ * normal size or the smaller size of an approximate point.
+ */
+export function signImage(
+	group: Group,
+	tokens: Tokens,
+	{ stacked, small }: { stacked: boolean; small: boolean }
+): SignImage {
+	const size = small ? SMALL_SIGN_SIZE : SIGN_SIZE;
+	if (!stacked) return { size, parts: [{ x: 0, y: 0, shapes: signShapes(group, tokens, size) }] };
+	const offset = size / 5;
+	const front = size - offset;
+	const line = Math.max(1.5, front / 8);
+	return {
+		size,
+		parts: [
+			{
+				x: offset,
+				y: 0,
+				shapes: [
+					{
+						d: square(line / 2, line / 2, front - line),
+						fill: tokens['map.paper'],
+						stroke: tokens['marker.ink'],
+						strokeWidth: line
+					}
+				]
+			},
+			{ x: 0, y: offset, shapes: signShapes(group, tokens, front) }
+		]
+	};
+}
+
+/** The size of the hatch pattern tile, whose lines are 10 px apart. */
+export const HATCH_TILE = 20;
+
+/** One repeating tile of the hatched approximate area: 45° ink lines 10 px apart, no outline. */
+export function hatchTile(tokens: Tokens): Shape[] {
+	return [
+		{
+			d: 'M0 10L10 0M0 20L20 0M10 20L20 10',
+			stroke: tokens['map.ink'],
+			strokeWidth: 1
+		}
+	];
+}

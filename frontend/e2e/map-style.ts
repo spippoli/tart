@@ -1,4 +1,5 @@
 import type { Page, Route } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 /**
  * Fictional served styles for the map tests: a paper background, an inline GeoJSON
@@ -64,4 +65,12 @@ export async function serveStyles(
 			body: JSON.stringify(failure?.body ?? style(theme))
 		});
 	});
+}
+
+/** Answers the Locations request as the Discovery query would, over the fictional Locations. */
+export async function serveLocations(page: Page): Promise<void> {
+	const body = readFileSync(new URL('fixtures/map/locations.json', import.meta.url), 'utf8');
+	await page.route('**/api/map/locations', (route: Route) =>
+		route.fulfill({ status: 200, contentType: 'application/json', body })
+	);
 }

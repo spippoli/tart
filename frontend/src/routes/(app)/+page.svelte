@@ -3,6 +3,9 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { localizeHref } from '#lib/paraglide/runtime.js';
 	import { textDirection } from '#lib/i18n/language.ts';
+	import { recordHref } from '#lib/archive/records.ts';
+	import { fetchMapData } from '#lib/map/data.ts';
+	import { EMPTY_MAP_DATA, type MapData } from '#lib/map/locations.ts';
 	import Map from '#lib/map/Map.svelte';
 	import PageTitle from '#lib/shell/PageTitle.svelte';
 	import type { PageProps } from './$types';
@@ -15,7 +18,17 @@
 	// load, or without tiles, it is left out. The list that works without it comes
 	// with the Explore view.
 	let mapAvailable = $state(false);
-	onMount(() => (mapAvailable = true));
+	let mapData = $state<MapData>(EMPTY_MAP_DATA);
+	onMount(() => {
+		mapAvailable = true;
+		fetchMapData().then((fetched) => {
+			// The Site pages are named by their path in the UI language.
+			mapData = {
+				...fetched,
+				sites: fetched.sites.map((site) => ({ ...site, path: recordHref('site', site.path) }))
+			};
+		});
+	});
 </script>
 
 <PageTitle title={m.nav_explore()} />
@@ -32,6 +45,7 @@
 			view={data.map.view}
 			boundary={data.map.boundary}
 			attribution={data.map.attribution}
+			data={mapData}
 			onunavailable={() => (mapAvailable = false)}
 		/>
 	</section>

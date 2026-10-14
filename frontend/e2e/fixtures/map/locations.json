@@ -1,0 +1,201 @@
+{
+	"locations": [
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.4823, 41.8955]
+			},
+			"properties": {
+				"id": 1,
+				"present": 1,
+				"unknown": 0,
+				"disappeared": 0,
+				"point": [12.4823, 41.8955],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.482783, 41.8955]
+			},
+			"properties": {
+				"id": 2,
+				"present": 1,
+				"unknown": 0,
+				"disappeared": 2,
+				"point": [12.482783, 41.8955],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.481817, 41.8955]
+			},
+			"properties": {
+				"id": 3,
+				"present": 0,
+				"unknown": 1,
+				"disappeared": 0,
+				"point": [12.481817, 41.8955],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.4823, 41.895862]
+			},
+			"properties": {
+				"id": 4,
+				"present": 0,
+				"unknown": 0,
+				"disappeared": 1,
+				"point": [12.4823, 41.895862],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.4823, 41.895138]
+			},
+			"properties": {
+				"id": 5,
+				"present": 1,
+				"unknown": 0,
+				"disappeared": 0,
+				"point": [12.4823, 41.895138],
+				"approximate": true,
+				"radius": 30
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.482783, 41.895138]
+			},
+			"properties": {
+				"id": 6,
+				"present": 0,
+				"unknown": 1,
+				"disappeared": 0,
+				"point": [12.482783, 41.895138],
+				"approximate": true,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "LineString",
+				"coordinates": [
+					[12.481576, 41.896133],
+					[12.482059, 41.896133]
+				]
+			},
+			"properties": {
+				"id": 7,
+				"present": 1,
+				"unknown": 1,
+				"disappeared": 0,
+				"point": [12.481817, 41.896133],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Polygon",
+				"coordinates": [
+					[
+						[12.482541, 41.895997],
+						[12.482541, 41.896314],
+						[12.482662, 41.896314],
+						[12.482662, 41.896088],
+						[12.482903, 41.896088],
+						[12.482903, 41.896314],
+						[12.483024, 41.896314],
+						[12.483024, 41.895997],
+						[12.482541, 41.895997]
+					]
+				]
+			},
+			"properties": {
+				"id": 8,
+				"present": 0,
+				"unknown": 1,
+				"disappeared": 1,
+				"point": [12.482602, 41.896151],
+				"approximate": false,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Polygon",
+				"coordinates": [
+					[
+						[12.481516, 41.895003],
+						[12.481516, 41.894777],
+						[12.481817, 41.894777],
+						[12.481817, 41.895003],
+						[12.481516, 41.895003]
+					]
+				]
+			},
+			"properties": {
+				"id": 9,
+				"present": 0,
+				"unknown": 0,
+				"disappeared": 2,
+				"point": [12.481672, 41.894894],
+				"approximate": true,
+				"radius": null
+			}
+		},
+		{
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [12.4823, 41.893239]
+			},
+			"properties": {
+				"id": 22,
+				"present": 1,
+				"unknown": 0,
+				"disappeared": 0,
+				"point": [12.4823, 41.893239],
+				"approximate": true,
+				"radius": 30
+			}
+		}
+	],
+	"sites": [
+		{
+			"id": 1000,
+			"name": "Ex deposito dei tram fittizio",
+			"path": "1000-ex-deposito-dei-tram-fittizio",
+			"point": [12.482541, 41.8955]
+		}
+	],
+	"areas": [
+		{
+			"name": "Quartiere Immaginario",
+			"point": [12.4823, 41.8955]
+		}
+	]
+}
