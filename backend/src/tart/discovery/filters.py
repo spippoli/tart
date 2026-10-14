@@ -33,6 +33,10 @@ class AttributionFilter(StrEnum):
     DISPUTED = "disputed"
 
 
+NAME_THRESHOLD = 0.5
+"""The least `word_similarity` of a name that matches (Search, Matching and relevance)."""
+
+
 def normalise_query(text: str | None) -> str | None:
     """Trimmed, inner whitespace collapsed, truncated beyond 100 characters; `None` under 2.
 

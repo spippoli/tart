@@ -45,6 +45,7 @@ from tart.archive_read import (
 from tart.discovery import tables as t
 from tart.discovery import views as dv
 from tart.discovery.filters import (
+    NAME_THRESHOLD,
     PAGE_SIZE,
     Filters,
     Order,
@@ -53,8 +54,6 @@ from tart.discovery.filters import (
 )
 from tart.discovery.language import text_search_configuration
 
-NAME_THRESHOLD = 0.5
-"""The least `word_similarity` of a name that matches (Search, Matching and relevance)."""
 TEXT_RANK_WEIGHT = 0.5
 ALSO_MATCHING_LIMIT = 3
 ALSO_MATCHING_KINDS = (Kind.ARTIST, Kind.SERIES, Kind.SITE, Kind.AREA)

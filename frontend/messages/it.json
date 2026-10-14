@@ -550,5 +550,15 @@
 	"discovery_entry_thumbnail_pdf": "Documento PDF",
 	"discovery_entry_thumbnail_image": "Immagine",
 	"discovery_entry_no_documentation": "Nessuna documentazione disponibile",
-	"discovery_entry_disputed": "Attribuzione contestata: {names}"
+	"discovery_entry_disputed": "Attribuzione contestata: {names}",
+	"query_key_name": "nome",
+	"query_key_page": "pagina",
+	"query_key_selection": "superficie",
+	"query_key_viewport": "mappa",
+	"map_canvas_mini": "Mappa di questo luogo",
+	"map_open_on_map": "Apri sulla mappa",
+	"archive_index_filter_label": "Filtra per nome",
+	"archive_index_filter_apply": "Filtra",
+	"archive_index_filter_clear": "Azzera il filtro",
+	"archive_index_no_match": "Nessun risultato per «{name}»."
 }

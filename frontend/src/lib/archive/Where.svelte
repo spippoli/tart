@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import MiniMap from '#lib/map/MiniMap.svelte';
+	import type { Counts } from '#lib/map/record-maps.ts';
 	import LinkList from './LinkList.svelte';
 	import type { components } from '../api/schema';
 	import { m } from '#lib/paraglide/messages.js';
@@ -8,12 +12,18 @@
 	import { locationTitleText, recordHref } from './records';
 
 	/**
-	 * Where an Artwork is, in words (archive-records spec, criterion 33): the Location,
-	 * its Areas and Site, the approximate-location notice, the coordinates, and a `geo:`
-	 * link. It stands in for the mini-map, which the Discovery spec adds, and stays as
-	 * its fallback without WebGL2.
+	 * Where an Artwork is: the mini-map (Discovery spec) with the Location, its Areas
+	 * and Site, and the approximate-location notice. Without JavaScript, without WebGL2,
+	 * or when the map cannot load, a text box takes the map's place (archive-records
+	 * spec, criterion 33; Discovery spec, Mini-map): the same words, the coordinates,
+	 * and a `geo:` link.
 	 */
-	let { where }: { where: components['schemas']['Where'] } = $props();
+	let { where, counts = {} }: { where: components['schemas']['Where']; counts?: Partial<Counts> } =
+		$props();
+	let map = $state<'off' | 'loading' | 'ready'>('off');
+	onMount(() => {
+		if (page.data.map && where.location?.geometry) map = 'loading';
+	});
 	const context = archiveContext();
 	const location = $derived(where.location);
 	const point = $derived(
@@ -46,6 +56,15 @@
 				</dd>
 			{/if}
 		</dl>
+		{#if map !== 'off' && location.geometry}
+			<MiniMap
+				{location}
+				{counts}
+				nearby={where.nearby ?? []}
+				onready={() => (map = 'ready')}
+				onunavailable={() => (map = 'off')}
+			/>
+		{/if}
 		{#if location.approximate}
 			<p>
 				{location.uncertainty_radius
@@ -53,13 +72,13 @@
 					: m.archive_approximate()}
 			</p>
 		{/if}
-		{#if point}
+		{#if point && map !== 'ready'}
 			<p>
 				{m.archive_coordinates({ latitude: point[1].toFixed(5), longitude: point[0].toFixed(5) })}
 				· <a href={geoUri(point, location.uncertainty_radius)}>{m.archive_open_in_maps()}</a>
 			</p>
 		{/if}
-		<p class="note">{m.archive_minimap_note()}</p>
+		{#if map === 'off'}<p class="note">{m.archive_minimap_note()}</p>{/if}
 	{/if}
 </div>
 

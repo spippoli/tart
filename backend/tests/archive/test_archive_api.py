@@ -319,7 +319,13 @@ def test_criterion_56_a_withdrawn_location_hides_the_position_only(
     response = _get(api, f"artworks/{seeded.complete_artwork}")
     assert response.status_code == 200
     where = response.json()["where"]
-    assert where == {"location": None, "location_withdrawn": True, "site": None, "areas": []}
+    assert where == {
+        "location": None,
+        "location_withdrawn": True,
+        "site": None,
+        "areas": [],
+        "nearby": [],
+    }
     assert "12.495" not in response.text
     area = _get(api, f"areas/{seeded.ids['quartiere']}").json()
     assert seeded.complete_artwork not in _ids(area["artworks"])

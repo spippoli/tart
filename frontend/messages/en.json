@@ -550,5 +550,15 @@
 	"discovery_entry_thumbnail_pdf": "PDF document",
 	"discovery_entry_thumbnail_image": "Image",
 	"discovery_entry_no_documentation": "No documentation available",
-	"discovery_entry_disputed": "Disputed attribution: {names}"
+	"discovery_entry_disputed": "Disputed attribution: {names}",
+	"query_key_name": "name",
+	"query_key_page": "page",
+	"query_key_selection": "location",
+	"query_key_viewport": "map",
+	"map_canvas_mini": "Map of this place",
+	"map_open_on_map": "Open on the map",
+	"archive_index_filter_label": "Filter by name",
+	"archive_index_filter_apply": "Filter",
+	"archive_index_filter_clear": "Clear the filter",
+	"archive_index_no_match": "No match for “{name}”."
 }

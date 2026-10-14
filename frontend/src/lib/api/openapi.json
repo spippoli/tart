@@ -347,6 +347,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -710,6 +727,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -920,6 +954,23 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
             "name": "tart_session",
             "in": "cookie",
             "required": false,
@@ -1127,6 +1178,23 @@
               "minimum": 1,
               "default": 1,
               "title": "Page"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
             }
           },
           {
@@ -5368,6 +5436,27 @@
             ],
             "title": "Geometry"
           },
+          "point": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point"
+          },
           "approximate": {
             "type": "boolean",
             "title": "Approximate"
@@ -5510,6 +5599,27 @@
             ],
             "title": "Geometry"
           },
+          "point": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point"
+          },
           "approximate": {
             "type": "boolean",
             "title": "Approximate"
@@ -5541,6 +5651,14 @@
             },
             "type": "array",
             "title": "Areas"
+          },
+          "nearby": {
+            "items": {
+              "$ref": "#/components/schemas/NearbyLocation"
+            },
+            "type": "array",
+            "title": "Nearby",
+            "default": []
           },
           "stratigraphy": {
             "items": {
@@ -5760,6 +5878,35 @@
         ],
         "title": "Membership"
       },
+      "NearbyLocation": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "point": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Point"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "point"
+        ],
+        "title": "NearbyLocation",
+        "description": "A public Location near the record's, drawn muted on the mini-map."
+      },
       "NewPasskey": {
         "properties": {
           "credential": {
@@ -5854,6 +6001,100 @@
         "type": "object",
         "title": "Period"
       },
+      "PlaceLocation": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "title": {
+            "$ref": "#/components/schemas/LocationTitle"
+          },
+          "surface_type": {
+            "type": "string",
+            "title": "Surface Type"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "point": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point"
+          },
+          "approximate": {
+            "type": "boolean",
+            "title": "Approximate"
+          },
+          "uncertainty_radius": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty Radius"
+          },
+          "present": {
+            "type": "integer",
+            "title": "Present",
+            "default": 0
+          },
+          "unknown": {
+            "type": "integer",
+            "title": "Unknown",
+            "default": 0
+          },
+          "disappeared": {
+            "type": "integer",
+            "title": "Disappeared",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "title",
+          "surface_type",
+          "geometry",
+          "approximate",
+          "uncertainty_radius"
+        ],
+        "title": "PlaceLocation",
+        "description": "A Location on a Site, Area, or Series map, with the page's Artworks on it by\nCondition group (the sign it is drawn with)."
+      },
       "PlaceView": {
         "properties": {
           "redacted_fields": {
@@ -5937,7 +6178,7 @@
           },
           "locations": {
             "items": {
-              "$ref": "#/components/schemas/LocationSummary"
+              "$ref": "#/components/schemas/PlaceLocation"
             },
             "type": "array",
             "title": "Locations"
@@ -7057,6 +7298,14 @@
             },
             "type": "array",
             "title": "Areas"
+          },
+          "nearby": {
+            "items": {
+              "$ref": "#/components/schemas/NearbyLocation"
+            },
+            "type": "array",
+            "title": "Nearby",
+            "default": []
           }
         },
         "type": "object",

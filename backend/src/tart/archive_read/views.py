@@ -152,8 +152,27 @@ class LocationSummary(BaseModel):
     surface_type: str
     geometry: dict[str, Any] | None
     """GeoJSON; `null` when redacted."""
+    point: tuple[float, float] | None = None
+    """Where the sign sits, on the geometry (longitude, latitude); `null` when redacted."""
     approximate: bool
     uncertainty_radius: int | None
+
+
+class PlaceLocation(LocationSummary):
+    """A Location on a Site, Area, or Series map, with the page's Artworks on it by
+    Condition group (the sign it is drawn with)."""
+
+    present: int = 0
+    unknown: int = 0
+    disappeared: int = 0
+
+
+class NearbyLocation(BaseModel):
+    """A public Location near the record's, drawn muted on the mini-map."""
+
+    id: int
+    point: tuple[float, float]
+    """The representative point (longitude, latitude)."""
 
 
 class Where(BaseModel):
@@ -163,6 +182,8 @@ class Where(BaseModel):
     no mini-map, Site, or Areas."""
     site: RecordLink | None
     areas: list[RecordLink]
+    nearby: list[NearbyLocation] = []
+    """The public Locations within 500 m of this one, for the mini-map."""
 
 
 class ListEntry(ArtworkCard):
@@ -283,10 +304,14 @@ class LocationView(Visibility):
     place_description: str | None
     surface_type: str
     geometry: dict[str, Any] | None
+    point: tuple[float, float] | None = None
+    """Where the sign sits, on the geometry (longitude, latitude); `null` when redacted."""
     approximate: bool
     uncertainty_radius: int | None
     site: RecordLink | None
     areas: list[RecordLink]
+    nearby: list[NearbyLocation] = []
+    """The public Locations within 500 m of this one, for the mini-map."""
     stratigraphy: list[ArtworkCard]
     """Most recent first; empty: "No public artworks here"."""
     disappearances: list[DocumentationSummary]
@@ -303,7 +328,7 @@ class PlaceView(Visibility):
     description: str | None
     geometry: dict[str, Any] | None = None
     """An Area's polygon."""
-    locations: list[LocationSummary]
+    locations: list[PlaceLocation]
     """Where its Artworks are, for the map."""
     artworks: list[ArtworkCard]
     sources: list[RecordLink]

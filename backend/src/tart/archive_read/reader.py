@@ -19,7 +19,8 @@ from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import Text, func, select
+from geoalchemy2 import Geography
+from sqlalchemy import Text, cast, exists, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart.archive import (
@@ -59,11 +60,14 @@ from tart.archive_persistence import PostgresArchiveStore
 from tart.archive_persistence import tables as t
 from tart.archive_read import views as v
 from tart.auth.tables import user_account
+from tart.discovery.filters import NAME_THRESHOLD, normalise_query
 from tart.media.tables import upload
 
 RELATED_LIMIT = 24
 """Artworks per "Related" list; the Artist and Series pages list them all."""
 INDEX_PAGE_SIZE = 24
+NEARBY_METRES = 500
+"""How far the mini-map looks for Locations to show muted (Discovery spec, Mini-map)."""
 
 SLUGGED = frozenset({Kind.ARTWORK, Kind.ARTIST, Kind.SITE, Kind.AREA, Kind.SERIES})
 """The kinds whose route carries a slug; the others are canonical at the bare id."""
@@ -368,6 +372,18 @@ class Reader:
             place=title.place,
         )
 
+    async def _point(self, location_id: RecordId, location: Location) -> tuple[float, float] | None:
+        """Where the Location's sign sits; `None` when the geometry is redacted."""
+        if location.geometry is None:
+            return None
+        stored = await self.connection.scalar(
+            select(func.ST_AsGeoJSON(t.location.c.representative_point, 6)).where(
+                t.location.c.id == location_id
+            )
+        )
+        longitude, latitude = json.loads(stored)["coordinates"]
+        return (longitude, latitude)
+
     async def _location_summary(self, location_id: RecordId) -> v.LocationSummary:
         location: Location = (await self.shown(location_id)).record
         return v.LocationSummary(
@@ -376,6 +392,7 @@ class Reader:
             title=await self._location_title(location_id),
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
         )
@@ -698,7 +715,34 @@ class Reader:
             location_withdrawn=False,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
+            nearby=await self._nearby(location_id),
         )
+
+    async def _nearby(self, location_id: RecordId) -> list[v.NearbyLocation]:
+        """The other listed Locations whose representative point is within 500 m."""
+        if (await self.shown(location_id)).record.geometry is None:  # redacted: no place to show
+            return []
+        here = select(t.location.c.representative_point).where(t.location.c.id == location_id)
+        there = t.location.c.representative_point
+        rows = await self.connection.execute(
+            select(t.location.c.id, func.ST_AsGeoJSON(there, 6))
+            .join(t.record, t.record.c.id == t.location.c.id)
+            .where(
+                t.location.c.id != location_id,
+                t.record.c.withdrawn_at.is_(None),
+                t.record.c.merged_into.is_(None),
+                func.ST_DWithin(
+                    cast(there, Geography),
+                    cast(here.scalar_subquery(), Geography),
+                    NEARBY_METRES,
+                ),
+            )
+            .order_by(t.location.c.id)
+        )
+        return [
+            v.NearbyLocation(id=id_, point=tuple(json.loads(point)["coordinates"]))  # type: ignore[arg-type]
+            for id_, point in rows
+        ]
 
     async def _related(
         self, artwork_id: RecordId, artwork: Artwork, public: frozenset[RecordId]
@@ -801,10 +845,12 @@ class Reader:
             place_description=location.place_description,
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
+            nearby=await self._nearby(location_id),
             stratigraphy=await self.cards(await self.stratigraphy_of(location_id)),
             disappearances=[
                 await self._documentation_summary(item_id)
@@ -863,6 +909,12 @@ class Reader:
             )
             artwork_ids = list(artworks)
         listed_locations = await self.listed(location_ids)
+        cards = await self.cards(artwork_ids)
+        counts: dict[RecordId, dict[str, int]] = {}
+        for card in cards:
+            on = (await self.shown(card.id)).record.location
+            group = counts.setdefault(on, {})
+            group[card.condition.group.value] = group.get(card.condition.group.value, 0) + 1
         return v.PlaceView(
             kind=kind.value,  # type: ignore[arg-type]
             id=record_id,
@@ -870,8 +922,13 @@ class Reader:
             name=record.name,
             description=record.description,
             geometry=geometry,
-            locations=[await self._location_summary(id_) for id_ in listed_locations],
-            artworks=await self.cards(artwork_ids),
+            locations=[
+                v.PlaceLocation(
+                    **(await self._location_summary(id_)).model_dump(), **counts.get(id_, {})
+                )
+                for id_ in listed_locations
+            ],
+            artworks=cards,
             sources=await self.links(record.sources),  # type: ignore[arg-type]
             **visibility,
         )
@@ -1022,27 +1079,53 @@ class Reader:
             records={str(link.id): link for link in await self.links(sorted(referenced))},
         )
 
-    async def index(self, kind: Kind, page: int) -> v.IndexPage:
-        """The listed records of a kind with an index, by name, alphabetically."""
+    async def index(self, kind: Kind, page: int, name: str | None = None) -> v.IndexPage:
+        """The listed records of a kind with an index, by name, alphabetically.
+
+        With `name`, only those whose name (or, for an Artist, an Alias) matches it as in
+        Search; a name hidden by a Redaction is never found.
+        """
         table = _NAMED[kind]
         listed = (
             select(table.c.id)
             .join(t.record, t.record.c.id == table.c.id)
             .where(t.record.c.withdrawn_at.is_(None), t.record.c.merged_into.is_(None))
         )
-        total = await self.connection.scalar(select(func.count()).select_from(listed.subquery()))
-        ids = await self.connection.scalars(
-            listed.order_by(table.c.name.collate("und-x-icu"), table.c.id)
-            .limit(INDEX_PAGE_SIZE)
-            .offset((page - 1) * INDEX_PAGE_SIZE)
-        )
-        # A redacted name still sorts by its stored value; the link shows the placeholder.
-        return v.IndexPage(
-            items=await self.links(list(ids)),
-            page=page,
-            page_size=INDEX_PAGE_SIZE,
-            total=total or 0,
-        )
+        wanted = normalise_query(name)
+        if wanted is not None:
+            folded = func.lower(func.unaccent(literal(wanted)))
+
+            def matches(column: Any) -> Any:
+                return func.word_similarity(folded, func.lower(func.unaccent(column))) >= (
+                    NAME_THRESHOLD
+                )
+
+            condition = matches(table.c.name)
+            if kind is Kind.ARTIST:
+                alias = t.artist_alias
+                condition = or_(
+                    condition,
+                    exists().where(alias.c.artist_id == table.c.id, matches(alias.c.name)),
+                )
+            listed = listed.where(condition)
+        ordered = listed.order_by(table.c.name.collate("und-x-icu"), table.c.id)
+        if wanted is None:
+            total = await self.connection.scalar(
+                select(func.count()).select_from(listed.subquery())
+            )
+            ids = list(
+                await self.connection.scalars(
+                    ordered.limit(INDEX_PAGE_SIZE).offset((page - 1) * INDEX_PAGE_SIZE)
+                )
+            )
+            # A redacted name still sorts by its stored value; the link shows the placeholder.
+            items = await self.links(ids)
+        else:
+            found = await self.links(list(await self.connection.scalars(ordered)))
+            found = [link for link in found if link.name is not None]
+            total = len(found)
+            items = found[(page - 1) * INDEX_PAGE_SIZE :][:INDEX_PAGE_SIZE]
+        return v.IndexPage(items=items, page=page, page_size=INDEX_PAGE_SIZE, total=total or 0)
 
 
 _REFERENCE_KEYS = frozenset(

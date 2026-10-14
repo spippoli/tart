@@ -305,13 +305,29 @@ const ARCHIVE = new URL('fixtures/archive/', import.meta.url);
 export const WITHDRAWN_ID = 9001;
 export const MERGED_ID = 9002;
 
+// Records the fictional dataset has no case for (a Location with neighbours within
+// 500 m, a Series with no visible Location), written by hand.
+const EXTRA = new URL('fixtures/archive-extra/', import.meta.url);
+
 function archiveFile(name: string): unknown {
-	const file = new URL(name, ARCHIVE);
-	return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+	for (const directory of [ARCHIVE, EXTRA]) {
+		const file = new URL(name, directory);
+		if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
+	}
+	return undefined;
+}
+
+const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+/** The index by name: a stand-in for the API's name matching, which its own tests cover. */
+function filtered(index: { items: { name: string | null }[] }, name: string | null) {
+	if (!name) return index;
+	const items = index.items.filter((item) => fold(item.name ?? '').includes(fold(name)));
+	return { ...index, items, total: items.length };
 }
 
 function archive(request: IncomingMessage, response: ServerResponse, url: string) {
-	const [path] = url.slice('/api/archive/'.length).split('?');
+	const [path, query] = url.slice('/api/archive/'.length).split('?');
 	const [segment, id, revisions] = path.split('/');
 	if (Number(id) === WITHDRAWN_ID) return send(response, 410, { code: 'record_withdrawn' });
 	if (Number(id) === MERGED_ID && segment === 'artworks') {
@@ -329,7 +345,16 @@ function archive(request: IncomingMessage, response: ServerResponse, url: string
 		archiveFile(`redacted/${name}`) ??
 		archiveFile(name);
 	if (body === undefined) return send(response, 404, { code: 'record_not_found' });
-	send(response, 200, body);
+	send(
+		response,
+		200,
+		id === undefined
+			? filtered(
+					body as { items: { name: string | null }[] },
+					new URLSearchParams(query).get('name')
+				)
+			: body
+	);
 }
 
 const CONDITION_CYCLE: [string, string][] = [
