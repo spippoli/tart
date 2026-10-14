@@ -14,7 +14,7 @@ const REF = /^(\d+)(?:-.*)?$/;
 
 type Fetched<T> = { data?: T; response: Response };
 
-async function fetchView<T>(event: RequestEvent, path: string): Promise<Fetched<T>> {
+export async function fetchView<T>(event: RequestEvent, path: string): Promise<Fetched<T>> {
 	// The archive routes are many and alike; they are typed by the caller's `T`.
 	const get = api().GET as unknown as (
 		path: string,

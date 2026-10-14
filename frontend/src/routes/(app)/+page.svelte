@@ -6,11 +6,13 @@
 	import { recordHref } from '#lib/archive/records.ts';
 	import { fetchMapData } from '#lib/map/data.ts';
 	import { EMPTY_MAP_DATA, type MapData } from '#lib/map/locations.ts';
+	import DiscoveryView from '#lib/discovery/DiscoveryView.svelte';
 	import Map from '#lib/map/Map.svelte';
 	import PageTitle from '#lib/shell/PageTitle.svelte';
 	import type { PageProps } from './$types';
 
-	// The intro band and the map of Explore; the Discovery spec adds the filters and the list.
+	// The intro band, the map, and the filters and list of Explore; the list does not follow
+	// the viewport until the map and the list are synchronized.
 	let { data }: PageProps = $props();
 	const language = $derived(data.contentLanguage);
 
@@ -50,3 +52,5 @@
 		/>
 	</section>
 {/if}
+
+<DiscoveryView {data} view="explore" heading={m.discovery_list_label()} />
