@@ -166,6 +166,8 @@
 	const start = $derived(data.state.viewport ? viewOf(data.state.viewport) : undefined);
 
 	function moved(next: Camera) {
+		// A map hidden by the switch has no size to report.
+		if (narrow && view === 'list') return;
 		camera = next;
 		// The first camera is where the map starts, not a move.
 		if (!mapReady) return;
@@ -181,6 +183,15 @@
 		const extent = extentOfSigns(mapData.locations);
 		const clamped = extent && clampTo(extent, data.map.boundary);
 		if (clamped) map?.fitTo(clamped, FIT_MAX_ZOOM);
+	}
+
+	/** "Widen the view": on a narrow screen the map comes forward first. */
+	async function widen() {
+		if (narrow && view === 'list') {
+			view = 'map';
+			await tick();
+		}
+		fitToResults();
 	}
 
 	// A URL with filters but no viewport opens fitted to the results.
@@ -377,7 +388,7 @@
 					selected: selectedId,
 					onpage: (number) => loadList(number),
 					onretry: retry,
-					onwiden: fitToResults,
+					onwiden: widen,
 					onshow: show
 				}
 			: null
@@ -549,6 +560,7 @@
 		inset-inline-end: 0.5rem;
 		inline-size: min(24rem, calc(100% - 1rem));
 		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 	}
 	@media (max-width: 60rem) {
 		.sheet {
