@@ -4,6 +4,7 @@ combine. Every record is fictional.
 
 # ruff: noqa: F401, F811
 # The fixtures are imported for pytest and named again as parameters.
+import pytest
 from discovery_fixtures import Discovery, World, discovery, world, year
 
 from tart.archive import Certainty, Condition, Qualifier, UncertainDate
@@ -219,3 +220,37 @@ def test_ac51_a_reversed_year_range_is_ignored(world: World, discovery: Discover
 
     assert len(discovery.ids(created_from=2020, created_to=2016)) == 2
     assert len(discovery.ids(documented_from=2020, documented_to=2016)) == 2
+
+
+# Validation: a malformed or absurd value is a 422, never a 500.
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"bbox": "nan,41,13,42"},
+        {"bbox": "12,41,inf,42"},
+        {"bbox": "12,41,13"},
+        {"bbox": "-181,41,13,42"},
+        {"bbox": "12,-91,13,42"},
+        {"bbox": "12,41,13,91"},
+        {"bbox": "13,41,12,42"},
+        {"bbox": "12,42,13,41"},
+        {"page": 10**30},
+        {"page": 0},
+        {"area": 10**30},
+        {"area": [1] * 51},
+        {"artist": 10**30},
+        {"series": 10**30},
+        {"type": ["mural"] * 51},
+        {"condition": ["intact"] * 51},
+    ],
+)
+def test_a_value_out_of_range_is_a_422(discovery: Discovery, params: dict) -> None:
+    paths = ["/api/discovery/artworks"]
+    if not {"bbox", "page"} & params.keys():  # the Locations answer takes neither
+        paths.append("/api/discovery/locations")
+    for path in paths:
+        assert discovery.api.client.get(path, params=params).status_code == 422
+
+
+def test_a_location_id_out_of_range_is_a_422(discovery: Discovery) -> None:
+    assert discovery.api.client.get(f"/api/discovery/locations/{10**30}").status_code == 422

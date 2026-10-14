@@ -11,8 +11,9 @@ frontend turns its localized query string into these parameters.
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
+from pydantic import Field, StringConstraints
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from tart.api.auth import Error, get_configuration, get_engine
@@ -26,6 +27,11 @@ router = APIRouter(prefix="/api/discovery")
 
 LOCATION_NOT_AVAILABLE = "location_not_available"
 MAX_YEAR = 9999
+MAX_ID = 2**63 - 1
+"""The largest record id PostgreSQL's bigint holds; beyond it a filter is a 422, not a 500."""
+MAX_PAGE = 1_000_000
+MAX_VALUES = 50
+"""The most values of one repeatable filter."""
 
 
 def filters(
@@ -33,12 +39,17 @@ def filters(
         str | None, Query(description="Search text; under 2 characters is absent.")
     ] = None,
     order: Annotated[Order | None, Query()] = None,
-    condition: Annotated[list[Condition], Query()] = [],  # noqa: B006
-    expression_type: Annotated[list[str], Query(alias="type")] = [],  # noqa: B006
-    area: Annotated[list[int], Query()] = [],  # noqa: B006
-    attribution: Annotated[list[AttributionFilter], Query()] = [],  # noqa: B006
-    artist: Annotated[int | None, Query()] = None,
-    series: Annotated[int | None, Query()] = None,
+    condition: Annotated[list[Condition], Query(max_length=MAX_VALUES)] = [],  # noqa: B006
+    expression_type: Annotated[
+        list[Annotated[str, StringConstraints(max_length=100)]],
+        Query(alias="type", max_length=MAX_VALUES),
+    ] = [],  # noqa: B006
+    area: Annotated[
+        list[Annotated[int, Field(ge=1, le=MAX_ID)]], Query(max_length=MAX_VALUES)
+    ] = [],  # noqa: B006
+    attribution: Annotated[list[AttributionFilter], Query(max_length=MAX_VALUES)] = [],  # noqa: B006
+    artist: Annotated[int | None, Query(ge=1, le=MAX_ID)] = None,
+    series: Annotated[int | None, Query(ge=1, le=MAX_ID)] = None,
     documented_from: Annotated[int | None, Query(ge=1, le=MAX_YEAR)] = None,
     documented_to: Annotated[int | None, Query(ge=1, le=MAX_YEAR)] = None,
     created_from: Annotated[int | None, Query(ge=1, le=MAX_YEAR)] = None,
@@ -77,6 +88,9 @@ def bounding_box(
         west, south, east, north = (float(part) for part in bbox.split(","))
     except ValueError:
         raise HTTPException(422, "bbox must be west,south,east,north") from None
+    inside = -180 <= west <= east <= 180 and -90 <= south <= north <= 90  # false for NaN
+    if not inside:
+        raise HTTPException(422, "bbox must lie within the world, west before east")
     return west, south, east, north
 
 
@@ -89,7 +103,7 @@ async def artworks(
     box: Annotated[BoundingBox | None, Depends(bounding_box)],
     configuration: Annotated[Configuration, Depends(get_configuration)],
     engine: Annotated[AsyncEngine, Depends(get_engine)],
-    page: Annotated[int, Query(ge=1)] = 1,
+    page: Annotated[int, Query(ge=1, le=MAX_PAGE)] = 1,
 ) -> Any:
     """The matching Artworks as list entries, 24 to a page, with the total."""
     async with engine.connect() as connection:
@@ -133,7 +147,7 @@ async def locations(
     responses={404: {"model": Error, "description": f"`{LOCATION_NOT_AVAILABLE}`"}},
 )
 async def location_panel(
-    location_id: int,
+    location_id: Annotated[int, Path(ge=1, le=MAX_ID)],
     selected: Filter,
     configuration: Annotated[Configuration, Depends(get_configuration)],
     engine: Annotated[AsyncEngine, Depends(get_engine)],
