@@ -12,6 +12,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Column,
+    Computed,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -73,12 +74,27 @@ site = Table(
     Column("description", Text),
 )
 
+# A point is its own representative point, a line the point at half its length, and a
+# polygon a point inside it (Discovery spec, The map).
+REPRESENTATIVE_POINT = (
+    "CASE GeometryType(geometry) "
+    "WHEN 'POINT' THEN geometry "
+    "WHEN 'LINESTRING' THEN ST_LineInterpolatePoint(geometry, 0.5) "
+    "ELSE ST_PointOnSurface(geometry) END"
+)
+
 location = Table(
     "location",
     metadata,
     _record_id(),
     # The one geometry the archive holds for the surface, the public one.
     Column("geometry", Geometry(srid=4326, spatial_index=False), nullable=False),
+    # Where the map puts the Location's sign, so that it always lies on the geometry.
+    Column(
+        "representative_point",
+        Geometry("POINT", srid=4326, spatial_index=False),
+        Computed(REPRESENTATIVE_POINT, persisted=True),
+    ),
     Column("approximate", Boolean, nullable=False),
     Column("uncertainty_radius", Integer),
     Column("surface_type", Text, nullable=False),
