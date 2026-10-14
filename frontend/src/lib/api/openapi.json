@@ -5436,6 +5436,27 @@
             ],
             "title": "Geometry"
           },
+          "point": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point"
+          },
           "approximate": {
             "type": "boolean",
             "title": "Approximate"
@@ -5577,6 +5598,27 @@
               }
             ],
             "title": "Geometry"
+          },
+          "point": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point"
           },
           "approximate": {
             "type": "boolean",

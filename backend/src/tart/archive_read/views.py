@@ -152,6 +152,8 @@ class LocationSummary(BaseModel):
     surface_type: str
     geometry: dict[str, Any] | None
     """GeoJSON; `null` when redacted."""
+    point: tuple[float, float] | None = None
+    """Where the sign sits, on the geometry (longitude, latitude); `null` when redacted."""
     approximate: bool
     uncertainty_radius: int | None
 
@@ -293,6 +295,8 @@ class LocationView(Visibility):
     place_description: str | None
     surface_type: str
     geometry: dict[str, Any] | None
+    point: tuple[float, float] | None = None
+    """Where the sign sits, on the geometry (longitude, latitude); `null` when redacted."""
     approximate: bool
     uncertainty_radius: int | None
     site: RecordLink | None

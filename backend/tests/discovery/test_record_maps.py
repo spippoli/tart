@@ -78,6 +78,8 @@ def test_ac66_the_record_carries_the_locations_within_500_metres(
     assert [place["id"] for place in location["nearby"]] == [near]
     assert location["nearby"][0]["point"] == [12.4823, 41.8995]
     assert artwork_view["where"]["nearby"] == location["nearby"]
+    assert location["point"] == [12.4823, 41.8955]
+    assert artwork_view["where"]["location"]["point"] == [12.4823, 41.8955]
 
 
 def test_ac66_a_withdrawn_location_is_not_nearby(world: World, discovery: Discovery) -> None:

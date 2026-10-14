@@ -1440,6 +1440,11 @@ export interface components {
             geometry: {
                 [key: string]: unknown;
             } | null;
+            /** Point */
+            point?: [
+                number,
+                number
+            ] | null;
             /** Approximate */
             approximate: boolean;
             /** Uncertainty Radius */
@@ -1490,6 +1495,11 @@ export interface components {
             geometry: {
                 [key: string]: unknown;
             } | null;
+            /** Point */
+            point?: [
+                number,
+                number
+            ] | null;
             /** Approximate */
             approximate: boolean;
             /** Uncertainty Radius */

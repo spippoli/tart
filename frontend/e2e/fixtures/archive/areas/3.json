@@ -51,6 +51,10 @@
      41.895
     ]
    },
+   "point": [
+    12.495,
+    41.895
+   ],
    "approximate": false,
    "uncertainty_radius": null
   },
@@ -70,6 +74,10 @@
      41.885
     ]
    },
+   "point": [
+    12.48,
+    41.885
+   ],
    "approximate": false,
    "uncertainty_radius": null
   },
@@ -95,6 +103,10 @@
      ]
     ]
    },
+   "point": [
+    12.4706,
+    41.9002
+   ],
    "approximate": false,
    "uncertainty_radius": null
   }

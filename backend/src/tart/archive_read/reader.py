@@ -372,6 +372,18 @@ class Reader:
             place=title.place,
         )
 
+    async def _point(self, location_id: RecordId, location: Location) -> tuple[float, float] | None:
+        """Where the Location's sign sits; `None` when the geometry is redacted."""
+        if location.geometry is None:
+            return None
+        stored = await self.connection.scalar(
+            select(func.ST_AsGeoJSON(t.location.c.representative_point, 6)).where(
+                t.location.c.id == location_id
+            )
+        )
+        longitude, latitude = json.loads(stored)["coordinates"]
+        return (longitude, latitude)
+
     async def _location_summary(self, location_id: RecordId) -> v.LocationSummary:
         location: Location = (await self.shown(location_id)).record
         return v.LocationSummary(
@@ -380,6 +392,7 @@ class Reader:
             title=await self._location_title(location_id),
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
         )
@@ -832,6 +845,7 @@ class Reader:
             place_description=location.place_description,
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
             site=await self.link(site) if site else None,
