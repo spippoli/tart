@@ -20,6 +20,11 @@
  * is one, everyone the `redacted/` one. Id 9001 is a withdrawn record (410) and 9002 an
  * Artwork merged into the complete record (301).
  *
+ * `GET /api/discovery/artworks` answers the Discovery query over thirty fictional
+ * list entries made here (the backend's own tests cover the query): the Condition,
+ * type, attribution, creation-year, and search filters, the title order, and pages of 24.
+ * A session cookie of `archivio-vuoto` makes the archive empty.
+ *
  *     node e2e/mock-api.ts [port]
  */
 import { createHash, randomBytes } from 'node:crypto';
@@ -327,6 +332,138 @@ function archive(request: IncomingMessage, response: ServerResponse, url: string
 	send(response, 200, body);
 }
 
+const CONDITION_CYCLE: [string, string][] = [
+	['intact', 'present'],
+	['covered', 'disappeared'],
+	['destroyed', 'disappeared'],
+	['unknown', 'unknown'],
+	['damaged', 'present']
+];
+const yearDate = (year: number) => ({
+	precision: 'year',
+	qualifier: 'exact',
+	first: `${year}-01-01`,
+	second: null
+});
+const link = (kind: string, id: number, path: string, name: string) => ({
+	kind,
+	id,
+	path,
+	name,
+	location_title: null
+});
+
+/** Thirty fictional list entries: ten have no creation date, one has no documentation. */
+const entries = Array.from({ length: 30 }, (_, index) => {
+	const [condition, group] = CONDITION_CYCLE[index % CONDITION_CYCLE.length];
+	const undocumented = index === 2;
+	return {
+		id: 100 + index,
+		path: `${100 + index}-opera-di-prova-${index + 1}`,
+		title: index === 29 ? null : `Opera di prova ${String(index + 1).padStart(2, '0')}`,
+		expression_types: index % 2 ? ['mural'] : ['stencil'],
+		creationYear: index < 10 ? null : 2000 + index,
+		attribution: index % 4 === 0 ? 'attributed' : index % 4 === 1 ? 'disputed' : 'unknown',
+		condition: {
+			condition,
+			group,
+			since: yearDate(2019),
+			evidence_level: 'reported',
+			event: null
+		},
+		last_documented: undocumented ? null : yearDate(2020 + (index % 5)),
+		location: 200 + index,
+		site: index % 3 === 0 ? link('site', 5, '5-deposito', 'Deposito fittizio') : null,
+		area: link('area', 3, '3-quartiere-immaginario', 'Quartiere Immaginario'),
+		approximate: index % 7 === 0,
+		attributed:
+			index % 4 === 0 ? [link('artist', 7, '7-nebbia-finta', 'Nebbia Finta')] : ([] as unknown[]),
+		disputed:
+			index % 4 === 1
+				? [link('artist', 8, '8-collettivo-vernice-assente', 'Collettivo Vernice Assente')]
+				: ([] as unknown[]),
+		thumbnail:
+			index === 4
+				? {
+						id: 300,
+						path: '300',
+						medium: 'image',
+						observed_date: yearDate(2021),
+						file: 'fictional/photo',
+						renditions: { view: { width: 400, height: 300 } },
+						alt_text: 'Una fotografia fittizia di un muro dipinto.'
+					}
+				: null,
+		latest_item_medium: undocumented ? null : index % 5 === 0 ? 'link' : 'text'
+	};
+});
+
+function discovery(url: URL, emptyArchive: boolean) {
+	const query = url.searchParams;
+	const list = (name: string) => query.getAll(name);
+	const number = (name: string) => (query.get(name) === null ? null : Number(query.get(name)));
+	const text = query.get('q')?.trim().toLowerCase() ?? '';
+	let matching = emptyArchive ? [] : entries;
+	if (text.length >= 2) {
+		matching = matching.filter((entry) =>
+			(entry.title ?? 'senza titolo').toLowerCase().includes(text)
+		);
+	}
+	if (list('condition').length) {
+		matching = matching.filter((entry) => list('condition').includes(entry.condition.condition));
+	}
+	if (list('type').length) {
+		matching = matching.filter((entry) =>
+			entry.expression_types.some((type) => list('type').includes(type))
+		);
+	}
+	if (list('attribution').length) {
+		matching = matching.filter((entry) => list('attribution').includes(entry.attribution));
+	}
+	const [from, to] = [number('created_from'), number('created_to')];
+	const dated = from !== null || to !== null;
+	const leftOut = dated ? matching.filter((entry) => entry.creationYear === null).length : 0;
+	if (dated) {
+		matching = matching.filter(
+			(entry) =>
+				entry.creationYear !== null &&
+				(from === null || entry.creationYear >= from) &&
+				(to === null || entry.creationYear <= to)
+		);
+	}
+	if (query.get('order') === 'title') {
+		matching = [...matching].sort((a, b) => (a.title ?? '￿').localeCompare(b.title ?? '￿'));
+	}
+	const page = Number(query.get('page') ?? '1');
+	const shown = matching.slice((page - 1) * 24, page * 24);
+	return {
+		entries: shown.map((entry) => {
+			// What the API does not send: the fixture's own bookkeeping.
+			const shown: Record<string, unknown> = { ...entry };
+			delete shown.creationYear;
+			delete shown.attribution;
+			return shown;
+		}),
+		total: matching.length,
+		page,
+		page_size: 24,
+		also_matching: text.includes('nebbia')
+			? {
+					kinds: [
+						{
+							kind: 'artist',
+							items: [
+								{ record: link('artist', 7, '7-nebbia-finta', 'Nebbia Finta'), alias: 'Nebbia' }
+							],
+							total: 4
+						}
+					]
+				}
+			: null,
+		left_out: leftOut
+	};
+}
+
 const port = Number(process.argv[2] ?? 8795);
 createServer((request, response) => {
 	const path = (request.url ?? '').replace(/^\/it-only/, '');
@@ -336,6 +473,11 @@ createServer((request, response) => {
 	}
 	if (path.startsWith('/api/archive/')) {
 		archive(request, response, path);
+		return;
+	}
+	if (path.startsWith('/api/discovery/artworks')) {
+		const empty = sessionEmail(request)?.startsWith('archivio-vuoto') ?? false;
+		send(response, 200, discovery(new URL(path, 'http://mock'), empty));
 		return;
 	}
 	const body = variants[request.url ?? ''];
