@@ -59,6 +59,8 @@ export interface Archive {
 	setData(data: MapData): void;
 	setMuted(points: readonly (readonly [number, number])[]): void;
 	setOutline(geometry: Outline | null): void;
+	/** Focuses the button of a Location in view; false if there is none. */
+	focusSign(id: number): boolean;
 	destroy(): void;
 }
 
@@ -72,6 +74,8 @@ interface Entry {
 	label: string;
 	/** The image of the sign it stands for, for tests and for styling. */
 	sign: string;
+	/** The Location's id; none for a cluster. */
+	location?: number;
 	activate: () => void;
 }
 
@@ -350,6 +354,7 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 					at: point,
 					label: options.describe.sign(location.properties),
 					sign: signImageName(location.properties).replace('sign-', ''),
+					location: location.properties.id,
 					activate: () => options.onSelect(location.properties.id)
 				});
 			}
@@ -388,6 +393,7 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 			element.type = 'button';
 			element.className = 'tart-sign';
 			element.dataset.sign = entry.sign;
+			if (entry.location !== undefined) element.dataset.location = String(entry.location);
 			element.setAttribute('aria-label', entry.label);
 			element.addEventListener('click', entry.activate);
 			const marker = new Marker({ element, anchor: 'center' }).setLngLat(entry.at).addTo(map);
@@ -464,6 +470,11 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 		setData,
 		setMuted,
 		setOutline,
+		focusSign(id) {
+			const found = markers.get(`l${id}`);
+			found?.element.focus();
+			return found !== undefined;
+		},
 		destroy() {
 			cancelAnimationFrame(frame);
 			for (const { marker } of markers.values()) marker.remove();

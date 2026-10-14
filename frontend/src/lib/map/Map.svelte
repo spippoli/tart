@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { mapBounds, type Bounds } from './bounds';
@@ -28,6 +28,7 @@
 	 */
 	let {
 		view,
+		start: startView,
 		boundary,
 		attribution,
 		data = EMPTY_MAP_DATA,
@@ -40,10 +41,14 @@
 		mini = false,
 		muted = [],
 		outline = null,
-		onready
+		onready,
+		onlocate,
+		children
 	}: {
 		/** The Instance's default view, which the reset button returns to. */
 		view: View;
+		/** Where the map starts if not on `view` (a viewport restored from the URL). */
+		start?: View;
 		/** The bounding box of the Instance boundary. */
 		boundary: Bounds;
 		attribution: readonly { text: string; url: string }[];
@@ -68,11 +73,35 @@
 		outline?: AreaOutline | null;
 		/** Called once the map is drawn. */
 		onready?: () => void;
+		/** Adds the "Centre on my position" button to the map control. */
+		onlocate?: () => void;
+		/** Status text of the page's own (loading, failure), shown in the map control. */
+		children?: Snippet;
 	} = $props();
 
 	/** Moves the map so that `point` is at its centre. */
 	export function centerOn(point: Point) {
 		engine?.centerOn(point);
+	}
+
+	/** Moves the map to `point` at `zoom`. */
+	export function flyTo(point: Point, zoom: number) {
+		engine?.flyTo(point, zoom);
+	}
+
+	/** Fits the map to an extent, never zooming in beyond `maxZoom`. */
+	export function fitTo(bounds: Bounds, maxZoom: number) {
+		engine?.fitTo(bounds, maxZoom);
+	}
+
+	/** Puts the focus on the sign of a Location in view; false if it is not. */
+	export function focusSign(id: number): boolean {
+		return engine?.focusSign(id) ?? false;
+	}
+
+	/** Shows the "Your position" mark; `null` removes it. */
+	export function showPosition(point: Point | null) {
+		engine?.setPosition(point);
 	}
 
 	let container = $state<HTMLDivElement>();
@@ -119,6 +148,7 @@
 				const created = await createEngine(container!, {
 					style: result.style,
 					view,
+					start: startView,
 					frame,
 					minZoom: mini ? MINI_MIN_ZOOM : undefined,
 					still: mini,
@@ -126,7 +156,8 @@
 					attribution,
 					labels: {
 						canvas: mini ? m.map_canvas_mini() : m.map_canvas(),
-						attributionToggle: m.map_attribution_toggle()
+						attributionToggle: m.map_attribution_toggle(),
+						position: m.map_your_position()
 					},
 					onClick: onclick && ((click) => onclick(click)),
 					onMoveEnd(moved) {
@@ -191,8 +222,9 @@
 	>
 		<div class="overlay" role="group" aria-label={m.map_controls()}>
 			{#if engine}
-				<MapControl {engine} zoomOnly={mini} />
+				<MapControl {engine} zoomOnly={mini} {onlocate} />
 			{/if}
+			{@render children?.()}
 			{#if tokens && !mini}
 				<Legend {tokens} />
 			{/if}
@@ -216,6 +248,16 @@
 	.map :global(.tart-site:focus-visible) {
 		outline: 3px solid var(--map-ink);
 		outline-offset: 1px;
+	}
+
+	/* "Your position": a filled circle with a ring, unlike the archive's squares. */
+	.map :global(.tart-position) {
+		inline-size: 1rem;
+		block-size: 1rem;
+		border-radius: 50%;
+		background: var(--map-ink);
+		border: 3px solid var(--map-paper);
+		box-shadow: 0 0 0 2px var(--map-ink);
 	}
 
 	.map :global(.tart-site) {
