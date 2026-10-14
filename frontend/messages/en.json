@@ -473,5 +473,15 @@
 	"location_entry_chosen": "Chosen Location: {title}",
 	"location_entry_clear": "Choose a different position",
 	"location_entry_duplicates": "Similar Locations already in the archive",
-	"location_entry_duplicate_documentation": "Add documentation to {title}"
+	"location_entry_duplicate_documentation": "Add documentation to {title}",
+	"query_key_name": "name",
+	"query_key_page": "page",
+	"query_key_selection": "location",
+	"query_key_viewport": "map",
+	"map_canvas_mini": "Map of this place",
+	"map_open_on_map": "Open on the map",
+	"archive_index_filter_label": "Filter by name",
+	"archive_index_filter_apply": "Filter",
+	"archive_index_filter_clear": "Clear the filter",
+	"archive_index_no_match": "No match for “{name}”."
 }
