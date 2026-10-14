@@ -150,11 +150,19 @@
 	}
 
 	// A change of the filters or of the viewport resets the list to its first page.
+	// The key is a string, so a camera that moved without changing the rounded bounds does not
+	// rerun the effect; a burst of moves is answered once, after the map settles.
+	const listKey = $derived(camera ? `${filterQuery}|${bboxParam(camera.bounds)}` : null);
+	const LIST_DEBOUNCE_MS = 250;
 	$effect(() => {
-		if (!showMap || !camera) return;
-		void filterQuery;
-		void camera.bounds;
-		untrack(() => loadList(1));
+		if (!showMap || listKey === null) return;
+		const first = untrack(() => results === null && !failed && !busy);
+		if (first) {
+			untrack(() => loadList(1));
+			return;
+		}
+		const timer = setTimeout(() => loadList(1), LIST_DEBOUNCE_MS);
+		return () => clearTimeout(timer);
 	});
 
 	function retry() {
