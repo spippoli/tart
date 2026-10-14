@@ -357,6 +357,7 @@ async def apply_changeset(
     await _check_images(changes)
 
     revisions: list[Revision] = []
+    await store.watch(changes.after)
     for record_id, record in changes.after.items():
         before = changes.before[record_id]
         diff = change_list(before, record)
@@ -364,4 +365,5 @@ async def apply_changeset(
             continue
         await store.save(record_id, record, new=before is None)
         revisions.append(await store.add_revision(record_id, record.KIND, provenance, diff))
+    await store.settle([revision.record_id for revision in revisions], rules)
     return tuple(revisions)

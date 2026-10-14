@@ -11,6 +11,7 @@ from typing import Protocol
 from tart.archive.codec import Json
 from tart.archive.records import Kind, Record, RecordId
 from tart.archive.revisions import Provenance, Revision
+from tart.archive.rules import InstanceRules
 
 
 class ArchiveStore(Protocol):
@@ -52,4 +53,14 @@ class ArchiveStore(Protocol):
 
     async def documentation_items_of(self, artwork_ids: Iterable[RecordId]) -> frozenset[RecordId]:
         """The stored Documentation items linked to any of the Artworks."""
+        ...
+
+    async def watch(self, record_ids: Iterable[RecordId]) -> None:
+        """Before the records change: remember the Artworks they affect as they are now
+        (a Documentation item about to leave an Artwork, an Area about to move)."""
+        ...
+
+    async def settle(self, record_ids: Iterable[RecordId], rules: InstanceRules) -> None:
+        """After the records changed: bring what is derived from the public archive up to
+        date for the Artworks they affect, now or when watched, and count the change."""
         ...

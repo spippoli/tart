@@ -7,7 +7,7 @@ import json
 from collections.abc import Iterable, Sequence
 from typing import Any
 
-from sqlalchemy import Table, delete, func, insert, select, update
+from sqlalchemy import Table, delete, func, insert, select, union, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart.archive.codec import (
@@ -41,7 +41,9 @@ from tart.archive.records import (
     Source,
 )
 from tart.archive.revisions import Provenance, Revision
+from tart.archive.rules import InstanceRules
 from tart.archive_persistence import tables as t
+from tart.discovery.tables import archive_change
 
 
 def _geometry(value: str) -> Geometry:
@@ -55,8 +57,12 @@ def _to_postgis(geometry: Geometry) -> Any:
 class PostgresArchiveStore:
     """`ArchiveStore` over PostgreSQL + PostGIS, and the read queries of the archive."""
 
-    def __init__(self, connection: AsyncConnection) -> None:
+    def __init__(self, connection: AsyncConnection, *, index: bool = True) -> None:
         self.connection = connection
+        self._watched: set[RecordId] = set()
+        # A bulk writer (the fictional dataset) leaves the Discovery index to one rebuild
+        # of its own after many changesets, instead of refreshing it after each.
+        self._index = index
 
     # The port of the write operation.
 
@@ -131,6 +137,52 @@ class PostgresArchiveStore:
             )
         )
         return frozenset(result)
+
+    async def watch(self, record_ids: Iterable[RecordId]) -> None:
+        self._watched |= await self._artworks_affected_by(record_ids)
+
+    async def settle(self, record_ids: Iterable[RecordId], rules: InstanceRules) -> None:
+        ids = list(record_ids)
+        affected = self._watched | await self._artworks_affected_by(ids)
+        self._watched = set()
+        if self._index:
+            # Discovery reads through this store's own read side, so it is imported on use.
+            from tart.discovery.index import refresh
+
+            await refresh(self.connection, affected, rules)
+        if ids:
+            await self.connection.execute(
+                update(archive_change)
+                .where(archive_change.c.id == 1)
+                .values(counter=archive_change.c.counter + 1)
+            )
+
+    async def _artworks_affected_by(self, record_ids: Iterable[RecordId]) -> set[RecordId]:
+        """The Artworks whose search names or Area membership change with these records:
+        themselves, those on a Location or Site, in a Series or an Area, by an Artist, or
+        documented by an item."""
+        ids = list(set(record_ids))
+        if not ids:
+            return set()
+        artwork, location = t.artwork, t.location
+        sites = select(location.c.id).where(location.c.site_id.in_(ids))
+        areas = (
+            select(location.c.id)
+            .join(t.area, func.ST_Intersects(t.area.c.geometry, location.c.geometry))
+            .where(t.area.c.id.in_(ids))
+        )
+        found = union(
+            select(artwork.c.id).where(artwork.c.id.in_(ids)),
+            select(artwork.c.id).where(artwork.c.location_id.in_(ids)),
+            select(artwork.c.id).where(artwork.c.location_id.in_(sites)),
+            select(artwork.c.id).where(artwork.c.location_id.in_(areas)),
+            select(t.artwork_series.c.artwork_id).where(t.artwork_series.c.series_id.in_(ids)),
+            select(t.attribution.c.artwork_id).where(t.attribution.c.artist_id.in_(ids)),
+            select(t.documentation_item_artwork.c.artwork_id).where(
+                t.documentation_item_artwork.c.item_id.in_(ids)
+            ),
+        )
+        return set(await self.connection.scalars(found))
 
     # Read queries.
 

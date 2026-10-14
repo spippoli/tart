@@ -83,6 +83,8 @@ def test_criterion_4_the_archive_port_cannot_delete() -> None:
         "members_of",
         "artworks_signed_with",
         "documentation_items_of",
+        "watch",
+        "settle",
     }
 
 

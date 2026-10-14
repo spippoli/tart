@@ -2,6 +2,7 @@
 
 from tart.archive_read.reader import (
     INDEX_PAGE_SIZE,
+    ArtworkFacts,
     Reader,
     RecordMergedError,
     RecordNotFoundError,
@@ -11,6 +12,7 @@ from tart.archive_read.reader import (
 
 __all__ = [
     "INDEX_PAGE_SIZE",
+    "ArtworkFacts",
     "Reader",
     "RecordMergedError",
     "RecordNotFoundError",
