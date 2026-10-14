@@ -631,6 +631,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/discovery/artworks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Artworks
+         * @description The matching Artworks as list entries, 24 to a page, with the total.
+         */
+        get: operations["artworks_api_discovery_artworks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Locations
+         * @description Every Location with a matching Artwork, as one lightweight GeoJSON collection.
+         *
+         *     Revalidated on every use (`no-cache` with an ETag derived from the counter of public
+         *     archive changes and the normalised query).
+         */
+        get: operations["locations_api_discovery_locations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/locations/{location_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Location Panel
+         * @description A Location's header and its stratigraphy of matching Artworks.
+         *
+         *     A withdrawn, merged, or missing Location answers the same 404.
+         */
+        get: operations["location_panel_api_discovery_locations__location_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -781,6 +846,32 @@ export interface components {
             /** Preferred Language */
             preferred_language: string;
         };
+        /** AlsoMatch */
+        AlsoMatch: {
+            record: components["schemas"]["RecordLink"];
+            /** Alias */
+            alias: string | null;
+        };
+        /** AlsoMatching */
+        AlsoMatching: {
+            /** Kinds */
+            kinds: components["schemas"]["AlsoMatchingKind"][];
+        };
+        /** AlsoMatchingKind */
+        AlsoMatchingKind: {
+            kind: components["schemas"]["Kind"];
+            /** Items */
+            items: components["schemas"]["AlsoMatch"][];
+            /** Total */
+            total: number;
+        };
+        /** AreaLabel */
+        AreaLabel: {
+            /** Name */
+            name: string;
+            /** Point */
+            point: number[];
+        };
         /**
          * ArtistKind
          * @enum {string}
@@ -845,6 +936,20 @@ export interface components {
             condition: components["schemas"]["ConditionView"];
             last_documented: components["schemas"]["UncertainDate"] | null;
         };
+        /** ArtworkPage */
+        ArtworkPage: {
+            /** Entries */
+            entries: components["schemas"]["ListEntry"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            also_matching: components["schemas"]["AlsoMatching"] | null;
+            /** Left Out */
+            left_out: number;
+        };
         /** ArtworkView */
         ArtworkView: {
             /**
@@ -904,6 +1009,11 @@ export interface components {
             /** Url */
             url: string;
         };
+        /**
+         * AttributionFilter
+         * @enum {string}
+         */
+        AttributionFilter: "unknown" | "attributed" | "disputed";
         /**
          * AttributionReadout
          * @description Both empty: "Unknown artist".
@@ -1275,6 +1385,48 @@ export interface components {
             /** Data Attribution */
             data_attribution: string | null;
         };
+        /**
+         * ListEntry
+         * @description An Artwork in the Explore list, the Archive view, and a Location's panel
+         *     (Discovery spec, List entries).
+         */
+        ListEntry: {
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            /** Title */
+            title: string | null;
+            /** Expression Types */
+            expression_types: string[];
+            condition: components["schemas"]["ConditionView"];
+            last_documented: components["schemas"]["UncertainDate"] | null;
+            /** Location */
+            location: number;
+            site: components["schemas"]["RecordLink"] | null;
+            area: components["schemas"]["RecordLink"] | null;
+            /** Approximate */
+            approximate: boolean;
+            /** Attributed */
+            attributed: components["schemas"]["RecordLink"][];
+            /** Disputed */
+            disputed: components["schemas"]["RecordLink"][];
+            thumbnail: components["schemas"]["DocumentationSummary"] | null;
+            latest_item_medium: components["schemas"]["Medium"] | null;
+        };
+        /** LocationPanel */
+        LocationPanel: {
+            location: components["schemas"]["LocationSummary"];
+            site: components["schemas"]["RecordLink"] | null;
+            /** Areas */
+            areas: components["schemas"]["RecordLink"][];
+            /** Entries */
+            entries: components["schemas"]["ListEntry"][];
+            /** Matches */
+            matches: boolean;
+            /** Other */
+            other: number;
+        };
         /** LocationSummary */
         LocationSummary: {
             /** Id */
@@ -1359,6 +1511,57 @@ export interface components {
             /** Alt */
             alt: string;
         };
+        /** MapFeature */
+        MapFeature: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "Feature";
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+            properties: components["schemas"]["MapProperties"];
+        };
+        /** MapLocations */
+        MapLocations: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "FeatureCollection";
+            /** Features */
+            features: components["schemas"]["MapFeature"][];
+            /** Sites */
+            sites: components["schemas"]["SiteLabel"][];
+            /** Areas */
+            areas: components["schemas"]["AreaLabel"][];
+        };
+        /** MapProperties */
+        MapProperties: {
+            /** Id */
+            id: number;
+            /** Present */
+            present: number;
+            /** Unknown */
+            unknown: number;
+            /** Disappeared */
+            disappeared: number;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "present" | "unknown" | "disappeared";
+            /** Count */
+            count: number;
+            /** Point */
+            point: number[];
+            /** Approximate */
+            approximate: boolean;
+            /** Radius */
+            radius: number | null;
+        };
         /**
          * Medium
          * @enum {string}
@@ -1378,6 +1581,11 @@ export interface components {
             /** Name */
             name: string;
         };
+        /**
+         * Order
+         * @enum {string}
+         */
+        Order: "recent" | "oldest" | "added" | "title" | "relevance";
         /** PasskeyCredential */
         PasskeyCredential: {
             /** Credential */
@@ -1602,6 +1810,17 @@ export interface components {
             preferred_language: string;
             /** Moderator */
             moderator: boolean;
+        };
+        /** SiteLabel */
+        SiteLabel: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
+            /** Point */
+            point: number[];
         };
         /** Size */
         Size: {
@@ -3457,6 +3676,156 @@ export interface operations {
                 };
             };
             /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artworks_api_discovery_artworks_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                /** @description Search text; under 2 characters is absent. */
+                q?: string | null;
+                order?: components["schemas"]["Order"] | null;
+                condition?: components["schemas"]["Condition"][];
+                type?: string[];
+                area?: number[];
+                attribution?: components["schemas"]["AttributionFilter"][];
+                artist?: number | null;
+                series?: number | null;
+                documented_from?: number | null;
+                documented_to?: number | null;
+                created_from?: number | null;
+                created_to?: number | null;
+                /** @description West,south,east,north: only Locations whose sign lies inside. */
+                bbox?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtworkPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    locations_api_discovery_locations_get: {
+        parameters: {
+            query?: {
+                /** @description Search text; under 2 characters is absent. */
+                q?: string | null;
+                order?: components["schemas"]["Order"] | null;
+                condition?: components["schemas"]["Condition"][];
+                type?: string[];
+                area?: number[];
+                attribution?: components["schemas"]["AttributionFilter"][];
+                artist?: number | null;
+                series?: number | null;
+                documented_from?: number | null;
+                documented_to?: number | null;
+                created_from?: number | null;
+                created_to?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapLocations"];
+                };
+            };
+            /** @description The ETag sent is still current. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_panel_api_discovery_locations__location_id__get: {
+        parameters: {
+            query?: {
+                /** @description Search text; under 2 characters is absent. */
+                q?: string | null;
+                order?: components["schemas"]["Order"] | null;
+                condition?: components["schemas"]["Condition"][];
+                type?: string[];
+                area?: number[];
+                attribution?: components["schemas"]["AttributionFilter"][];
+                artist?: number | null;
+                series?: number | null;
+                documented_from?: number | null;
+                documented_to?: number | null;
+                created_from?: number | null;
+                created_to?: number | null;
+            };
+            header?: never;
+            path: {
+                location_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationPanel"];
+                };
+            };
+            /** @description `location_not_available` */
             404: {
                 headers: {
                     [name: string]: unknown;

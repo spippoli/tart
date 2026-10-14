@@ -48,6 +48,8 @@ class InstanceRules:
     """Open vocabulary keys, each with whether it is retired."""
     surface_types: Mapping[str, bool]
     file_licences: frozenset[str]
+    content_language: str
+    """ISO 639-1 code of the language of the archive's free text."""
 
 
 def _vocabulary_keys(

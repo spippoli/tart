@@ -165,6 +165,25 @@ class Where(BaseModel):
     areas: list[RecordLink]
 
 
+class ListEntry(ArtworkCard):
+    """An Artwork in the Explore list, the Archive view, and a Location's panel
+    (Discovery spec, List entries)."""
+
+    location: int
+    """The Location it is on: what "Show on map" selects."""
+    site: RecordLink | None
+    area: RecordLink | None
+    """The first of its Areas by name; the "where" line shows the Site, else this."""
+    approximate: bool
+    attributed: list[RecordLink]
+    disputed: list[RecordLink]
+    """Both empty: "Unknown artist"."""
+    thumbnail: DocumentationSummary | None
+    """The most recent public image or PDF preview."""
+    latest_item_medium: Medium | None
+    """What the neutral box names without a thumbnail; `null`: no public Documentation item."""
+
+
 class EventEntry(BaseModel):
     entry: Literal["event"] = "event"
     id: int

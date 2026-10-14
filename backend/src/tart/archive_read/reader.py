@@ -15,8 +15,9 @@ pending Submission has no row here, so it is 404 for everyone.
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields, replace
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import Text, func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -27,9 +28,13 @@ from tart.archive import (
     Area,
     Artist,
     Artwork,
+    ConditionReading,
+    DateRange,
     DocumentationItem,
     Kind,
     Location,
+    Medium,
+    Precision,
     Record,
     RecordId,
     Revision,
@@ -188,6 +193,31 @@ def _date(value: Any) -> v.UncertainDate | None:
 
 def _period(value: Any) -> v.Period | None:
     return v.Period.model_validate(encode_period(value)) if value else None
+
+
+@dataclass(frozen=True)
+class ArtworkFacts:
+    """What the public derives from an Artwork, for the Discovery index: the domain rules
+    applied to the Artwork's public events and Documentation items."""
+
+    artwork: Artwork
+    condition: ConditionReading
+    creation: DateRange | None
+    """The Creation event's range; `None` without a dated Creation event."""
+    documented: tuple[DateRange, ...]
+    """The range of each dated public Documentation item."""
+    first_documented: datetime | None
+    last_documented: datetime | None
+    """The chronological keys of the first and the last public Documentation item."""
+    added_at: datetime
+    """The approval of the Artwork's first Revision."""
+    attribution: tuple[str, ...]
+    """Any of `unknown`, `attributed`, `disputed`."""
+    artists: tuple[str, ...]
+    """The names and Aliases of the Artists it is attributed to, publicly."""
+    series: tuple[str, ...]
+    site: str | None
+    areas: tuple[str, ...]
 
 
 class Reader:
@@ -389,6 +419,121 @@ class Reader:
             event=reading.event.id if reading.event else None,
         )
 
+    # What Discovery reads.
+
+    async def facts(self, artwork_id: RecordId, time_zone: ZoneInfo) -> ArtworkFacts:
+        """The Artwork's derived facts as the public sees them (Redactions applied)."""
+        artwork: Artwork = (await self.shown(artwork_id)).record
+        events = await self._approved_events(artwork_id)
+        items = await self._documentation(artwork_id)
+        history = await self._history(artwork_id)
+
+        def submitted_on(revision: Revision) -> date:
+            return revision.provenance.submitted_at.astimezone(time_zone).date()
+
+        # An `unknown` date has no range worth matching: it stays out of the date filters.
+        creation = creation_event(events)
+        created = None
+        if creation is not None and creation.observed_date.precision is not Precision.UNKNOWN:
+            revision = history.event_revisions[creation.id]
+            created = creation.observed_date.range(submitted_on(revision))
+        documented = []
+        for item in items:
+            if item.observed_date.precision is not Precision.UNKNOWN:
+                latest = (await self._history(item.id)).revisions[-1]
+                documented.append(item.observed_date.range(submitted_on(latest)))
+        first = first_documentation(items)
+        last = last_documented(items)
+
+        public = await self._public(a.artist for a in artwork.attributions)  # type: ignore[misc]
+        readout = attribution_readout(artwork, public)
+        artists: list[str] = []
+        for shown in (*readout.attributed, *readout.disputed):
+            artist: Artist = (await self.shown(shown.attribution.artist)).record  # type: ignore[arg-type]
+            artists += [name for name in (artist.name, *artist.aliases) if name]
+        states = [
+            state
+            for state, present in (
+                ("unknown", readout.unknown),
+                ("attributed", bool(readout.attributed)),
+                ("disputed", bool(readout.disputed)),
+            )
+            if present
+        ]
+
+        site_name = None
+        area_names: list[str] = []
+        if await self.listed([artwork.location]):  # type: ignore[list-item]
+            location: Location = (await self.shown(artwork.location)).record  # type: ignore[arg-type]
+            [site] = await self.listed([location.site]) or [None]  # type: ignore[list-item]
+            site_name = await self._name(site) if site is not None else None
+            area_names = [
+                name
+                for area in await self._areas(artwork.location)  # type: ignore[arg-type]
+                if (name := await self._name(area)) is not None
+            ]
+        series_names = [
+            name
+            for series in await self.listed(artwork.series)  # type: ignore[arg-type]
+            if (name := await self._name(series)) is not None
+        ]
+        return ArtworkFacts(
+            artwork=artwork,
+            condition=derive_condition(events),
+            creation=created,
+            documented=tuple(documented),
+            first_documented=first.observed_date.chronological_key if first else None,
+            last_documented=last.observed_date.chronological_key if last else None,
+            added_at=history.revisions[0].provenance.approved_at,
+            attribution=tuple(states),
+            artists=tuple(artists),
+            series=tuple(series_names),
+            site=site_name,
+            areas=tuple(area_names),
+        )
+
+    async def stratigraphy_of(self, location_id: RecordId) -> tuple[RecordId, ...]:
+        """The listed Artworks on a Location, most recent first."""
+        strata = []
+        for artwork_id in await self.listed(await self.store.artworks_on_location(location_id)):
+            events = await self._approved_events(artwork_id)
+            documentation = await self._documentation(artwork_id)
+            strata.append(
+                Stratum(artwork_id, creation_event(events), first_documentation(documentation))
+            )
+        return stratigraphy(strata)
+
+    async def entry(self, artwork_id: RecordId) -> v.ListEntry:
+        """The Artwork as a list entry: the card, where it is, who by, and its thumbnail."""
+        card = await self.card(artwork_id)
+        artwork: Artwork = (await self.shown(artwork_id)).record
+        where = await self.where(artwork.location)
+        public = await self._public(a.artist for a in artwork.attributions)  # type: ignore[misc]
+        readout = attribution_readout(artwork, public)
+        items = await self._documentation(artwork_id)
+        picture = last_documented(
+            [
+                item
+                for item in items
+                if item.item.medium in (Medium.IMAGE, Medium.PDF) and item.item.file
+            ]
+        )
+        latest = last_documented(items)
+        return v.ListEntry(
+            **card.model_dump(),
+            location=artwork.location,  # type: ignore[arg-type]
+            site=where.site,
+            area=where.areas[0] if where.areas else None,
+            approximate=bool(where.location and where.location.approximate),
+            attributed=[await self.link(a.attribution.artist) for a in readout.attributed],  # type: ignore[arg-type]
+            disputed=[await self.link(a.attribution.artist) for a in readout.disputed],  # type: ignore[arg-type]
+            thumbnail=await self._documentation_summary(picture.id) if picture else None,
+            latest_item_medium=latest.item.medium if latest else None,
+        )
+
+    async def entries(self, ids: Iterable[RecordId]) -> list[v.ListEntry]:
+        return [await self.entry(id_) for id_ in await self.listed(ids)]
+
     async def card(self, artwork_id: RecordId) -> v.ArtworkCard:
         artwork: Artwork = (await self.shown(artwork_id)).record
         latest = last_documented(await self._documentation(artwork_id))
@@ -534,7 +679,7 @@ class Reader:
                 disputed=await shown_attributions(readout.disputed),
             ),
             gallery=[await self._documentation_summary(item.id) for item in gallery],
-            where=await self._where(artwork.location),
+            where=await self.where(artwork.location),
             series=await self.links(artwork.series),  # type: ignore[arg-type]
             timeline=v.TimelineView(**entries),
             sources=await self.links(artwork.sources),  # type: ignore[arg-type]
@@ -542,7 +687,7 @@ class Reader:
             **visibility,
         )
 
-    async def _where(self, location_id: Any) -> v.Where:
+    async def where(self, location_id: Any) -> v.Where:
         if location_id is None or not await self.listed([location_id]):
             # Withdrawn (or redacted): a placeholder, and nothing that would place it.
             return v.Where(location=None, location_withdrawn=True, site=None, areas=[])
@@ -643,13 +788,6 @@ class Reader:
     async def _location(
         self, location_id: RecordId, location: Location, visibility: dict[str, Any]
     ) -> v.LocationView:
-        strata = []
-        for artwork_id in await self.listed(await self.store.artworks_on_location(location_id)):
-            events = await self._approved_events(artwork_id)
-            documentation = await self._documentation(artwork_id)
-            strata.append(
-                Stratum(artwork_id, creation_event(events), first_documentation(documentation))
-            )
         disappearances = await self.connection.scalars(
             select(t.documentation_item.c.id)
             .where(t.documentation_item.c.location_id == location_id)
@@ -667,7 +805,7 @@ class Reader:
             uncertainty_radius=location.uncertainty_radius,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
-            stratigraphy=await self.cards(stratigraphy(strata)),
+            stratigraphy=await self.cards(await self.stratigraphy_of(location_id)),
             disappearances=[
                 await self._documentation_summary(item_id)
                 for item_id in await self.listed(disappearances)

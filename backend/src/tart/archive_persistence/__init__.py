@@ -25,6 +25,7 @@ def rules_from_instance(instance: Instance) -> InstanceRules:
         expression_types={entry.key: entry.retired for entry in vocabularies["expression_types"]},
         surface_types={entry.key: entry.retired for entry in vocabularies["surface_types"]},
         file_licences=frozenset(instance.settings.licenses.files),
+        content_language=instance.settings.languages.content,
     )
 
 
