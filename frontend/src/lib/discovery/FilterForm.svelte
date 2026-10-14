@@ -58,8 +58,6 @@
 		sync(attributions, filters.attribution);
 	});
 
-	// Until the order is chosen, it is left out: the default depends on whether there is a search.
-	let ordered = $state(false);
 	let enhanced = $state(false);
 	let narrow = $state(false);
 	let dialog: HTMLDialogElement | undefined = $state();
@@ -96,7 +94,6 @@
 		{ legend: m.discovery_created_legend, from: 'createdFrom', to: 'createdTo' }
 	] as const;
 	const key = (concept: Concept) => queryKey(concept, locale);
-	const order = $derived(filters.order ?? (filters.q ? 'relevance' : 'recent'));
 
 	function toggle(set: SvelteSet<string>, value: string, on: boolean) {
 		if (on) set.add(value);
@@ -178,13 +175,12 @@
 			</label>
 			<label>
 				<span>{m.discovery_order_label()}</span>
-				<select
-					name={!enhanced || ordered || filters.order ? key('order') : undefined}
-					onchange={() => (ordered = true)}
-				>
+				<select name={key('order')}>
+					<!-- Left empty, the order is the default one, which depends on whether there is a search. -->
+					<option value="" selected={!filters.order}>{m.discovery_order_default()}</option>
 					{#each orders as option (option.order)}
 						{#if option.order !== 'relevance' || filters.q}
-							<option value={option.order} selected={order === option.order}
+							<option value={option.order} selected={filters.order === option.order}
 								>{option.label()}</option
 							>
 						{/if}

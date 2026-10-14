@@ -38,7 +38,14 @@
 			return m.archive_unknown_artist();
 		}
 		const parts: string[] = [];
-		if (entry.attributed.length > 0) parts.push(list(entry.attributed, 'conjunction'));
+		if (entry.attributed.length > 0) {
+			const names = entry.attributed.map((link) =>
+				entry.probable.includes(link.id)
+					? m.discovery_entry_probable({ name: nameOf(link) })
+					: nameOf(link)
+			);
+			parts.push(new Intl.ListFormat(context.locale, { type: 'conjunction' }).format(names));
+		}
 		if (entry.disputed.length > 0) {
 			parts.push(m.discovery_entry_disputed({ names: list(entry.disputed, 'disjunction') }));
 		}

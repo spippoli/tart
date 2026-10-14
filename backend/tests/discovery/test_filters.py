@@ -197,3 +197,16 @@ def test_the_viewport_restricts_to_the_locations_whose_sign_is_inside(
 
     assert discovery.ids(bbox="12.47,41.89,12.49,41.91") == [inside]
     assert len(discovery.ids()) == 2
+
+
+def test_a_list_entry_names_the_artists_whose_attribution_is_only_probable(
+    world: World,
+    discovery: Discovery,
+) -> None:
+    artist = world.artist("Artista Uno")
+    world.artwork("Probabile", artists=(artist,), certainty=Certainty.PROBABLE)
+
+    entry = discovery.artworks()["entries"][0]
+
+    assert entry["probable"] == [artist]
+    assert [link["id"] for link in entry["attributed"]] == [artist]

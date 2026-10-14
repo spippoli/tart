@@ -29,6 +29,7 @@ from tart.archive import (
     Area,
     Artist,
     Artwork,
+    Certainty,
     ConditionReading,
     DateRange,
     DocumentationItem,
@@ -544,6 +545,11 @@ class Reader:
             approximate=bool(where.location and where.location.approximate),
             attributed=[await self.link(a.attribution.artist) for a in readout.attributed],  # type: ignore[arg-type]
             disputed=[await self.link(a.attribution.artist) for a in readout.disputed],  # type: ignore[arg-type]
+            probable=[
+                a.attribution.artist  # type: ignore[misc]
+                for a in readout.attributed
+                if a.certainty is Certainty.PROBABLE
+            ],
             thumbnail=await self._documentation_summary(picture.id) if picture else None,
             latest_item_medium=latest.item.medium if latest else None,
         )

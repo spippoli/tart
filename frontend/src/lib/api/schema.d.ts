@@ -1411,6 +1411,8 @@ export interface components {
             attributed: components["schemas"]["RecordLink"][];
             /** Disputed */
             disputed: components["schemas"]["RecordLink"][];
+            /** Probable */
+            probable: number[];
             thumbnail: components["schemas"]["DocumentationSummary"] | null;
             latest_item_medium: components["schemas"]["Medium"] | null;
         };

@@ -199,6 +199,8 @@ class ListEntry(ArtworkCard):
     attributed: list[RecordLink]
     disputed: list[RecordLink]
     """Both empty: "Unknown artist"."""
+    probable: list[int]
+    """The ids of the Artists in `attributed` whose attribution is only probable."""
     thumbnail: DocumentationSummary | None
     """The most recent public image or PDF preview."""
     latest_item_medium: Medium | None

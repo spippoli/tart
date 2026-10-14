@@ -5317,6 +5317,13 @@
             "type": "array",
             "title": "Disputed"
           },
+          "probable": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Probable"
+          },
           "thumbnail": {
             "anyOf": [
               {
@@ -5352,6 +5359,7 @@
           "approximate",
           "attributed",
           "disputed",
+          "probable",
           "thumbnail",
           "latest_item_medium"
         ],

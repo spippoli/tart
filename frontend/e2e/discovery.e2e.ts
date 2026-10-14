@@ -54,6 +54,12 @@ test.describe('with JavaScript', () => {
 		await expect(list(page)).toContainText('Intact');
 	});
 
+	test('an attribution that is only probable says so on the entry', async ({ page }) => {
+		await page.goto('/en/archive');
+
+		await expect(list(page)).toContainText('Nebbia Finta (probable)');
+	});
+
 	// Criterion 17: the Archive view ignores the viewport, pages by 24, and shares the filter state.
 	test('AC 17: the Archive view ignores the viewport, has pages of 24, and keeps filters across views', async ({
 		page
@@ -108,8 +114,11 @@ test.describe('with JavaScript', () => {
 		await expect(page).toHaveURL(/q=prova\+05/);
 		await expect(search).toBeFocused();
 		await expect(page.getByRole('status')).toHaveText('1 artwork · page 1 of 1');
-		// "Relevance" is offered next to a search, and is the default.
-		await expect(page.getByRole('combobox', { name: 'Sort by' })).toHaveValue('relevance');
+		// "Relevance" is offered next to a search; the order stays the default one, which the URL omits.
+		const sort = page.getByRole('combobox', { name: 'Sort by' });
+		await expect(sort).toHaveValue('');
+		await expect(sort.getByRole('option', { name: 'Relevance' })).toHaveCount(1);
+		await expect(page).not.toHaveURL(/sort=/);
 	});
 
 	// Criterion 31: every filter is a removable chip, and "Clear all filters" is offered.
@@ -364,7 +373,7 @@ test.describe('without JavaScript', () => {
 		await page.getByLabel('From year').first().fill('2010');
 		await page.getByRole('button', { name: 'Show results' }).click();
 
-		await expect(page).toHaveURL(/\/en\/\?q=prova&sort=recent&type=stencil&documented-from=2010$/);
+		await expect(page).toHaveURL(/\/en\/\?q=prova&type=stencil&documented-from=2010$/);
 		await expect(page.getByRole('status')).toContainText('artworks');
 		await expect(page.getByRole('link', { name: 'Remove filter: Stencil' })).toBeVisible();
 	});

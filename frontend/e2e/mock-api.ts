@@ -408,6 +408,7 @@ const entries = Array.from({ length: 30 }, (_, index) => {
 				? [link('artist', 8, '8-collettivo-vernice-assente', 'Collettivo Vernice Assente')]
 				: ([] as unknown[]),
 		// On the second page, which the map tests never load: the stand-in serves no media.
+		probable: index % 8 === 0 ? [7] : ([] as unknown[]),
 		thumbnail:
 			index === 27
 				? {
