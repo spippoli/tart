@@ -479,6 +479,16 @@ test.describe('without a map', () => {
 		await expect(page.locator('#map-help')).toContainText('Enable hardware acceleration');
 	});
 
+	test('AC 37: without WebGL2 a link to an unavailable place offers no link to its page', async ({
+		page
+	}) => {
+		await withoutWebGL2(page);
+		await openExplore(page, '/en/?location=9999', false);
+		await expect(page.getByText("The map isn't available on this browser")).toBeVisible();
+		await expect(page.getByText('You opened a link to a location on the map.')).toHaveCount(0);
+		await expect(page.getByRole('link', { name: "Open the surface's page" })).toHaveCount(0);
+	});
+
 	// Criterion 40
 	for (const [name, failure] of [
 		['a style that fails to load', { status: 500, body: { detail: 'Internal Server Error' } }],

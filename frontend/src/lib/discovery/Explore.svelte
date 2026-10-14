@@ -414,7 +414,7 @@
 			<a href="#map-help" onclick={(event) => jump(event, 'map-help')}>{m.discovery_webgl_why()}</a>
 		{/if}
 	</p>
-	{#if live.location !== null}
+	{#if live.location !== null && !data.locationGone}
 		<p class="notice">
 			{m.discovery_selection_link()}
 			<a href={recordHref('location', String(live.location))}>{m.discovery_selection_link_open()}</a

@@ -35,8 +35,15 @@ export async function loadDiscovery(event: RequestEvent, view: 'explore' | 'arch
 		redirect(303, event.url.pathname + queryString({ ...state, page: pages }, locale));
 	}
 
+	// Without WebGL2 the shared-link notice points at the Location's page; a withdrawn or unknown
+	// Location (the panel's 404) gets no link. The map reads the panel itself.
+	const locationGone =
+		state.location !== null &&
+		(await fetchView(event, `/api/discovery/locations/${state.location}`)).response.status === 404;
+
 	return {
 		state,
+		locationGone,
 		results: data,
 		pageSize: PAGE_SIZE,
 		// A filtered or searched view with no results is not an empty archive.
