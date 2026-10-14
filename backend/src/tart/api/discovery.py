@@ -44,6 +44,11 @@ def filters(
     created_from: Annotated[int | None, Query(ge=1, le=MAX_YEAR)] = None,
     created_to: Annotated[int | None, Query(ge=1, le=MAX_YEAR)] = None,
 ) -> Filters:
+    # A reversed range is a bad value: like any other, it is ignored without an error.
+    if documented_from and documented_to and documented_from > documented_to:
+        documented_from = documented_to = None
+    if created_from and created_to and created_from > created_to:
+        created_from = created_to = None
     return Filters(
         q=q,
         order=order,

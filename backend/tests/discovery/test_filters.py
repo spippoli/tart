@@ -210,3 +210,12 @@ def test_a_list_entry_names_the_artists_whose_attribution_is_only_probable(
 
     assert entry["probable"] == [artist]
     assert [link["id"] for link in entry["attributed"]] == [artist]
+
+
+# Criterion 51: a bad value, such as a reversed range, is ignored without an error.
+def test_ac51_a_reversed_year_range_is_ignored(world: World, discovery: Discovery) -> None:
+    world.artwork("Nel 2016", created=year(2016))
+    world.artwork("Nel 2020", created=year(2020))
+
+    assert len(discovery.ids(created_from=2020, created_to=2016)) == 2
+    assert len(discovery.ids(documented_from=2020, documented_to=2016)) == 2
