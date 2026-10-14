@@ -402,7 +402,7 @@ class Discovery:
             await self.reader.resolve(Kind.LOCATION, location_id)
         except (RecordNotFoundError, RecordWithdrawnError, RecordMergedError) as unavailable:
             raise LocationNotAvailableError(location_id) from unavailable
-        where = await self.reader.where(location_id)
+        where = await self.reader.where(location_id, nearby=False)
         assert where.location is not None
         stratigraphy = await self.reader.stratigraphy_of(location_id)
         matching = self._matching(filters).select.where(

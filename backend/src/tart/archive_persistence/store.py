@@ -8,6 +8,7 @@ from collections.abc import Iterable, Sequence
 from typing import Any
 
 from sqlalchemy import Table, delete, func, insert, select, union, update
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart.archive.codec import (
@@ -72,13 +73,16 @@ class PostgresArchiveStore:
     async def allocate_history_event_id(self) -> int:
         return await self._one(select(t.history_event_id.next_value()))
 
-    async def get(self, record_id: RecordId) -> Record | None:
-        kind = await self.connection.scalar(
-            select(t.record.c.kind).where(t.record.c.id == record_id)
-        )
+    async def get(self, record_id: RecordId, kind: Kind | None = None) -> Record | None:
+        """The record; a caller that already knows its kind spares the lookup."""
         if kind is None:
-            return None
-        return await _READERS[Kind(kind)](self, record_id)
+            stored = await self.connection.scalar(
+                select(t.record.c.kind).where(t.record.c.id == record_id)
+            )
+            if stored is None:
+                return None
+            kind = Kind(stored)
+        return await _READERS[kind](self, record_id)
 
     async def save(self, record_id: RecordId, record: Record, *, new: bool) -> None:
         # The record row exists from `allocate_id`; `new` says whether the kind's row does.
@@ -137,6 +141,21 @@ class PostgresArchiveStore:
             )
         )
         return frozenset(result)
+
+    async def documentation_items_by_artwork(
+        self, artwork_ids: Iterable[RecordId]
+    ) -> dict[RecordId, frozenset[RecordId]]:
+        """`documentation_items_of` for several Artworks at once, by Artwork."""
+        link = t.documentation_item_artwork
+        rows = await self.connection.execute(
+            select(link.c.artwork_id, link.c.item_id).where(
+                link.c.artwork_id.in_(list(artwork_ids))
+            )
+        )
+        found: dict[RecordId, set[RecordId]] = {}
+        for row in rows:
+            found.setdefault(row.artwork_id, set()).add(row.item_id)
+        return {artwork_id: frozenset(items) for artwork_id, items in found.items()}
 
     async def watch(self, record_ids: Iterable[RecordId]) -> None:
         self._watched |= await self._artworks_affected_by(record_ids)
@@ -200,6 +219,21 @@ class PostgresArchiveStore:
         )
         return tuple(result)
 
+    async def areas_of_locations(
+        self, location_ids: Iterable[RecordId]
+    ) -> dict[RecordId, tuple[RecordId, ...]]:
+        """`areas_of_location` for several Locations at once, by Location."""
+        rows = await self.connection.execute(
+            select(t.location.c.id.label("location_id"), t.area.c.id.label("area_id"))
+            .join(t.area, func.ST_Intersects(t.area.c.geometry, t.location.c.geometry))
+            .where(t.location.c.id.in_(list(location_ids)))
+            .order_by(t.area.c.name, t.area.c.id)
+        )
+        found: dict[RecordId, list[RecordId]] = {}
+        for row in rows:
+            found.setdefault(row.location_id, []).append(row.area_id)
+        return {location_id: tuple(areas) for location_id, areas in found.items()}
+
     async def artworks_on_location(self, location_id: RecordId) -> tuple[RecordId, ...]:
         """The Artworks whose Location is this one, by id."""
         result = await self.connection.scalars(
@@ -211,26 +245,43 @@ class PostgresArchiveStore:
 
     async def revisions_of(self, record_id: RecordId) -> tuple[Revision, ...]:
         """The record's Revisions, oldest first."""
-        kind = Kind(await self._one(select(t.record.c.kind).where(t.record.c.id == record_id)))
-        rows = await self.connection.execute(
-            select(t.revision).where(t.revision.c.record_id == record_id).order_by(t.revision.c.id)
-        )
-        return tuple(
-            Revision(
-                row.id,
-                record_id,
-                kind,
-                Provenance(
-                    row.submission_id,
-                    row.submitter_id,
-                    row.moderator_id,
-                    row.submitted_at,
-                    row.approved_at,
-                ),
-                tuple(row.changes),
+        return (await self.revisions_of_many([record_id]))[record_id]
+
+    async def revisions_of_many(
+        self, record_ids: Iterable[RecordId]
+    ) -> dict[RecordId, tuple[Revision, ...]]:
+        """The Revisions of each record, oldest first, in two queries."""
+        ids = list(set(record_ids))
+        kinds = {
+            row.id: Kind(row.kind)
+            for row in await self.connection.execute(
+                select(t.record.c.id, t.record.c.kind).where(t.record.c.id.in_(ids))
             )
-            for row in rows
+        }
+        found: dict[RecordId, list[Revision]] = {record_id: [] for record_id in ids}
+        rows = await self.connection.execute(
+            select(t.revision).where(t.revision.c.record_id.in_(ids)).order_by(t.revision.c.id)
         )
+        for row in rows:
+            found[row.record_id].append(
+                Revision(
+                    row.id,
+                    row.record_id,
+                    kinds[row.record_id],
+                    Provenance(
+                        row.submission_id,
+                        row.submitter_id,
+                        row.moderator_id,
+                        row.submitted_at,
+                        row.approved_at,
+                    ),
+                    tuple(row.changes),
+                )
+            )
+        for record_id in ids:
+            if record_id not in kinds:
+                raise NoResultFound
+        return {record_id: tuple(revisions) for record_id, revisions in found.items()}
 
     # Helpers.
 
@@ -250,6 +301,33 @@ class PostgresArchiveStore:
             .order_by(table.c.position)
         )
         return list(result)
+
+    async def _collections(
+        self, table: Table, owner: str, owner_ids: Sequence[RecordId], *columns: str
+    ) -> dict[RecordId, list[Any]]:
+        """`_collection` for several owners at once, by owner."""
+        result = await self.connection.execute(
+            select(table.c[owner].label("owner"), *(table.c[column] for column in columns))
+            .where(table.c[owner].in_(list(owner_ids)))
+            .order_by(table.c.position)
+        )
+        found: dict[RecordId, list[Any]] = {owner_id: [] for owner_id in owner_ids}
+        for row in result:
+            found[row.owner].append(row)
+        return found
+
+    async def get_many(self, kinds: dict[RecordId, Kind]) -> dict[RecordId, Record]:
+        """The records of known kinds: Artworks, Locations, and Documentation items in a few
+        queries for all of them, the others one by one."""
+        found: dict[RecordId, Record] = {}
+        for kind, batch in _BATCH_READERS.items():
+            ids = [id_ for id_, k in kinds.items() if k is kind]
+            if ids:
+                found.update(await batch(self, ids))
+        for id_, kind in kinds.items():
+            if id_ not in found:
+                found[id_] = await _READERS[kind](self, id_)
+        return found
 
     async def _links(self, table: Table, owner: str, owner_id: RecordId, column: str) -> tuple:
         return tuple(row[0] for row in await self._collection(table, owner, owner_id, column))
@@ -285,39 +363,53 @@ class PostgresArchiveStore:
 # Readers and writers per record kind.
 
 
-async def _read_artwork(store: PostgresArchiveStore, record_id: RecordId) -> Artwork:
-    row = await store._row(t.artwork, record_id)
-    attributions = []
-    for attribution in await store._collection(
-        t.attribution, "artwork_id", record_id, "artist_id", "certainty", "alias", "note"
-    ):
-        citations = await store.connection.scalars(
-            select(t.attribution_citation.c.cited_id)
-            .where(
-                t.attribution_citation.c.artwork_id == record_id,
-                t.attribution_citation.c.artist_id == attribution.artist_id,
-            )
-            .order_by(t.attribution_citation.c.position)
-        )
-        attributions.append(
-            Attribution(
-                attribution.artist_id,
-                Certainty(attribution.certainty),
-                attribution.alias,
-                attribution.note,
-                tuple(citations),
-            )
-        )
-    return Artwork(
-        location=row.location_id,
-        expression_types=tuple(row.expression_types),
-        title=row.title,
-        description=row.description,
-        attributions=tuple(attributions),
-        history_events=await _read_history_events(store, record_id),
-        series=await store._links(t.artwork_series, "artwork_id", record_id, "series_id"),
-        sources=await store._sources(record_id),
+async def _read_artworks(
+    store: PostgresArchiveStore, ids: Sequence[RecordId]
+) -> dict[RecordId, Artwork]:
+    rows = {
+        row.id: row
+        for row in await store.connection.execute(select(t.artwork).where(t.artwork.c.id.in_(ids)))
+    }
+    attributions = await store._collections(
+        t.attribution, "artwork_id", ids, "artist_id", "certainty", "alias", "note"
     )
+    cited: dict[tuple[RecordId, RecordId], list[RecordId]] = {}
+    cite = t.attribution_citation
+    for row in await store.connection.execute(
+        select(cite.c.artwork_id, cite.c.artist_id, cite.c.cited_id)
+        .where(cite.c.artwork_id.in_(ids))
+        .order_by(cite.c.position)
+    ):
+        cited.setdefault((row.artwork_id, row.artist_id), []).append(row.cited_id)
+    events = await _read_history_events(store, ids)
+    series = await store._collections(t.artwork_series, "artwork_id", ids, "series_id")
+    sources = await store._collections(t.record_source, "record_id", ids, "source_id")
+    return {
+        id_: Artwork(
+            location=rows[id_].location_id,
+            expression_types=tuple(rows[id_].expression_types),
+            title=rows[id_].title,
+            description=rows[id_].description,
+            attributions=tuple(
+                Attribution(
+                    attribution.artist_id,
+                    Certainty(attribution.certainty),
+                    attribution.alias,
+                    attribution.note,
+                    tuple(cited.get((id_, attribution.artist_id), ())),
+                )
+                for attribution in attributions[id_]
+            ),
+            history_events=events[id_],
+            series=tuple(row.series_id for row in series[id_]),
+            sources=tuple(row.source_id for row in sources[id_]),
+        )
+        for id_ in ids
+    }
+
+
+async def _read_artwork(store: PostgresArchiveStore, record_id: RecordId) -> Artwork:
+    return (await _read_artworks(store, [record_id]))[record_id]
 
 
 async def _write_artwork(
@@ -366,12 +458,12 @@ async def _write_artwork(
 
 
 async def _read_history_events(
-    store: PostgresArchiveStore, artwork_id: RecordId
-) -> tuple[HistoryEvent, ...]:
-    events = await store._collection(
+    store: PostgresArchiveStore, artwork_ids: Sequence[RecordId]
+) -> dict[RecordId, tuple[HistoryEvent, ...]]:
+    owned = await store._collections(
         t.history_event,
         "artwork_id",
-        artwork_id,
+        artwork_ids,
         "id",
         "type",
         "observed_date",
@@ -379,7 +471,9 @@ async def _read_history_events(
         "note",
         "covering_artwork_id",
     )
-    citations: dict[int, list[RecordId]] = {event.id: [] for event in events}
+    citations: dict[int, list[RecordId]] = {
+        event.id: [] for events in owned.values() for event in events
+    }
     rows = await store.connection.execute(
         select(t.history_event_citation.c.event_id, t.history_event_citation.c.cited_id)
         .where(t.history_event_citation.c.event_id.in_(list(citations)))
@@ -387,18 +481,21 @@ async def _read_history_events(
     )
     for event_id, cited_id in rows:
         citations[event_id].append(cited_id)
-    return tuple(
-        HistoryEvent(
-            id=event.id,
-            type=HistoryEventType(event.type),
-            observed_date=decode_uncertain_date(event.observed_date),
-            condition=Condition(event.condition) if event.condition else None,
-            note=event.note,
-            citations=tuple(citations[event.id]),
-            covering=event.covering_artwork_id,
+    return {
+        artwork_id: tuple(
+            HistoryEvent(
+                id=event.id,
+                type=HistoryEventType(event.type),
+                observed_date=decode_uncertain_date(event.observed_date),
+                condition=Condition(event.condition) if event.condition else None,
+                note=event.note,
+                citations=tuple(citations[event.id]),
+                covering=event.covering_artwork_id,
+            )
+            for event in events
         )
-        for event in events
-    )
+        for artwork_id, events in owned.items()
+    }
 
 
 async def _write_history_events(
@@ -430,18 +527,29 @@ async def _write_history_events(
         await store.connection.execute(insert(t.history_event_citation), citations)
 
 
+async def _read_locations(
+    store: PostgresArchiveStore, ids: Sequence[RecordId]
+) -> dict[RecordId, Location]:
+    result = await store.connection.execute(
+        select(t.location, func.ST_AsGeoJSON(t.location.c.geometry).label("geojson")).where(
+            t.location.c.id.in_(ids)
+        )
+    )
+    return {
+        row.id: Location(
+            geometry=_geometry(row.geojson),
+            surface_type=row.surface_type,
+            approximate=row.approximate,
+            uncertainty_radius=row.uncertainty_radius,
+            site=row.site_id,
+            place_description=row.place_description,
+        )
+        for row in result
+    }
+
+
 async def _read_location(store: PostgresArchiveStore, record_id: RecordId) -> Location:
-    row = await store._row(
-        t.location, record_id, func.ST_AsGeoJSON(t.location.c.geometry).label("geojson")
-    )
-    return Location(
-        geometry=_geometry(row.geojson),
-        surface_type=row.surface_type,
-        approximate=row.approximate,
-        uncertainty_radius=row.uncertainty_radius,
-        site=row.site_id,
-        place_description=row.place_description,
-    )
+    return (await _read_locations(store, [record_id]))[record_id]
 
 
 async def _write_location(
@@ -586,27 +694,37 @@ async def _write_source(
     )
 
 
+async def _read_documentation_items(
+    store: PostgresArchiveStore, ids: Sequence[RecordId]
+) -> dict[RecordId, DocumentationItem]:
+    rows = await store.connection.execute(
+        select(t.documentation_item).where(t.documentation_item.c.id.in_(ids))
+    )
+    artworks = await store._collections(t.documentation_item_artwork, "item_id", ids, "artwork_id")
+    return {
+        row.id: DocumentationItem(
+            medium=Medium(row.medium),
+            observed_date=decode_uncertain_date(row.observed_date),
+            artworks=tuple(link.artwork_id for link in artworks[row.id]),
+            location=row.location_id,
+            file=row.file,
+            licence=row.licence,
+            creator_credit=row.creator_credit,
+            rights_basis=RightsBasis(row.rights_basis) if row.rights_basis else None,
+            origin_url=row.origin_url,
+            alt_text=row.alt_text,
+            text=row.text,
+            url=row.url,
+            language=row.language,
+        )
+        for row in rows
+    }
+
+
 async def _read_documentation_item(
     store: PostgresArchiveStore, record_id: RecordId
 ) -> DocumentationItem:
-    row = await store._row(t.documentation_item, record_id)
-    return DocumentationItem(
-        medium=Medium(row.medium),
-        observed_date=decode_uncertain_date(row.observed_date),
-        artworks=await store._links(
-            t.documentation_item_artwork, "item_id", record_id, "artwork_id"
-        ),
-        location=row.location_id,
-        file=row.file,
-        licence=row.licence,
-        creator_credit=row.creator_credit,
-        rights_basis=RightsBasis(row.rights_basis) if row.rights_basis else None,
-        origin_url=row.origin_url,
-        alt_text=row.alt_text,
-        text=row.text,
-        url=row.url,
-        language=row.language,
-    )
+    return (await _read_documentation_items(store, [record_id]))[record_id]
 
 
 async def _write_documentation_item(
@@ -646,6 +764,11 @@ _READERS: dict[Kind, Any] = {
     Kind.ARTIST: _read_artist,
     Kind.SOURCE: _read_source,
     Kind.DOCUMENTATION_ITEM: _read_documentation_item,
+}
+_BATCH_READERS: dict[Kind, Any] = {
+    Kind.ARTWORK: _read_artworks,
+    Kind.LOCATION: _read_locations,
+    Kind.DOCUMENTATION_ITEM: _read_documentation_items,
 }
 _WRITERS: dict[Kind, Any] = {
     Kind.ARTWORK: _write_artwork,

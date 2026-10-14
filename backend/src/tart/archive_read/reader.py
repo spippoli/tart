@@ -235,6 +235,9 @@ class Reader:
         self._states: dict[RecordId, _State | None] = {}
         self._histories: dict[RecordId, _History] = {}
         self._shown: dict[RecordId, _Shown[Any]] = {}
+        self._records: dict[RecordId, Record] = {}
+        self._item_ids: dict[RecordId, frozenset[RecordId]] = {}
+        self._area_ids: dict[RecordId, tuple[RecordId, ...]] = {}
 
     # Visibility.
 
@@ -284,23 +287,52 @@ class Reader:
             raise RecordWithdrawnError(record_id)
         return state
 
-    async def _history(self, record_id: RecordId) -> _History:
-        if record_id not in self._histories:
-            revisions = await self.store.revisions_of(record_id)
-            rows = await self.connection.execute(
-                select(
-                    t.redaction.c.revision_id, t.redaction.c.operation, t.redaction.c.redacted_at
-                )
-                .join(t.revision, t.revision.c.id == t.redaction.c.revision_id)
-                .where(t.revision.c.record_id == record_id)
+    async def _load_histories(self, ids: Iterable[RecordId]) -> None:
+        missing = [id_ for id_ in set(ids) if id_ not in self._histories]
+        if not missing:
+            return
+        revisions = await self.store.revisions_of_many(missing)
+        rows = await self.connection.execute(
+            select(
+                t.revision.c.record_id,
+                t.redaction.c.revision_id,
+                t.redaction.c.operation,
+                t.redaction.c.redacted_at,
             )
-            redacted = {(row.revision_id, row.operation): row.redacted_at for row in rows}
-            self._histories[record_id] = _History(revisions, redacted)
+            .join(t.revision, t.revision.c.id == t.redaction.c.revision_id)
+            .where(t.revision.c.record_id.in_(missing))
+        )
+        redacted: dict[RecordId, dict[tuple[int, int], datetime]] = {id_: {} for id_ in missing}
+        for row in rows:
+            redacted[row.record_id][(row.revision_id, row.operation)] = row.redacted_at
+        for id_ in missing:
+            self._histories[id_] = _History(revisions[id_], redacted[id_])
+
+    async def _history(self, record_id: RecordId) -> _History:
+        await self._load_histories([record_id])
         return self._histories[record_id]
+
+    async def _warm(self, ids: Iterable[RecordId | None]) -> list[RecordId]:
+        """Read the states and histories of the listed ones among these records in a few
+        queries, so that showing each costs only its own rows; the listed ones, in order."""
+        listed = await self.listed(ids)
+        await self._load_histories(listed)
+        kinds = {
+            id_: state.kind
+            for id_ in listed
+            if id_ not in self._shown and id_ not in self._records
+            if (state := self._states[id_]) is not None
+        }
+        if kinds:
+            self._records.update(await self.store.get_many(kinds))
+        return listed
 
     async def shown(self, record_id: RecordId) -> _Shown[Any]:
         if record_id not in self._shown:
-            record = await self.store.get(record_id)
+            state = self._states.get(record_id)
+            record = self._records.pop(record_id, None) or await self.store.get(
+                record_id, state.kind if state else None
+            )
             assert record is not None
             hidden = (await self._history(record_id)).hidden()
             if hidden and not self.viewer.moderator:
@@ -357,7 +389,9 @@ class Reader:
         location = (await self.shown(location_id)).record
         if location.geometry is None:  # redacted: no membership to show
             return []
-        return await self.listed(await self.store.areas_of_location(location_id))
+        if location_id not in self._area_ids:
+            self._area_ids[location_id] = await self.store.areas_of_location(location_id)
+        return await self.listed(self._area_ids[location_id])
 
     async def _location_title(self, location_id: RecordId) -> v.LocationTitle:
         location = (await self.shown(location_id)).record
@@ -410,7 +444,9 @@ class Reader:
 
     async def _documentation(self, artwork_id: RecordId) -> list[ApprovedItem]:
         """The listed Documentation items of the Artwork, with their latest approval."""
-        ids = await self.store.documentation_items_of([artwork_id])
+        if artwork_id not in self._item_ids:
+            self._item_ids[artwork_id] = await self.store.documentation_items_of([artwork_id])
+        ids = self._item_ids[artwork_id]
         items = []
         for item_id in await self.listed(sorted(ids)):
             item: DocumentationItem = (await self.shown(item_id)).record
@@ -556,7 +592,29 @@ class Reader:
         )
 
     async def entries(self, ids: Iterable[RecordId]) -> list[v.ListEntry]:
-        return [await self.entry(id_) for id_ in await self.listed(ids)]
+        """The list entries of the listed Artworks among these ids.
+
+        What the entries read is loaded for the whole page first, a kind of record at a
+        time, so that the queries do not grow with the page.
+        """
+        artworks = await self._warm(ids)
+        shown = [(await self.shown(id_)).record for id_ in artworks]
+        for id_ in artworks:
+            self._item_ids.setdefault(id_, frozenset())
+        self._item_ids.update(await self.store.documentation_items_by_artwork(artworks))
+        locations = await self._warm(artwork.location for artwork in shown)
+        await self._warm(
+            [a.artist for artwork in shown for a in artwork.attributions]  # type: ignore[misc]
+            + [item for id_ in artworks for item in sorted(self._item_ids[id_])]
+        )
+        places = [(await self.shown(id_)).record for id_ in locations]
+        self._area_ids.update({id_: () for id_ in locations})
+        self._area_ids.update(await self.store.areas_of_locations(locations))
+        await self._warm(
+            [place.site for place in places]
+            + [area for id_ in locations for area in self._area_ids[id_]]
+        )
+        return [await self.entry(id_) for id_ in artworks]
 
     async def card(self, artwork_id: RecordId) -> v.ArtworkCard:
         artwork: Artwork = (await self.shown(artwork_id)).record
