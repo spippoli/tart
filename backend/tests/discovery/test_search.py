@@ -295,3 +295,34 @@ def test_ac54_relevance_is_offered_only_with_q(world: World, discovery: Discover
     assert Filters(q="gatto").effective_order is Order.RELEVANCE
     assert Filters(q="gatto", order=Order.TITLE).effective_order is Order.TITLE
     assert discovery.ids(q="gatto", order="title") == [newer]
+
+
+def test_the_name_search_can_use_the_trigram_index(world: World, discovery: Discovery) -> None:
+    """The matching query tests names with `<%`, which the GIN index on `name` answers."""
+    import asyncio
+
+    from sqlalchemy import text
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from tart.discovery.query import Discovery as Query
+
+    world.artwork("Gatto sul muro")
+
+    async def plan() -> str:
+        engine = create_async_engine(world.archive.url)
+        try:
+            async with engine.connect() as connection:
+                query = Query(connection, "it")
+                await query._name_threshold()
+                await connection.execute(text("SET LOCAL enable_seqscan = off"))
+                select = query._matching(Filters(q="gatto")).select
+                compiled = select.compile(dialect=connection.dialect)
+                rows = await connection.exec_driver_sql(
+                    f"EXPLAIN {compiled}",
+                    tuple(compiled.params[name] for name in compiled.positiontup or ()),
+                )
+                return "\n".join(row[0] for row in rows)
+        finally:
+            await engine.dispose()
+
+    assert "ix_discovery_name_name" in asyncio.run(plan())

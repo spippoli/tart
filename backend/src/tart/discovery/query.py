@@ -27,7 +27,6 @@ from sqlalchemy import (
     literal,
     or_,
     select,
-    true,
 )
 from sqlalchemy.dialects.postgresql import REGCONFIG, Range, distinct_on
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -86,6 +85,13 @@ class Discovery:
         self.reader = Reader(connection, Viewer())
 
     # Matching.
+
+    async def _name_threshold(self) -> None:
+        """Set, for the transaction, the threshold `<%` tests against, so that the trigram
+        index serves the name search."""
+        await self.connection.execute(
+            select(func.set_config("pg_trgm.word_similarity_threshold", str(NAME_THRESHOLD), True))
+        )
 
     def _matching(
         self,
@@ -217,9 +223,15 @@ class Discovery:
         folded = func.lower(func.unaccent(literal(text)))
         similarity = func.word_similarity(folded, name.c.name)
         names = (
-            select(func.max(similarity * name.c.weight).label("best"))
-            .where(name.c.artwork_id == d.c.artwork_id, similarity >= NAME_THRESHOLD)
-            .lateral("names")
+            select(name.c.artwork_id, func.max(similarity * name.c.weight).label("best"))
+            .where(
+                # `<%` is the index's form of the same test, against the threshold set by
+                # `_name_threshold`; the similarity is kept as the exact one.
+                folded.op("<%")(name.c.name),
+                similarity >= NAME_THRESHOLD,
+            )
+            .group_by(name.c.artwork_id)
+            .subquery("names")
         )
         query = func.websearch_to_tsquery(
             cast(text_search_configuration(self.content_language), REGCONFIG), folded
@@ -230,7 +242,7 @@ class Discovery:
             1 + TEXT_RANK_WEIGHT
         )
         return (
-            statement.outerjoin(names, true()).where(
+            statement.outerjoin(names, names.c.artwork_id == d.c.artwork_id).where(
                 or_(names.c.best.is_not(None), in_description)
             ),
             score,
@@ -260,6 +272,7 @@ class Discovery:
     ) -> dv.ArtworkPage:
         """One page of the matching Artworks, with the total, the records that also match
         the search, and how many the "Created between" filter leaves out."""
+        await self._name_threshold()
         matching = self._matching(filters, box=box)
         total = await self.connection.scalar(
             select(func.count()).select_from(matching.select.subquery())
@@ -304,6 +317,7 @@ class Discovery:
 
         Sites with a matching Location and every Area come as labels beside the features.
         """
+        await self._name_threshold()
         matching = self._matching(filters).select.subquery()
         location = archive.location
         rows = await self.connection.execute(
@@ -402,6 +416,7 @@ class Discovery:
             await self.reader.resolve(Kind.LOCATION, location_id)
         except (RecordNotFoundError, RecordWithdrawnError, RecordMergedError) as unavailable:
             raise LocationNotAvailableError(location_id) from unavailable
+        await self._name_threshold()
         where = await self.reader.where(location_id, nearby=False)
         assert where.location is not None
         stratigraphy = await self.reader.stratigraphy_of(location_id)
