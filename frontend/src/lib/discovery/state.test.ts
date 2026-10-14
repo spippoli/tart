@@ -182,4 +182,14 @@ describe('views', () => {
 		);
 		expect(query.toString()).toBe('q=gatto&type=stencil&documented_from=2010&page=2');
 	});
+
+	it('keeps a reversed year range in the state but never sends it to the API (criterion 51)', () => {
+		const state = parse('documentata-dal=2020&documentata-al=2015&creata-dal=2000&creata-al=2012');
+		expect(state.documentedFrom).toBe(2020);
+		expect(state.documentedTo).toBe(2015);
+		expect(apiQuery(state).toString()).toBe('created_from=2000&created_to=2012');
+		expect(apiQuery(parse('documentata-dal=2015&documentata-al=2015')).toString()).toBe(
+			'documented_from=2015&documented_to=2015'
+		);
+	});
 });

@@ -219,6 +219,14 @@ test.describe('with JavaScript', () => {
 		expect(page.url()).not.toMatch(/Stencil|Intact/);
 	});
 
+	// Criterion 51: a reversed year range, as typed on the way to a valid one, is no error.
+	test('AC 51: a reversed year range renders the page and keeps the URL', async ({ page }) => {
+		const response = await page.goto('/it/archivio?documentata-dal=2020&documentata-al=2015');
+		expect(response?.status()).toBe(200);
+		await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+		await expect(page).toHaveURL(/documentata-dal=2020&documentata-al=2015$/);
+	});
+
 	// Criterion 51: canonical URLs.
 	test('AC 51: unknown keys and bad values are dropped, defaults omitted, the other language accepted', async ({
 		page

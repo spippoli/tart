@@ -251,10 +251,16 @@ export function apiQuery(state: FilterState): URLSearchParams {
 	state.attribution.forEach((value) => set('attribution', value));
 	set('artist', state.artist);
 	set('series', state.series);
-	set('documented_from', state.documentedFrom);
-	set('documented_to', state.documentedTo);
-	set('created_from', state.createdFrom);
-	set('created_to', state.createdTo);
+	// A reversed range (from after to) is a half-typed one: the state keeps it, so the form does
+	// not lose what was typed, but it narrows nothing and never reaches the API.
+	const years = (from: number | null, to: number | null) =>
+		from !== null && to !== null && from > to ? [null, null] : [from, to];
+	const [documentedFrom, documentedTo] = years(state.documentedFrom, state.documentedTo);
+	const [createdFrom, createdTo] = years(state.createdFrom, state.createdTo);
+	set('documented_from', documentedFrom);
+	set('documented_to', documentedTo);
+	set('created_from', createdFrom);
+	set('created_to', createdTo);
 	if (state.page > 1) set('page', state.page);
 	return params;
 }
