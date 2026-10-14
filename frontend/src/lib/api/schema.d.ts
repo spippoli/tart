@@ -1639,6 +1639,48 @@ export interface components {
             end?: components["schemas"]["UncertainDate"] | null;
         };
         /**
+         * PlaceLocation
+         * @description A Location on a Site, Area, or Series map, with the page's Artworks on it by
+         *     Condition group (the sign it is drawn with).
+         */
+        PlaceLocation: {
+            /** Id */
+            id: number;
+            /** Path */
+            path: string;
+            title: components["schemas"]["LocationTitle"];
+            /** Surface Type */
+            surface_type: string;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            } | null;
+            /** Point */
+            point?: [
+                number,
+                number
+            ] | null;
+            /** Approximate */
+            approximate: boolean;
+            /** Uncertainty Radius */
+            uncertainty_radius: number | null;
+            /**
+             * Present
+             * @default 0
+             */
+            present: number;
+            /**
+             * Unknown
+             * @default 0
+             */
+            unknown: number;
+            /**
+             * Disappeared
+             * @default 0
+             */
+            disappeared: number;
+        };
+        /**
          * PlaceView
          * @description A Site, an Area, or a Series.
          */
@@ -1673,7 +1715,7 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /** Locations */
-            locations: components["schemas"]["LocationSummary"][];
+            locations: components["schemas"]["PlaceLocation"][];
             /** Artworks */
             artworks: components["schemas"]["ArtworkCard"][];
             /** Sources */

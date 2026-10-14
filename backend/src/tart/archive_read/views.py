@@ -158,6 +158,15 @@ class LocationSummary(BaseModel):
     uncertainty_radius: int | None
 
 
+class PlaceLocation(LocationSummary):
+    """A Location on a Site, Area, or Series map, with the page's Artworks on it by
+    Condition group (the sign it is drawn with)."""
+
+    present: int = 0
+    unknown: int = 0
+    disappeared: int = 0
+
+
 class NearbyLocation(BaseModel):
     """A public Location near the record's, drawn muted on the mini-map."""
 
@@ -319,7 +328,7 @@ class PlaceView(Visibility):
     description: str | None
     geometry: dict[str, Any] | None = None
     """An Area's polygon."""
-    locations: list[LocationSummary]
+    locations: list[PlaceLocation]
     """Where its Artworks are, for the map."""
     artworks: list[ArtworkCard]
     sources: list[RecordLink]

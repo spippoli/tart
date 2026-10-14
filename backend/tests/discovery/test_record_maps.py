@@ -6,6 +6,8 @@ API's side. Every record is fictional.
 # The fixtures are imported for pytest and named again as parameters.
 from discovery_fixtures import Discovery, World, discovery, world
 
+from tart.archive import Condition
+
 
 def _get(discovery: Discovery, path: str, **params: object) -> dict:
     response = discovery.api.client.get(f"/api/archive/{path}", params=params)
@@ -89,3 +91,32 @@ def test_ac66_a_withdrawn_location_is_not_nearby(world: World, discovery: Discov
     world.withdraw(gone)
 
     assert [place["id"] for place in _get(discovery, f"locations/{here}")["nearby"]] == [kept]
+
+
+# Criterion 65: a Series' map has only the Locations of its public Artworks.
+def test_ac65_a_series_page_lists_only_its_artworks_locations_with_their_conditions(
+    world: World, discovery: Discovery
+) -> None:
+    series = world.series("Serie fittizia")
+    intact = world.artwork("Uno", series=(series,), condition=Condition.INTACT)
+    destroyed = world.artwork("Due", series=(series,), condition=Condition.DESTROYED)
+    world.artwork("Fuori serie")
+
+    page = _get(discovery, f"series/{series}")
+    where = {
+        id_: _get(discovery, f"artworks/{id_}")["where"]["location"]["id"]
+        for id_ in (intact, destroyed)
+    }
+
+    counts = {place["id"]: (place["present"], place["disappeared"]) for place in page["locations"]}
+    assert counts == {where[intact]: (1, 0), where[destroyed]: (0, 1)}
+
+
+def test_ac65_a_series_without_a_visible_location_lists_none(
+    world: World, discovery: Discovery
+) -> None:
+    series = world.series("Serie vuota")
+    artwork = world.artwork("Ritirata", series=(series,))
+    world.withdraw(artwork)
+
+    assert _get(discovery, f"series/{series}")["locations"] == []

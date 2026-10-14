@@ -909,6 +909,12 @@ class Reader:
             )
             artwork_ids = list(artworks)
         listed_locations = await self.listed(location_ids)
+        cards = await self.cards(artwork_ids)
+        counts: dict[RecordId, dict[str, int]] = {}
+        for card in cards:
+            on = (await self.shown(card.id)).record.location
+            group = counts.setdefault(on, {})
+            group[card.condition.group.value] = group.get(card.condition.group.value, 0) + 1
         return v.PlaceView(
             kind=kind.value,  # type: ignore[arg-type]
             id=record_id,
@@ -916,8 +922,13 @@ class Reader:
             name=record.name,
             description=record.description,
             geometry=geometry,
-            locations=[await self._location_summary(id_) for id_ in listed_locations],
-            artworks=await self.cards(artwork_ids),
+            locations=[
+                v.PlaceLocation(
+                    **(await self._location_summary(id_)).model_dump(), **counts.get(id_, {})
+                )
+                for id_ in listed_locations
+            ],
+            artworks=cards,
             sources=await self.links(record.sources),  # type: ignore[arg-type]
             **visibility,
         )

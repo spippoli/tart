@@ -56,7 +56,10 @@
     41.895
    ],
    "approximate": false,
-   "uncertainty_radius": null
+   "uncertainty_radius": null,
+   "present": 1,
+   "unknown": 0,
+   "disappeared": 1
   },
   {
    "id": 13,
@@ -79,7 +82,10 @@
     41.905
    ],
    "approximate": true,
-   "uncertainty_radius": 150
+   "uncertainty_radius": 150,
+   "present": 1,
+   "unknown": 0,
+   "disappeared": 0
   }
  ],
  "artworks": [
