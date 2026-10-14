@@ -49,6 +49,7 @@ uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabu
 uv run tart users grant moderator <email> [--display-name NAME]   # also `revoke moderator <email>`, `list --role moderator`
 uv run tart users suspend <email> --reason TEXT   # and `unsuspend <email>`; the email goes through the worker
 uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
+uv run tart discovery rebuild   # rebuild the Discovery index of every Artwork; run it once after upgrading an archive that already holds records
 uv run tart jobs failed     # failed background jobs, never their arguments; `jobs retry <id|--all>` queues them again
 uv run alembic revision -m "..."   # new forward-only migration in src/tart/migrations/versions
 uv run python -m tart.fictional seed [--locations 10000]   # fictional dataset into an empty archive, with its images; development and tests only
@@ -113,6 +114,7 @@ Full stack (run in `deploy/`). `compose.yaml` is the production file: it pulls t
 ```sh
 docker compose up --build              # caddy, frontend, api, worker, db
 docker compose run --rm api tart migrate   # first start and after pulling migrations
+docker compose run --rm api tart discovery rebuild   # after upgrading an archive that already holds records (Discovery index)
 docker compose run --rm api tart config check --database   # before a deploy
 docker compose run --rm api tart tiles update   # at installation and after a boundary change; Caddy serves /tiles/
 docker compose run --rm api python -m tart.fictional seed   # development only: the fictional dataset, into an empty archive
