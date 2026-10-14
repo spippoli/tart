@@ -162,6 +162,13 @@ class PostgresArchiveStore:
 
     async def settle(self, record_ids: Iterable[RecordId], rules: InstanceRules) -> None:
         ids = list(record_ids)
+        if self._index:
+            # One settling at a time: two writers refreshing the same Artwork would both
+            # delete its index rows and insert them again. The second waits for the first
+            # to commit, and then reads what it committed.
+            await self.connection.execute(
+                select(archive_change.c.counter).where(archive_change.c.id == 1).with_for_update()
+            )
         affected = self._watched | await self._artworks_affected_by(ids)
         self._watched = set()
         if self._index:
