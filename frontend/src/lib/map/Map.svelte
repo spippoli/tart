@@ -3,7 +3,8 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { mapBounds, type Bounds } from './bounds';
-	import type { Camera, Engine, View } from './engine';
+	import type { Camera, ClickEvent, Drawn, Engine, View } from './engine';
+	import type { Point } from './coordinates';
 	import Legend from './Legend.svelte';
 	import { EMPTY_MAP_DATA, type MapData } from './locations';
 	import MapControl from './MapControl.svelte';
@@ -29,7 +30,9 @@
 		data = EMPTY_MAP_DATA,
 		onselect,
 		onunavailable,
-		onmoveend
+		onmoveend,
+		onclick,
+		drawn = null
 	}: {
 		/** The Instance's default view, which the reset button returns to. */
 		view: View;
@@ -40,13 +43,26 @@
 		onselect?: (id: number) => void;
 		onunavailable: (reason: Unavailable) => void;
 		onmoveend?: (camera: Camera) => void;
+		/** Clicks on the map, for the drawing tool. */
+		onclick?: (click: ClickEvent) => void;
+		/** The shape being drawn, for the drawing tool. */
+		drawn?: Drawn | null;
 	} = $props();
+
+	/** Moves the map so that `point` is at its centre. */
+	export function centerOn(point: Point) {
+		engine?.centerOn(point);
+	}
 
 	let container = $state<HTMLDivElement>();
 	let engine = $state<Engine>();
 	let tokens = $state<Tokens>();
 	let unavailable = $state(false);
 	let camera = $state<Camera>();
+
+	$effect(() => {
+		if (engine && tokens) engine.setDrawn(drawn, tokens);
+	});
 
 	onMount(() => {
 		const scheme = matchMedia(DARK_SCHEME);
@@ -77,6 +93,7 @@
 					bounds: mapBounds(boundary),
 					attribution,
 					labels: { canvas: m.map_canvas(), attributionToggle: m.map_attribution_toggle() },
+					onClick: onclick && ((click) => onclick(click)),
 					onMoveEnd(moved) {
 						camera = moved;
 						onmoveend?.(moved);
