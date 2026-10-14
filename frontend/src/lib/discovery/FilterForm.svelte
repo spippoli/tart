@@ -3,6 +3,7 @@
 	import { SvelteSet, SvelteURLSearchParams } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { currentUrl } from './url';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { conditionWord, vocabularyLabels, type RecordLink } from '#lib/archive/records.ts';
@@ -22,7 +23,7 @@
 	/**
 	 * The filters as a GET form (Discovery spec, Applying filters): with a "Show results"
 	 * button it works without JavaScript. With JavaScript, on a wide screen each change
-	 * applies at once (the text fields after 300 ms) through `replaceState`, without
+	 * applies at once (the text fields after 300 ms) without a load, without
 	 * moving focus; on a narrow screen the form opens in a full-screen dialog from a
 	 * "Filters" button and applies on "Show results", returning focus to the button.
 	 */
@@ -110,7 +111,9 @@
 		const data = new FormData(form);
 		const params = new SvelteURLSearchParams();
 		for (const [name, value] of data) if (typeof value === 'string') params.append(name, value);
-		const next = parseState(params, locale);
+		// The selection and the viewport are not fields of the form: a filter does not move the map.
+		const { location, viewport } = parseState(new URLSearchParams(currentUrl().search), locale);
+		const next = { ...parseState(params, locale), location, viewport };
 		// The URL is the current path with the canonical query string of the form.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		await goto(page.url.pathname + queryString(next, locale), {

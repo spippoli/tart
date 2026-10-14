@@ -5,7 +5,11 @@
 	// Pan and zoom without dragging (WCAG 2.5.7, ADR 0017): zoom in and out, four pan
 	// buttons that move a third of the view, and a return to the default view. Under
 	// prefers-reduced-motion MapLibre makes every move instant.
-	let { engine, zoomOnly = false }: { engine: Engine; zoomOnly?: boolean } = $props();
+	let {
+		engine,
+		zoomOnly = false,
+		onlocate
+	}: { engine: Engine; zoomOnly?: boolean; onlocate?: () => void } = $props();
 
 	// In reading order, so that focus follows the layout.
 	const moves = [
@@ -26,6 +30,11 @@
 			<span aria-hidden="true">−</span><span class="visually-hidden">{m.map_zoom_out()}</span>
 		</button>
 	</div>
+	{#if onlocate}
+		<button type="button" class="locate" onclick={onlocate}>
+			<span aria-hidden="true">◎</span><span class="visually-hidden">{m.map_locate()}</span>
+		</button>
+	{/if}
 	{#if !zoomOnly}
 		<div class="pan">
 			{#each moves as { label, glyph, area, move } (area)}

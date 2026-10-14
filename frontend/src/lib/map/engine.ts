@@ -7,6 +7,7 @@ import {
 	addProtocol,
 	type GeoJSONSource,
 	Map as MapLibreMap,
+	Marker,
 	setWorkerUrl,
 	type AddProtocolAction,
 	type StyleSpecification
@@ -31,6 +32,8 @@ export interface View {
 export interface Camera extends View {
 	bearing: number;
 	pitch: number;
+	/** What the map shows now: west, south, east, north. */
+	bounds: Bounds;
 }
 
 /** What a click landed on among the drawing's own handles, if anything. */
@@ -65,7 +68,10 @@ const FRAME_PADDING = 48;
 
 export interface EngineOptions {
 	style: Style;
+	/** The Instance's default view, which the reset button returns to. */
 	view: View;
+	/** Where the map starts when that is not the default view (a restored viewport). */
+	start?: View;
 	/** Framed on this, which the reset button returns to, rather than on `view`. */
 	frame?: Frame;
 	/** The lowest zoom the map can be taken to. */
@@ -76,7 +82,7 @@ export interface EngineOptions {
 	/** The configured map attribution, shown as links and never translated. */
 	attribution: readonly { text: string; url: string }[];
 	/** The few strings MapLibre itself shows, in the UI language. */
-	labels: { canvas: string; attributionToggle: string };
+	labels: { canvas: string; attributionToggle: string; position: string };
 	onMoveEnd: (camera: Camera) => void;
 	archive: ArchiveOptions;
 	/** Clicks on the map; set for the drawing tool only. */
@@ -94,6 +100,14 @@ export interface Engine {
 	setDrawn(drawn: Drawn | null, tokens: Tokens): void;
 	/** Moves the map so that `point` is at its centre. */
 	centerOn(point: Point): void;
+	/** Moves the map to `point` at `zoom`. */
+	flyTo(point: Point, zoom: number): void;
+	/** Fits the map to an extent, never zooming in beyond `maxZoom`. */
+	fitTo(bounds: Bounds, maxZoom: number): void;
+	/** Puts the focus on the sign of a Location; false if it is not in view. */
+	focusSign(id: number): boolean;
+	/** The "Your position" mark; `null` removes it. */
+	setPosition(point: Point | null): void;
 	/** Switches the style without a reload (a theme change). */
 	setStyle(style: Style): void;
 	/** The Locations, Sites, and Areas to draw. */
@@ -255,8 +269,11 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 							}
 						}
 					: {
-							center: [options.view.center[0], options.view.center[1]] as [number, number],
-							zoom: options.view.zoom
+							center: [
+								(options.start ?? options.view).center[0],
+								(options.start ?? options.view).center[1]
+							] as [number, number],
+							zoom: (options.start ?? options.view).zoom
 						}),
 				minZoom: options.minZoom,
 				maxBounds: [...options.bounds] as [number, number, number, number],
@@ -297,13 +314,16 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 		map.touchZoomRotate.disableRotation();
 
 		let loaded = false;
+		let position: Marker | null = null;
 		const camera = (): Camera => {
 			const { lng, lat } = map.getCenter();
+			const box = map.getBounds();
 			return {
 				center: [lng, lat],
 				zoom: map.getZoom(),
 				bearing: map.getBearing(),
-				pitch: map.getPitch()
+				pitch: map.getPitch(),
+				bounds: [box.getWest(), box.getSouth(), box.getEast(), box.getNorth()]
 			};
 		};
 		map.on('moveend', () => options.onMoveEnd(camera()));
@@ -372,6 +392,24 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 					}
 				},
 				centerOn: (point) => map.easeTo({ center: [point[0], point[1]] }),
+				flyTo: (point, zoom) => map.easeTo({ center: [point[0], point[1]], zoom }),
+				fitTo: (bounds, maxZoom) =>
+					map.fitBounds([...bounds] as [number, number, number, number], {
+						maxZoom,
+						padding: FRAME_PADDING
+					}),
+				focusSign: (id) => archive.focusSign(id),
+				setPosition(point) {
+					position?.remove();
+					position = null;
+					if (!point) return;
+					// A filled circle with a ring: not a square, and not focusable.
+					const element = document.createElement('div');
+					element.className = 'tart-position';
+					element.setAttribute('role', 'img');
+					element.setAttribute('aria-label', options.labels.position);
+					position = new Marker({ element }).setLngLat([point[0], point[1]]).addTo(map);
+				},
 				setStyle(next) {
 					style = next;
 					// A full reload, so that the archive layers are added to the new style.
@@ -382,6 +420,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 				setOutline: (geometry) => archive.setOutline(geometry),
 				destroy() {
 					archive.destroy();
+					position?.remove();
 					map.remove();
 				}
 			});

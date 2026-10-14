@@ -67,10 +67,32 @@ export async function serveStyles(
 	});
 }
 
+const MOCK_API = 'http://localhost:8795';
+
+/**
+ * Answers what Explore asks the Discovery query from the browser, as the stand-in API
+ * does for the server (`mock-api.ts`): the list of the viewport, the Locations, a
+ * Location's panel, and an Area's record. `locations` replaces the Locations body.
+ */
+export async function serveDiscovery(page: Page, locations?: string): Promise<void> {
+	await page.route(/\/api\/(discovery|archive)\//, async (route: Route) => {
+		const url = new URL(route.request().url());
+		if (locations !== undefined && url.pathname === '/api/discovery/locations') {
+			return route.fulfill({ status: 200, contentType: 'application/json', body: locations });
+		}
+		const response = await route.fetch({ url: MOCK_API + url.pathname + url.search });
+		await route.fulfill({ response });
+	});
+}
+
 /** Answers the Locations request as the Discovery query would, over the fictional Locations. */
 export async function serveLocations(page: Page): Promise<void> {
-	const body = readFileSync(new URL('fixtures/map/locations.json', import.meta.url), 'utf8');
-	await page.route('**/api/map/locations', (route: Route) =>
-		route.fulfill({ status: 200, contentType: 'application/json', body })
+	const fixture = JSON.parse(
+		readFileSync(new URL('fixtures/map/locations.json', import.meta.url), 'utf8')
+	);
+	const { locations, sites, areas } = fixture;
+	await serveDiscovery(
+		page,
+		JSON.stringify({ type: 'FeatureCollection', features: locations, sites, areas })
 	);
 }

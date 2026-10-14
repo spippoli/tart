@@ -18,11 +18,14 @@
 	let {
 		entry,
 		where = true,
+		selected = false,
 		onmap
 	}: {
 		entry: components['schemas']['ListEntry'];
 		/** The "where" line: in the two lists, not in the panel. */
 		where?: boolean;
+		/** Its Location is the selected one: a text label and a thick outline, never colour alone. */
+		selected?: boolean;
 		/** The "Show on map" control, if the view has one. */
 		onmap?: import('svelte').Snippet<[string]>;
 	} = $props();
@@ -61,7 +64,7 @@
 	};
 </script>
 
-<article class="entry" aria-labelledby="entry-{entry.id}">
+<article class="entry" class:selected aria-labelledby="entry-{entry.id}">
 	<div class="thumbnail">
 		{#if thumbnail?.file && (thumbnail.medium === 'image' || thumbnail.medium === 'pdf')}
 			{@const size = thumbnail.renditions?.view}
@@ -84,6 +87,7 @@
 		{/if}
 	</div>
 	<div class="text">
+		{#if selected}<p class="selected-label">{m.discovery_entry_selected()}</p>{/if}
 		<h3 id="entry-{entry.id}">
 			<a href={recordHref('artwork', entry.path)}
 				>{#if entry.title}<Content text={entry.title} />{:else}{title}{/if}</a
@@ -112,6 +116,13 @@
 		padding: 0.5rem 0.75rem;
 		border: 1px solid var(--border);
 		border-radius: 4px;
+	}
+	.entry.selected {
+		border: 4px solid var(--text);
+		padding: calc(0.5rem - 3px) calc(0.75rem - 3px);
+	}
+	.selected-label {
+		font-weight: 700;
 	}
 	.thumbnail img,
 	.box {

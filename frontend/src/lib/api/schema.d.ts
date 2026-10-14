@@ -1403,6 +1403,11 @@ export interface components {
             last_documented: components["schemas"]["UncertainDate"] | null;
             /** Location */
             location: number;
+            /** Location Point */
+            location_point?: [
+                number,
+                number
+            ] | null;
             site: components["schemas"]["RecordLink"] | null;
             area: components["schemas"]["RecordLink"] | null;
             /** Approximate */

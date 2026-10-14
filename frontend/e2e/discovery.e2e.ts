@@ -78,7 +78,10 @@ test.describe('with JavaScript', () => {
 		// Filters travel to Explore with the entry's "Show on map" link; the viewport and page do not.
 		await page.goto('/en/archive?type=stencil&map=14/41.9/12.5');
 		const show = page.getByRole('link', { name: 'Show on map: Opera di prova 01' });
-		await expect(show).toHaveAttribute('href', /^\/en\/\?type=stencil&location=200$/);
+		await expect(show).toHaveAttribute(
+			'href',
+			/^\/en\/\?type=stencil&location=200&map=17%2F41\.8955%2F12\.4823$/
+		);
 	});
 
 	// Criterion 30: live apply on a wide screen; the dialog on a narrow one.
@@ -307,10 +310,9 @@ test.describe('with JavaScript', () => {
 	}) => {
 		await page.goto('/en/archive');
 		const first = entries(page).first();
-		await expect(first.getByRole('link', { name: 'Opera di prova 01' })).toHaveAttribute(
-			'href',
-			'/en/artworks/100-opera-di-prova-1'
-		);
+		await expect(
+			first.getByRole('link', { name: 'Opera di prova 01', exact: true })
+		).toHaveAttribute('href', '/en/artworks/100-opera-di-prova-1');
 		await expect(first).toContainText('Nebbia Finta');
 		await expect(first).toContainText('Deposito fittizio');
 		await expect(first).toContainText('approximate location');
