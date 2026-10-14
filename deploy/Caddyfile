@@ -1,3 +1,8 @@
+{
+	# Browsers send no SNI when the site address is an IP (LAN testing); serve its certificate then.
+	default_sni {$TART_SITE_ADDRESS:localhost}
+}
+
 {$TART_SITE_ADDRESS:localhost} {
 	# The access log, with full client IP addresses, for abuse and incident handling. It
 	# goes to stderr and so to the host's journal, which drops it after 14 days at most;
