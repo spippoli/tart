@@ -2,12 +2,19 @@
 	import { page } from '$app/state';
 	import { m } from '#lib/paraglide/messages.js';
 	import { deLocalizeHref, isLocale, localizeHref, type Locale } from '#lib/paraglide/runtime.js';
+	import { remapSearch } from '#lib/discovery/state.ts';
 	import { LANGUAGE_COOKIE, LANGUAGE_COOKIE_MAX_AGE_SECONDS } from '#lib/i18n/language.ts';
 
 	let { enabled, current }: { enabled: string[]; current: Locale } = $props();
 
 	const languages = $derived(enabled.filter(isLocale));
-	const route = $derived(deLocalizeHref(page.url.pathname + page.url.search));
+	const path = $derived(deLocalizeHref(page.url.pathname));
+	// The query-string keys of Explore and Archive are UI strings too (Discovery spec,
+	// Query-string keys); the query of any other page is its own.
+	const discovery = $derived(path === '/' || path === '/archive');
+	const href = (language: Locale) =>
+		localizeHref(path, { locale: language }) +
+		(discovery ? remapSearch(page.url.search, current, language) : page.url.search);
 
 	function remember(language: Locale) {
 		document.cookie = `${LANGUAGE_COOKIE}=${language}; path=/; max-age=${LANGUAGE_COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
@@ -21,7 +28,7 @@
 				<li>
 					<!-- Each language is named in itself; a change of language reloads the page. -->
 					<a
-						href={localizeHref(route, { locale: language })}
+						href={href(language)}
 						hreflang={language}
 						lang={language}
 						aria-current={language === current ? 'true' : undefined}
