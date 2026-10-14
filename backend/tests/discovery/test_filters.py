@@ -222,6 +222,30 @@ def test_ac51_a_reversed_year_range_is_ignored(world: World, discovery: Discover
     assert len(discovery.ids(documented_from=2020, documented_to=2016)) == 2
 
 
+# Criterion 56: there is no filter on the availability of documentation.
+def test_ac56_nothing_filters_on_the_availability_of_documentation(
+    world: World, discovery: Discovery
+) -> None:
+    documented = world.artwork("Con fotografia")
+    bare = world.artwork("Senza fotografia", documented=())
+
+    parameters = {
+        parameter["name"]
+        for path, item in discovery.api.client.get("/api/openapi.json").json()["paths"].items()
+        if path.startswith("/api/discovery")
+        for operation in item.values()
+        for parameter in operation.get("parameters", [])
+    }
+
+    assert not {name for name in parameters if "document" in name and "year" not in name} - {
+        "documented_from",
+        "documented_to",
+    }
+    # An attempt to ask for one is an unknown key, which is ignored.
+    assert set(discovery.ids(has_documentation="true")) == {documented, bare}
+    assert set(discovery.ids(documentation="none")) == {documented, bare}
+
+
 # Validation: a malformed or absurd value is a 422, never a 500.
 @pytest.mark.parametrize(
     "params",
