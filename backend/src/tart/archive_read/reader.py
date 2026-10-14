@@ -192,6 +192,25 @@ def _apply_redactions[R: Record](record: R, hidden: dict[tuple[str, Any], dateti
     return replace(record, **values)
 
 
+INCIPIT_LENGTH = 160
+
+
+def incipit(text: str | None) -> str | None:
+    """The first `INCIPIT_LENGTH` characters of a text, cut at a word boundary.
+
+    Whitespace is collapsed to single spaces. An ellipsis follows only when the text was cut.
+    """
+    if not text:
+        return None
+    words = " ".join(text.split())
+    if len(words) <= INCIPIT_LENGTH:
+        return words or None
+    cut = words[:INCIPIT_LENGTH]
+    if words[INCIPIT_LENGTH] != " " and " " in cut:
+        cut = cut[: cut.rindex(" ")]
+    return cut.rstrip(" ,;:") + "…"
+
+
 def _date(value: Any) -> v.UncertainDate | None:
     return v.UncertainDate.model_validate(encode_uncertain_date(value)) if value else None
 
@@ -729,12 +748,21 @@ class Reader:
                         )
                     )
                 else:
+                    summary = await self._documentation_summary(entry.id)
+                    image = summary.medium is Medium.IMAGE
                     entries[name].append(
                         v.ItemEntry(
                             id=entry.id,
                             path=str(entry.id),
                             medium=entry.item.medium,
                             observed_date=_date(entry.observed_date),
+                            file=summary.file if image else None,
+                            renditions=summary.renditions if image else None,
+                            alt_text=summary.alt_text if image else None,
+                            incipit=incipit(summary.text)
+                            if summary.medium is Medium.TEXT
+                            else None,
+                            language=summary.language if summary.medium is Medium.TEXT else None,
                         )
                     )
 

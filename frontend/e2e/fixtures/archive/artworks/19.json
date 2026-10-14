@@ -174,7 +174,25 @@
      "qualifier": "exact",
      "first": "2020-02-10",
      "second": null
-    }
+    },
+    "file": "00000000-0000-4000-8000-000000000001",
+    "renditions": {
+     "view": {
+      "width": 1280,
+      "height": 960
+     },
+     "large": {
+      "width": 1600,
+      "height": 1200
+     },
+     "thumbnail": {
+      "width": 480,
+      "height": 360
+     }
+    },
+    "alt_text": "Immagine fittizia: una saracinesca nuova, senza l'opera.",
+    "incipit": null,
+    "language": null
    }
   ],
   "undated": []

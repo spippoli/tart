@@ -234,6 +234,13 @@ class ItemEntry(BaseModel):
     path: str
     medium: Medium
     observed_date: UncertainDate
+    file: str | None = None
+    """The upload id of an `image`, whose thumbnail the Timeline shows; else `null`."""
+    renditions: dict[str, Rendition] | None = None
+    alt_text: str | None = None
+    incipit: str | None = None
+    """The first characters of a `text` item, cut at a word boundary; else `null`."""
+    language: str | None = None
 
 
 TimelineEntry = Annotated[EventEntry | ItemEntry, Field(discriminator="entry")]
