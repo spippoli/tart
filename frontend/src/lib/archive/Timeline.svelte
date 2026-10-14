@@ -21,7 +21,9 @@
 	 * An Artwork's Timeline (criteria 21, 22, 36): a chronologically ordered list of
 	 * History events, each with its Observed, submitted, and approved dates and a link to
 	 * the Revision that introduced it, and of Documentation items, each with its Observed
-	 * date only. No User name appears on it. Undated entries come last, in their group.
+	 * date, the thumbnail of an image, or the incipit of a text. No User name appears on
+	 * it; the credit and licence of an image stay in the gallery. Undated entries come
+	 * last, in their group.
 	 */
 	let { artwork }: { artwork: ArtworkView } = $props();
 	const context = archiveContext();
@@ -70,11 +72,25 @@
 					</p>
 				{:else}
 					{@const item = asItem(entry)}
+					{@const size = item.renditions?.thumbnail}
 					<p class="what">
-						<a href={recordHref('documentation_item', item.path)}
-							>{m.archive_timeline_item({ medium: mediumWord(item.medium, context.locale) })}</a
+						<a href={recordHref('documentation_item', item.path)}>
+							{#if item.file && item.medium === 'image'}
+								<img
+									src="/api/media/{item.file}/thumbnail"
+									alt={item.alt_text}
+									lang={context.contentLanguage}
+									width={size?.width}
+									height={size?.height}
+									loading="lazy"
+								/>
+							{/if}
+							{m.archive_timeline_item({ medium: mediumWord(item.medium, context.locale) })}</a
 						>
 					</p>
+					{#if item.incipit}
+						<p class="incipit" lang={item.language ?? undefined}>{item.incipit}</p>
+					{/if}
 					<dl>
 						<dt>{m.archive_timeline_observed()}</dt>
 						<dd>{archiveDate(item.observed_date, context.dates)}</dd>
@@ -93,6 +109,17 @@
 	}
 	.timeline p {
 		margin: 0.15rem 0;
+	}
+	img {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin-block-end: 0.25rem;
+		background: var(--surface);
+	}
+	.incipit {
+		color: var(--text-muted);
+		font-style: italic;
 	}
 	dl {
 		display: grid;
