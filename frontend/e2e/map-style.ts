@@ -80,8 +80,12 @@ export async function serveDiscovery(page: Page, locations?: string): Promise<vo
 		if (locations !== undefined && url.pathname === '/api/discovery/locations') {
 			return route.fulfill({ status: 200, contentType: 'application/json', body: locations });
 		}
-		const response = await route.fetch({ url: MOCK_API + url.pathname + url.search });
-		await route.fulfill({ response });
+		try {
+			const response = await route.fetch({ url: MOCK_API + url.pathname + url.search });
+			await route.fulfill({ response });
+		} catch {
+			// The page navigated or closed while the request was in flight; nobody awaits the answer.
+		}
 	});
 }
 
