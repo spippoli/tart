@@ -35,6 +35,9 @@ const SIGNS = 'tart-signs';
 const GEOMETRIES = 'tart-geometries';
 const HATCH = 'tart-hatch';
 const AREAS = 'tart-areas';
+const MUTED = 'tart-muted';
+const OUTLINE = 'tart-outline';
+const MUTED_SIZE = 8;
 const GROUPS: readonly Group[] = ['present', 'unknown', 'disappeared'];
 
 export interface ArchiveOptions {
@@ -44,14 +47,22 @@ export interface ArchiveOptions {
 		cluster: (artworks: number, locations: number) => string;
 	};
 	onSelect: (id: number) => void;
+	/** Clusters nearby Locations up to z16; the mini-map does not. Defaults to true. */
+	cluster?: boolean;
+	/** Whether each Location and cluster in view is also a button; the mini-map has none. */
+	focusable?: boolean;
 }
 
 export interface Archive {
 	/** Adds the archive's sources, images, and layers to the current style. */
 	install(style: Style): void;
 	setData(data: MapData): void;
+	setMuted(points: readonly (readonly [number, number])[]): void;
+	setOutline(geometry: Outline | null): void;
 	destroy(): void;
 }
+
+type Outline = { type: 'Polygon'; coordinates: number[][][] };
 
 type Coordinates = [number, number];
 
@@ -66,6 +77,8 @@ interface Entry {
 
 export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archive {
 	let data = EMPTY_MAP_DATA;
+	let muted: readonly (readonly [number, number])[] = [];
+	let outline: Outline | null = null;
 	let installed = false;
 	const markers = new Map<string, { marker: Marker; element: HTMLElement }>();
 	const sites = new Map<number, Marker>();
@@ -95,6 +108,20 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 			),
 			{ pixelRatio: ratio }
 		);
+		// The neighbours of the mini-map: a smaller sign in a muted `map.ink`, one shape.
+		const side = MUTED_SIZE;
+		map.addImage(
+			'muted',
+			renderImage(
+				side,
+				side,
+				[
+					{ x: 0, y: 0, shapes: [{ d: `M0 0h${side}v${side}h${-side}Z`, fill: tokens['map.ink'] }] }
+				],
+				ratio
+			),
+			{ pixelRatio: ratio }
+		);
 		map.addImage(
 			'hatch',
 			renderImage(HATCH_TILE, HATCH_TILE, [{ x: 0, y: 0, shapes: hatchTile(tokens) }], ratio),
@@ -110,7 +137,7 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 		map.addSource(SIGNS, {
 			type: 'geojson',
 			data: empty,
-			cluster: true,
+			cluster: options.cluster ?? true,
 			clusterRadius: CLUSTER_RADIUS,
 			clusterMaxZoom: CLUSTER_MAX_ZOOM,
 			clusterProperties: { artworks: ['+', ['get', 'count']] }
@@ -118,7 +145,32 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 		map.addSource(GEOMETRIES, { type: 'geojson', data: empty });
 		map.addSource(HATCH, { type: 'geojson', data: empty });
 		map.addSource(AREAS, { type: 'geojson', data: empty });
+		map.addSource(MUTED, { type: 'geojson', data: empty });
+		map.addSource(OUTLINE, { type: 'geojson', data: empty });
 
+		map.addLayer(
+			{
+				id: OUTLINE,
+				type: 'line',
+				source: OUTLINE,
+				paint: { 'line-color': tokens['map.ink'], 'line-width': 2, 'line-opacity': 0.7 }
+			},
+			before
+		);
+		map.addLayer(
+			{
+				id: MUTED,
+				type: 'symbol',
+				source: MUTED,
+				layout: {
+					'icon-image': 'muted',
+					'icon-allow-overlap': true,
+					'icon-ignore-placement': true
+				},
+				paint: { 'icon-opacity': 0.5 }
+			},
+			before
+		);
 		map.addLayer(
 			{
 				id: HATCH,
@@ -221,16 +273,13 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 		);
 		installed = true;
 		setData(data);
+		setMuted(muted);
+		setOutline(outline);
 	}
 
 	function setData(next: MapData) {
 		data = next;
 		if (!installed) return;
-		const feed = (id: string, features: unknown[]) =>
-			(map.getSource(id) as GeoJSONSource).setData({
-				type: 'FeatureCollection',
-				features
-			} as never);
 		feed(SIGNS, signFeatures(data.locations));
 		feed(GEOMETRIES, geometryFeatures(data.locations));
 		feed(HATCH, hatchFeatures(data.locations));
@@ -243,6 +292,32 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 			}))
 		);
 		schedule();
+	}
+
+	function feed(id: string, features: unknown[]) {
+		(map.getSource(id) as GeoJSONSource).setData({ type: 'FeatureCollection', features } as never);
+	}
+
+	function setMuted(points: readonly (readonly [number, number])[]) {
+		muted = points;
+		// What the canvas draws, for tests, which do not read pixels.
+		map.getContainer().dataset.muted = String(points.length);
+		if (!installed) return;
+		feed(
+			MUTED,
+			points.map((coordinates) => ({
+				type: 'Feature',
+				geometry: { type: 'Point', coordinates },
+				properties: {}
+			}))
+		);
+	}
+
+	function setOutline(next: Outline | null) {
+		outline = next;
+		map.getContainer().dataset.outline = String(next !== null);
+		if (!installed) return;
+		feed(OUTLINE, next ? [{ type: 'Feature', geometry: next, properties: {} }] : []);
 	}
 
 	// The elements over the canvas: one per Location and cluster in view.
@@ -295,7 +370,7 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 	function refresh() {
 		frame = 0;
 		if (!installed) return;
-		const wanted = entries();
+		const wanted = options.focusable === false ? [] : entries();
 		const keys = new Set(wanted.map((entry) => entry.key));
 		for (const [key, { marker }] of markers) {
 			if (keys.has(key)) continue;
@@ -387,6 +462,8 @@ export function createArchive(map: MapLibreMap, options: ArchiveOptions): Archiv
 	return {
 		install,
 		setData,
+		setMuted,
+		setOutline,
 		destroy() {
 			cancelAnimationFrame(frame);
 			for (const { marker } of markers.values()) marker.remove();

@@ -54,9 +54,24 @@ export interface Drawn {
 	midpoints: boolean;
 }
 
+/** What a map is framed on instead of the Instance's default view: a fit to an extent. */
+export interface Frame {
+	bounds: Bounds;
+	/** A fit never zooms in beyond this, so a single Location is shown at it. */
+	maxZoom: number;
+}
+
+const FRAME_PADDING = 48;
+
 export interface EngineOptions {
 	style: Style;
 	view: View;
+	/** Framed on this, which the reset button returns to, rather than on `view`. */
+	frame?: Frame;
+	/** The lowest zoom the map can be taken to. */
+	minZoom?: number;
+	/** No wheel, drag, touch, double-click, or keyboard move: only the control moves it. */
+	still?: boolean;
 	bounds: Bounds;
 	/** The configured map attribution, shown as links and never translated. */
 	attribution: readonly { text: string; url: string }[];
@@ -83,7 +98,17 @@ export interface Engine {
 	setStyle(style: Style): void;
 	/** The Locations, Sites, and Areas to draw. */
 	setData(data: MapData): void;
+	/** Other Locations, drawn as small muted signs (the mini-map's context). */
+	setMuted(points: readonly Point[]): void;
+	/** The outline of an Area; `null` clears it. */
+	setOutline(geometry: AreaOutline | null): void;
 	destroy(): void;
+}
+
+/** The polygon of an Area, as GeoJSON. */
+export interface AreaOutline {
+	type: 'Polygon';
+	coordinates: number[][][];
 }
 
 let configured = false;
@@ -220,8 +245,20 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 			map = new MapLibreMap({
 				container,
 				style: options.style as unknown as StyleSpecification,
-				center: [options.view.center[0], options.view.center[1]],
-				zoom: options.view.zoom,
+				...(options.frame
+					? {
+							bounds: [...options.frame.bounds] as [number, number, number, number],
+							fitBoundsOptions: {
+								maxZoom: options.frame.maxZoom,
+								padding: FRAME_PADDING,
+								animate: false
+							}
+						}
+					: {
+							center: [options.view.center[0], options.view.center[1]] as [number, number],
+							zoom: options.view.zoom
+						}),
+				minZoom: options.minZoom,
 				maxBounds: [...options.bounds] as [number, number, number, number],
 				maxZoom: MAX_ZOOM,
 				// Rotation and pitch are disabled (ADR 0017).
@@ -246,6 +283,16 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 		const archive = createArchive(map, options.archive);
 		map.on('style.load', () => archive.install(style));
 		loadFonts(style);
+		if (options.still) {
+			map.scrollZoom.disable();
+			map.dragPan.disable();
+			map.doubleClickZoom.disable();
+			map.boxZoom.disable();
+			map.keyboard.disable();
+			map.touchZoomRotate.disable();
+			// Nothing to do from the keyboard on the canvas itself: its buttons are the control's.
+			map.getCanvas().removeAttribute('tabindex');
+		}
 		map.keyboard.disableRotation();
 		map.touchZoomRotate.disableRotation();
 
@@ -303,12 +350,17 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 					map.panBy([(x * clientWidth) / 3, (y * clientHeight) / 3]);
 				},
 				reset: () =>
-					map.easeTo({
-						center: [options.view.center[0], options.view.center[1]],
-						zoom: options.view.zoom,
-						bearing: 0,
-						pitch: 0
-					}),
+					options.frame
+						? map.fitBounds([...options.frame.bounds] as [number, number, number, number], {
+								maxZoom: options.frame.maxZoom,
+								padding: FRAME_PADDING
+							})
+						: map.easeTo({
+								center: [options.view.center[0], options.view.center[1]],
+								zoom: options.view.zoom,
+								bearing: 0,
+								pitch: 0
+							}),
 				setDrawn(value, tokens) {
 					drawn = value && { value, tokens };
 					if (value) showDrawn();
@@ -326,6 +378,8 @@ export function createEngine(container: HTMLElement, options: EngineOptions): Pr
 					map.setStyle(next as unknown as StyleSpecification, { diff: false });
 				},
 				setData: (data) => archive.setData(data),
+				setMuted: (points) => archive.setMuted(points),
+				setOutline: (geometry) => archive.setOutline(geometry),
 				destroy() {
 					archive.destroy();
 					map.remove();

@@ -3,7 +3,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { mapBounds, type Bounds } from './bounds';
-	import type { Camera, ClickEvent, Drawn, Engine, View } from './engine';
+	import type { AreaOutline, Camera, ClickEvent, Drawn, Engine, Frame, View } from './engine';
 	import type { Point } from './coordinates';
 	import Legend from './Legend.svelte';
 	import { EMPTY_MAP_DATA, type MapData } from './locations';
@@ -11,6 +11,9 @@
 	import { clusterName, signName } from './names';
 	import { DARK_SCHEME, fetchStyle, type Theme, type Tokens, type Unavailable } from './style';
 	import { supportsWebGL2 } from './webgl';
+
+	/** The mini-map never zooms out past this, so its buttons stay within the loaded area. */
+	const MINI_MIN_ZOOM = 15;
 
 	/**
 	 * The map module (Discovery spec, Modules): renders a map from the served style
@@ -32,7 +35,12 @@
 		onunavailable,
 		onmoveend,
 		onclick,
-		drawn = null
+		drawn = null,
+		frame,
+		mini = false,
+		muted = [],
+		outline = null,
+		onready
 	}: {
 		/** The Instance's default view, which the reset button returns to. */
 		view: View;
@@ -47,6 +55,19 @@
 		onclick?: (click: ClickEvent) => void;
 		/** The shape being drawn, for the drawing tool. */
 		drawn?: Drawn | null;
+		/** Framed on an extent instead of the default view (a record page's map). */
+		frame?: Frame;
+		/**
+		 * The mini-map (Discovery spec, Mini-map): still, with only the zoom buttons, no
+		 * lower than z15, no clusters, no legend, and no focusable signs.
+		 */
+		mini?: boolean;
+		/** The mini-map's neighbouring Locations, as small muted signs. */
+		muted?: readonly Point[];
+		/** An Area's outline. */
+		outline?: AreaOutline | null;
+		/** Called once the map is drawn. */
+		onready?: () => void;
 	} = $props();
 
 	/** Moves the map so that `point` is at its centre. */
@@ -62,6 +83,14 @@
 
 	$effect(() => {
 		if (engine && tokens) engine.setDrawn(drawn, tokens);
+	});
+
+	$effect(() => {
+		engine?.setMuted(muted);
+	});
+
+	$effect(() => {
+		engine?.setOutline(outline);
 	});
 
 	onMount(() => {
@@ -90,9 +119,15 @@
 				const created = await createEngine(container!, {
 					style: result.style,
 					view,
+					frame,
+					minZoom: mini ? MINI_MIN_ZOOM : undefined,
+					still: mini,
 					bounds: mapBounds(boundary),
 					attribution,
-					labels: { canvas: m.map_canvas(), attributionToggle: m.map_attribution_toggle() },
+					labels: {
+						canvas: mini ? m.map_canvas_mini() : m.map_canvas(),
+						attributionToggle: m.map_attribution_toggle()
+					},
 					onClick: onclick && ((click) => onclick(click)),
 					onMoveEnd(moved) {
 						camera = moved;
@@ -103,11 +138,16 @@
 							sign: (properties) => signName(properties, getLocale()),
 							cluster: (artworks, locations) => clusterName(artworks, locations, getLocale())
 						},
-						onSelect: (id) => onselect?.(id)
+						onSelect: (id) => onselect?.(id),
+						cluster: !mini,
+						focusable: !mini
 					}
 				});
 				if (gone) created.destroy();
-				else engine = created;
+				else {
+					engine = created;
+					onready?.();
+				}
 			} catch (reason) {
 				fail(reason === 'webgl2' ? 'webgl2' : 'style');
 			}
@@ -140,6 +180,7 @@
 	<div
 		class="map"
 		data-state={engine ? 'ready' : 'loading'}
+		data-mini={mini || undefined}
 		data-zoom={camera?.zoom}
 		data-lon={camera?.center[0]}
 		data-lat={camera?.center[1]}
@@ -150,9 +191,9 @@
 	>
 		<div class="overlay" role="group" aria-label={m.map_controls()}>
 			{#if engine}
-				<MapControl {engine} />
+				<MapControl {engine} zoomOnly={mini} />
 			{/if}
-			{#if tokens}
+			{#if tokens && !mini}
 				<Legend {tokens} />
 			{/if}
 		</div>
@@ -191,6 +232,10 @@
 	.map {
 		position: relative;
 		block-size: min(70vh, 40rem);
+	}
+
+	.map[data-mini] {
+		block-size: min(50vh, 20rem);
 	}
 
 	.canvas {

@@ -88,7 +88,7 @@
 
 	<section aria-labelledby="where">
 		<h2 id="where">{m.archive_where_heading()}</h2>
-		<Where where={artwork.where} />
+		<Where where={artwork.where} counts={{ [artwork.condition.group]: 1 }} />
 		{#if artwork.series.length > 0}
 			<p>
 				{m.archive_series()}:

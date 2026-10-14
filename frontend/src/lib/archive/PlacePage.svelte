@@ -5,6 +5,7 @@
 	import Content from './Content.svelte';
 	import { archiveContext } from './context.svelte';
 	import ModeratorNotice from './ModeratorNotice.svelte';
+	import PlaceMap from './PlaceMap.svelte';
 	import RecordFooter from './RecordFooter.svelte';
 	import RedactionMark from './RedactionMark.svelte';
 	import LinkList from './LinkList.svelte';
@@ -12,7 +13,7 @@
 
 	/**
 	 * A Site, Area, or Series page (archive-records spec): header, description, the
-	 * Locations of its Artworks (the map comes with Discovery), the Artworks with their
+	 * map and the Locations of its Artworks (in words), the Artworks with their
 	 * Condition, Sources, actions, and the Revisions link.
 	 */
 	let { place }: { place: PlaceView } = $props();
@@ -42,6 +43,8 @@
 		</h1>
 	</header>
 	<Content text={place.description} block redacted={redacted('description')} />
+
+	<PlaceMap {place} />
 
 	{#if place.kind !== 'series' && locations.length > 0}
 		<section aria-labelledby="locations">
