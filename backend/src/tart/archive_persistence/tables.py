@@ -107,6 +107,7 @@ location = Table(
     ),
     CheckConstraint("char_length(place_description) <= 200", name="place_description_length"),
     Index("ix_location_geometry", "geometry", postgresql_using="gist"),
+    Index("ix_location_representative_point", "representative_point", postgresql_using="gist"),
     Index("ix_location_site_id", "site_id"),
 )
 

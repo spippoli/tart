@@ -36,3 +36,11 @@ def upgrade() -> None:
             nullable=True,
         ),
     )
+    # The map's bounding box reads the point, as the Location's geometry has its own index.
+    op.create_index(
+        "ix_location_representative_point",
+        "location",
+        ["representative_point"],
+        unique=False,
+        postgresql_using="gist",
+    )
