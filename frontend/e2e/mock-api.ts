@@ -22,7 +22,9 @@
  *
  * `GET /api/discovery/artworks` answers the Discovery query over thirty fictional
  * list entries made here (the backend's own tests cover the query): the Condition,
- * type, attribution, creation-year, and search filters, the title order, and pages of 24.
+ * type, attribution, creation-year, and search filters, the title order, the `bbox` of
+ * the Explore viewport, and pages of 24. They stand on ten fictional Locations, three
+ * to each (`/api/discovery/locations` and `/api/discovery/locations/{id}`).
  * A session cookie of `archivio-vuoto` makes the archive empty.
  *
  *     node e2e/mock-api.ts [port]
@@ -378,6 +380,12 @@ const link = (kind: string, id: number, path: string, name: string) => ({
 	location_title: null
 });
 
+/** Ten fictional Locations of three Artworks each, about 300 m apart, around the default view. */
+const locationPoint = (id: number): [number, number] => [
+	12.4823 + ((id - 200) % 5) * 0.0035,
+	41.8955 + Math.floor((id - 200) / 5) * 0.004
+];
+
 /** Thirty fictional list entries: ten have no creation date, one has no documentation. */
 const entries = Array.from({ length: 30 }, (_, index) => {
 	const [condition, group] = CONDITION_CYCLE[index % CONDITION_CYCLE.length];
@@ -397,7 +405,8 @@ const entries = Array.from({ length: 30 }, (_, index) => {
 			event: null
 		},
 		last_documented: undocumented ? null : yearDate(2020 + (index % 5)),
-		location: 200 + index,
+		location: 200 + Math.floor(index / 3),
+		location_point: locationPoint(200 + Math.floor(index / 3)),
 		site: index % 3 === 0 ? link('site', 5, '5-deposito', 'Deposito fittizio') : null,
 		area: link('area', 3, '3-quartiere-immaginario', 'Quartiere Immaginario'),
 		approximate: index % 7 === 0,
@@ -425,8 +434,8 @@ const entries = Array.from({ length: 30 }, (_, index) => {
 	};
 });
 
-function discovery(url: URL, emptyArchive: boolean) {
-	const query = url.searchParams;
+/** The entries that the filters of a query select, in the API's own parameters (no page or box). */
+function matchingEntries(query: URLSearchParams, emptyArchive: boolean) {
 	const list = (name: string) => query.getAll(name);
 	const number = (name: string) => (query.get(name) === null ? null : Number(query.get(name)));
 	const text = query.get('q')?.trim().toLowerCase() ?? '';
@@ -461,16 +470,32 @@ function discovery(url: URL, emptyArchive: boolean) {
 	if (query.get('order') === 'title') {
 		matching = [...matching].sort((a, b) => (a.title ?? '￿').localeCompare(b.title ?? '￿'));
 	}
+	return { matching, leftOut, text };
+}
+
+/** What the API does not send: the fixture's own bookkeeping. */
+function shownEntry(entry: (typeof entries)[number]) {
+	const shown: Record<string, unknown> = { ...entry };
+	delete shown.creationYear;
+	delete shown.attribution;
+	return shown;
+}
+
+function discovery(url: URL, emptyArchive: boolean) {
+	const query = url.searchParams;
+	const { leftOut, text, ...found } = matchingEntries(query, emptyArchive);
+	let { matching } = found;
+	// `bbox`: west, south, east, north; only Locations whose sign lies inside.
+	const box = query.get('bbox')?.split(',').map(Number);
+	if (box) {
+		matching = matching.filter(({ location_point: [lon, lat] }) => {
+			return lon >= box[0] && lat >= box[1] && lon <= box[2] && lat <= box[3];
+		});
+	}
 	const page = Number(query.get('page') ?? '1');
 	const shown = matching.slice((page - 1) * 24, page * 24);
 	return {
-		entries: shown.map((entry) => {
-			// What the API does not send: the fixture's own bookkeeping.
-			const shown: Record<string, unknown> = { ...entry };
-			delete shown.creationYear;
-			delete shown.attribution;
-			return shown;
-		}),
+		entries: shown.map(shownEntry),
 		total: matching.length,
 		page,
 		page_size: 24,
@@ -491,6 +516,73 @@ function discovery(url: URL, emptyArchive: boolean) {
 	};
 }
 
+const GROUPS = ['present', 'unknown', 'disappeared'] as const;
+
+/** `GET /api/discovery/locations`: one feature per Location with a matching Artwork. */
+function mapLocations(url: URL, emptyArchive: boolean) {
+	const { matching } = matchingEntries(url.searchParams, emptyArchive);
+	const byLocation = new Map<number, typeof matching>();
+	for (const entry of matching) {
+		byLocation.set(entry.location, [...(byLocation.get(entry.location) ?? []), entry]);
+	}
+	const features = [...byLocation].map(([id, found]) => {
+		const counts = Object.fromEntries(
+			GROUPS.map((group) => [
+				group,
+				found.filter((entry) => entry.condition.group === group).length
+			])
+		);
+		const point = locationPoint(id);
+		return {
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: point },
+			properties: {
+				id,
+				...counts,
+				group: GROUPS.find((group) => counts[group] > 0),
+				count: found.length,
+				point,
+				approximate: false,
+				radius: null
+			}
+		};
+	});
+	return {
+		type: 'FeatureCollection',
+		features,
+		sites: [],
+		areas: [{ name: 'Quartiere Immaginario', point: [12.4923, 41.9] }]
+	};
+}
+
+/** `GET /api/discovery/locations/{id}`: the header and the stratigraphy, or none. */
+function locationPanel(id: number, url: URL, emptyArchive: boolean) {
+	const here = entries.filter((entry) => entry.location === id);
+	if (here.length === 0) return null;
+	const found = new Set(matchingEntries(url.searchParams, emptyArchive).matching.map((e) => e.id));
+	const shown = here.filter((entry) => found.has(entry.id));
+	const point = locationPoint(id);
+	return {
+		location: {
+			id,
+			path: `${id}-superficie-di-prova`,
+			title: { place_description: `Parete di prova ${id - 199}`, surface_type: null, place: null },
+			surface_type: 'building_wall',
+			geometry: { type: 'Point', coordinates: point },
+			point,
+			// The first Location is approximate with a radius, the second without.
+			approximate: id === 200 || id === 201,
+			uncertainty_radius: id === 200 ? 30 : null
+		},
+		site: null,
+		areas: [link('area', 3, '3-quartiere-immaginario', 'Quartiere Immaginario')],
+		// Most recent first; with none matching, all of them.
+		entries: (shown.length > 0 ? shown : here).reverse().map(shownEntry),
+		matches: shown.length > 0,
+		other: shown.length > 0 ? here.length - shown.length : 0
+	};
+}
+
 const port = Number(process.argv[2] ?? 8795);
 createServer((request, response) => {
 	const path = (request.url ?? '').replace(/^\/it-only/, '');
@@ -502,10 +594,18 @@ createServer((request, response) => {
 		archive(request, response, path);
 		return;
 	}
-	if (path.startsWith('/api/discovery/artworks')) {
+	if (path.startsWith('/api/discovery/')) {
 		const empty = sessionEmail(request)?.startsWith('archivio-vuoto') ?? false;
-		send(response, 200, discovery(new URL(path, 'http://mock'), empty));
-		return;
+		const url = new URL(path, 'http://mock');
+		if (url.pathname === '/api/discovery/artworks')
+			return send(response, 200, discovery(url, empty));
+		if (url.pathname === '/api/discovery/locations')
+			return send(response, 200, mapLocations(url, empty));
+		const id = /^\/api\/discovery\/locations\/(\d+)$/.exec(url.pathname)?.[1];
+		const panel = id && locationPanel(Number(id), url, empty);
+		return panel
+			? send(response, 200, panel)
+			: send(response, 404, { code: 'location_not_available' });
 	}
 	const body = variants[request.url ?? ''];
 	if (request.method !== 'GET' || body === undefined) {
