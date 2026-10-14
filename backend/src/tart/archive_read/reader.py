@@ -525,7 +525,7 @@ class Reader:
         """The Artwork as a list entry: the card, where it is, who by, and its thumbnail."""
         card = await self.card(artwork_id)
         artwork: Artwork = (await self.shown(artwork_id)).record
-        where = await self.where(artwork.location)
+        where = await self.where(artwork.location, nearby=False)
         public = await self._public(a.artist for a in artwork.attributions)  # type: ignore[misc]
         readout = attribution_readout(artwork, public)
         items = await self._documentation(artwork_id)
@@ -710,7 +710,8 @@ class Reader:
             **visibility,
         )
 
-    async def where(self, location_id: Any) -> v.Where:
+    async def where(self, location_id: Any, *, nearby: bool = True) -> v.Where:
+        """Where an Artwork is; `nearby` adds the mini-map's neighbours, a list entry skips them."""
         if location_id is None or not await self.listed([location_id]):
             # Withdrawn (or redacted): a placeholder, and nothing that would place it.
             return v.Where(location=None, location_withdrawn=True, site=None, areas=[])
@@ -721,7 +722,7 @@ class Reader:
             location_withdrawn=False,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
-            nearby=await self._nearby(location_id),
+            nearby=await self._nearby(location_id) if nearby else [],
         )
 
     async def _nearby(self, location_id: RecordId) -> list[v.NearbyLocation]:
