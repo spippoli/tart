@@ -15,7 +15,11 @@ const isMobile = (info: { project: { name: string } }) => info.project.name === 
 
 /** The filter form is inline on a wide screen and in a dialog behind a button on a narrow one. */
 async function openFilters(page: Page, mobile: boolean) {
-	if (!mobile) return page.getByRole('search', { name: 'Filters' });
+	if (!mobile) {
+		// The group checkboxes exist only once the page has hydrated.
+		await expect(page.getByRole('checkbox', { name: 'disappeared', exact: true })).toBeVisible();
+		return page.getByRole('search', { name: 'Filters' });
+	}
 	await page.getByRole('button', { name: /^Filters/ }).click();
 	return page.getByRole('dialog', { name: 'Filters' });
 }
@@ -98,6 +102,7 @@ test.describe('with JavaScript', () => {
 	test('AC 30: the text field applies after a pause and keeps focus', async ({ page }, info) => {
 		test.skip(isMobile(info), 'on a narrow screen the text applies on "Show results"');
 		await page.goto('/en/archive');
+		await openFilters(page, false);
 		const search = page.getByRole('searchbox', { name: 'Search the archive' });
 		await search.fill('prova 05');
 		await expect(page).toHaveURL(/q=prova\+05/);
@@ -270,10 +275,6 @@ test.describe('with JavaScript', () => {
 		await page.goto('/en/archive');
 		const entry = (title: string) => entries(page).filter({ hasText: title });
 
-		await expect(entry('Opera di prova 05').getByRole('img')).toHaveAttribute(
-			'alt',
-			'Una fotografia fittizia di un muro dipinto.'
-		);
 		await expect(entry('Opera di prova 02')).toContainText('Text document');
 		await expect(entry('Opera di prova 01')).toContainText('Link');
 
@@ -283,6 +284,13 @@ test.describe('with JavaScript', () => {
 		await expect(none).toContainText('Destroyed');
 		await expect(none).not.toContainText('last documented');
 		await expect(entry('Opera di prova 02')).toContainText('last documented');
+
+		// The latest public image is the thumbnail, with its own alternative text.
+		await page.goto('/en/archive?page=2');
+		await expect(entry('Opera di prova 28').getByRole('img')).toHaveAttribute(
+			'alt',
+			'Una fotografia fittizia di un muro dipinto.'
+		);
 	});
 
 	test('the entry shows the title link, Condition, attribution, and where line', async ({
