@@ -161,6 +161,28 @@ test('AC 22 and 36: the Timeline is an ordered list with three dates per event',
 	await expect(timeline).not.toContainText('Contributrice');
 });
 
+test('AC 22: an image item on the Timeline shows its thumbnail, a text item its incipit', async ({
+	page
+}) => {
+	await page.goto(`/en/artworks/${ids.gatto}`);
+	const image = page.locator('ol.timeline > li').filter({ hasText: 'Documentation: image' });
+	const thumbnail = image.getByRole('link').locator('img');
+	await expect(thumbnail).toHaveAttribute('src', /^\/api\/media\/.+\/thumbnail$/);
+	await expect(thumbnail).toHaveAttribute('alt', /^Immagine fittizia/);
+	await expect(image.locator('dt')).toHaveText(['Observed']);
+	await expect(image).not.toContainText('Credit');
+
+	await page.goto(`/en/artworks/${ids.scritta}`);
+	const text = page.locator('ol.timeline > li').filter({ hasText: 'Documentation: text' });
+	await expect(text.locator('.incipit')).toHaveText(
+		'Testimonianza fittizia: la scritta era ancora leggibile.'
+	);
+	await expect(text.locator('.incipit')).toHaveAttribute('lang', 'it');
+	await expect(text.locator('img')).toHaveCount(0);
+	const link = page.locator('ol.timeline > li').filter({ hasText: 'Documentation: link' });
+	await expect(link.locator('img, .incipit')).toHaveCount(0);
+});
+
 test('AC 23, 32, and 36: each image has its alt text, credit, licence scope, and date', async ({
 	page
 }) => {

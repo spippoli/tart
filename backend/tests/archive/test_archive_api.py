@@ -440,3 +440,44 @@ def test_an_index_lists_by_name_in_pages_of_24(api: Api, seeded: Seeded) -> None
     assert (page["page"], page["page_size"], page["total"]) == (1, 24, 4)
     assert _get(api, "artists?page=2").json()["items"] == []
     assert _get(api, "artists?page=0").status_code == 422
+
+
+# Criterion 22: the Timeline shows an image item's thumbnail and a text item's incipit.
+
+
+def _timeline_items(artwork: dict) -> dict[int, dict]:
+    entries = artwork["timeline"]["dated"] + artwork["timeline"]["undated"]
+    return {e["id"]: e for e in entries if e["entry"] == "item"}
+
+
+def test_criterion_22_an_image_item_on_the_timeline_carries_its_thumbnail(
+    api: Api, seeded: Seeded
+) -> None:
+    artwork = _get(api, f"artworks/{seeded.complete_artwork}").json()
+    item = _timeline_items(artwork)[seeded.ids["foto-gatto"]]
+
+    assert item["medium"] == "image"
+    assert item["file"] and "thumbnail" in item["renditions"]
+    assert item["alt_text"].startswith("Immagine fittizia")
+    assert item["incipit"] is None
+
+
+def test_criterion_22_a_text_item_on_the_timeline_carries_its_incipit(
+    api: Api, seeded: Seeded
+) -> None:
+    artwork = _get(api, f"artworks/{seeded.ids['scritta']}").json()
+    items = _timeline_items(artwork)
+    item = items[seeded.ids["testimonianza"]]
+
+    assert item["medium"] == "text"
+    assert item["incipit"] == "Testimonianza fittizia: la scritta era ancora leggibile."
+    assert item["language"] == "it"
+    assert item["file"] is None and item["alt_text"] is None
+
+
+def test_criterion_22_a_link_item_on_the_timeline_carries_neither(api: Api, seeded: Seeded) -> None:
+    artwork = _get(api, f"artworks/{seeded.ids['scritta']}").json()
+    item = _timeline_items(artwork)[seeded.ids["collegamento"]]
+
+    assert item["medium"] == "link"
+    assert item["file"] is None and item["incipit"] is None

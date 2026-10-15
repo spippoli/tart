@@ -141,7 +141,12 @@
      "qualifier": "exact",
      "first": "2023-01-01",
      "second": null
-    }
+    },
+    "file": null,
+    "renditions": null,
+    "alt_text": null,
+    "incipit": null,
+    "language": null
    },
    {
     "entry": "item",
@@ -153,7 +158,12 @@
      "qualifier": "exact",
      "first": "2023-09-01",
      "second": null
-    }
+    },
+    "file": null,
+    "renditions": null,
+    "alt_text": null,
+    "incipit": "Testimonianza fittizia: la scritta era ancora leggibile.",
+    "language": "it"
    }
   ],
   "undated": [

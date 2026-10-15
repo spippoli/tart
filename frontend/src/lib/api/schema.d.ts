@@ -1363,6 +1363,18 @@ export interface components {
             path: string;
             medium: components["schemas"]["Medium"];
             observed_date: components["schemas"]["UncertainDate"];
+            /** File */
+            file?: string | null;
+            /** Renditions */
+            renditions?: {
+                [key: string]: components["schemas"]["tart__archive_read__views__Rendition"];
+            } | null;
+            /** Alt Text */
+            alt_text?: string | null;
+            /** Incipit */
+            incipit?: string | null;
+            /** Language */
+            language?: string | null;
         };
         /**
          * Kind

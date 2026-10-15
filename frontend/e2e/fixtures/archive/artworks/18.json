@@ -165,7 +165,25 @@
      "qualifier": "exact",
      "first": "2018-03-03",
      "second": null
-    }
+    },
+    "file": "00000000-0000-4000-8000-000000000001",
+    "renditions": {
+     "view": {
+      "width": 1280,
+      "height": 960
+     },
+     "large": {
+      "width": 1600,
+      "height": 1200
+     },
+     "thumbnail": {
+      "width": 480,
+      "height": 360
+     }
+    },
+    "alt_text": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",
+    "incipit": null,
+    "language": null
    },
    {
     "entry": "event",
