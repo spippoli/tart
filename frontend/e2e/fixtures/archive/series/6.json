@@ -25,8 +25,15 @@
      41.895
     ]
    },
+   "point": [
+    12.495,
+    41.895
+   ],
    "approximate": false,
-   "uncertainty_radius": null
+   "uncertainty_radius": null,
+   "present": 1,
+   "unknown": 0,
+   "disappeared": 0
   },
   {
    "id": 12,
@@ -44,8 +51,15 @@
      41.885
     ]
    },
+   "point": [
+    12.48,
+    41.885
+   ],
    "approximate": false,
-   "uncertainty_radius": null
+   "uncertainty_radius": null,
+   "present": 0,
+   "unknown": 0,
+   "disappeared": 1
   }
  ],
  "artworks": [

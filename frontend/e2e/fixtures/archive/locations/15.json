@@ -39,10 +39,15 @@
    ]
   ]
  },
+ "point": [
+  12.4862,
+  41.87815
+ ],
  "approximate": false,
  "uncertainty_radius": null,
  "site": null,
  "areas": [],
+ "nearby": [],
  "stratigraphy": [
   {
    "id": 23,

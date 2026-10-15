@@ -25,7 +25,10 @@ declare global {
 			languageEnabled: boolean;
 		}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			/** Explore: the selection was opened in this session, so closing it goes back. */
+			opened?: boolean;
+		}
 		// interface Platform {}
 	}
 }

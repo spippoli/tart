@@ -30,12 +30,21 @@
 			title: location.title,
 			surface_type: location.surface_type,
 			geometry: location.geometry,
+			point: location.point,
 			approximate: location.approximate,
 			uncertainty_radius: location.uncertainty_radius
 		},
 		location_withdrawn: false,
 		site: location.site,
-		areas: location.areas
+		areas: location.areas,
+		nearby: location.nearby
+	});
+	const counts = $derived.by(() => {
+		const found: Partial<Record<'present' | 'unknown' | 'disappeared', number>> = {};
+		for (const { condition } of location.stratigraphy) {
+			found[condition.group] = (found[condition.group] ?? 0) + 1;
+		}
+		return found;
 	});
 </script>
 
@@ -62,7 +71,7 @@
 
 	<section aria-labelledby="where">
 		<h2 id="where">{m.archive_where_heading()}</h2>
-		<Where {where} />
+		<Where {where} {counts} />
 	</section>
 
 	<section aria-labelledby="stratigraphy">

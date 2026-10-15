@@ -2,6 +2,7 @@ import { expect, test, type Route } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { signShapes, SMALL_SIGN_SIZE, type SignKind } from '../src/lib/map/signs';
 import type { Tokens } from '../src/lib/map/style';
+import { serveLocations } from './map-style';
 
 /**
  * Rome's reference style (Discovery spec, Cartography; ADR 0017).
@@ -163,6 +164,7 @@ test("the map draws its labels from the style's font files", async ({ page, base
 		if (message.type() === 'error' || message.type() === 'warning') problems.push(message.text());
 	});
 	page.on('pageerror', (error) => problems.push(error.message));
+	await serveLocations(page);
 	await page.route('**/api/map/style/*.json', (route: Route) =>
 		route.fulfill({
 			contentType: 'application/json',
@@ -174,6 +176,14 @@ test("the map draws its labels from the style's font files", async ({ page, base
 			)
 		})
 	);
+	// The cluster counts are drawn in Noto Sans, from the glyphs the Instance ships.
+	await page.route('**/map/glyphs/**', (route: Route) => {
+		const { pathname } = new URL(route.request().url());
+		return route.fulfill({
+			contentType: 'application/x-protobuf',
+			body: readFileSync(new URL(decodeURIComponent(pathname).replace('/map/', 'map/'), ROME))
+		});
+	});
 	await page.route('**/map/fonts/*.ttf', (route: Route) =>
 		route.fulfill({
 			contentType: 'font/ttf',

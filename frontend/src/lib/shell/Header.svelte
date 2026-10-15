@@ -36,6 +36,7 @@
 	]);
 
 	const route = $derived(deLocalizeHref(page.url.pathname));
+	const hasOwnSearch = $derived(route === '/' || route === '/archive');
 	const isCurrent = (section: string) =>
 		section === '/' ? route === '/' : route === section || route.startsWith(`${section}/`);
 
@@ -99,11 +100,14 @@
 			</ul>
 		</nav>
 
-		<form class="search" role="search" method="get" action={localizeHref('/archive')}>
-			<label class="visually-hidden" for="site-search">{m.search_label()}</label>
-			<input id="site-search" name="q" type="search" />
-			<button type="submit">{m.search_submit()}</button>
-		</form>
+		<!-- Explore and Archive have the filter bar's field, bound to their state, instead. -->
+		{#if !hasOwnSearch}
+			<form class="search" role="search" method="get" action={localizeHref('/archive')}>
+				<label class="visually-hidden" for="site-search">{m.search_label()}</label>
+				<input id="site-search" name="q" type="search" />
+				<button type="submit">{m.search_submit()}</button>
+			</form>
+		{/if}
 
 		<LanguageSwitcher enabled={enabledLanguages} current={locale} />
 

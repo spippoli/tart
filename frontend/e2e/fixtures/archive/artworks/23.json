@@ -116,12 +116,17 @@
      ]
     ]
    },
+   "point": [
+    12.4862,
+    41.87815
+   ],
    "approximate": false,
    "uncertainty_radius": null
   },
   "location_withdrawn": false,
   "site": null,
-  "areas": []
+  "areas": [],
+  "nearby": []
  },
  "series": [],
  "timeline": {

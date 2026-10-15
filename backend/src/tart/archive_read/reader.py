@@ -15,10 +15,12 @@ pending Submission has no row here, so it is 404 for everyone.
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields, replace
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
-from sqlalchemy import Text, func, select
+from geoalchemy2 import Geography
+from sqlalchemy import Text, cast, exists, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart.archive import (
@@ -27,9 +29,14 @@ from tart.archive import (
     Area,
     Artist,
     Artwork,
+    Certainty,
+    ConditionReading,
+    DateRange,
     DocumentationItem,
     Kind,
     Location,
+    Medium,
+    Precision,
     Record,
     RecordId,
     Revision,
@@ -54,11 +61,14 @@ from tart.archive_persistence import PostgresArchiveStore
 from tart.archive_persistence import tables as t
 from tart.archive_read import views as v
 from tart.auth.tables import user_account
+from tart.discovery.filters import NAME_THRESHOLD, normalise_query
 from tart.media.tables import upload
 
 RELATED_LIMIT = 24
 """Artworks per "Related" list; the Artist and Series pages list them all."""
 INDEX_PAGE_SIZE = 24
+NEARBY_METRES = 500
+"""How far the mini-map looks for Locations to show muted (Discovery spec, Mini-map)."""
 
 SLUGGED = frozenset({Kind.ARTWORK, Kind.ARTIST, Kind.SITE, Kind.AREA, Kind.SERIES})
 """The kinds whose route carries a slug; the others are canonical at the bare id."""
@@ -190,6 +200,31 @@ def _period(value: Any) -> v.Period | None:
     return v.Period.model_validate(encode_period(value)) if value else None
 
 
+@dataclass(frozen=True)
+class ArtworkFacts:
+    """What the public derives from an Artwork, for the Discovery index: the domain rules
+    applied to the Artwork's public events and Documentation items."""
+
+    artwork: Artwork
+    condition: ConditionReading
+    creation: DateRange | None
+    """The Creation event's range; `None` without a dated Creation event."""
+    documented: tuple[DateRange, ...]
+    """The range of each dated public Documentation item."""
+    first_documented: datetime | None
+    last_documented: datetime | None
+    """The chronological keys of the first and the last public Documentation item."""
+    added_at: datetime
+    """The approval of the Artwork's first Revision."""
+    attribution: tuple[str, ...]
+    """Any of `unknown`, `attributed`, `disputed`."""
+    artists: tuple[str, ...]
+    """The names and Aliases of the Artists it is attributed to, publicly."""
+    series: tuple[str, ...]
+    site: str | None
+    areas: tuple[str, ...]
+
+
 class Reader:
     """The views of one request, over one connection; it caches what it reads."""
 
@@ -200,6 +235,9 @@ class Reader:
         self._states: dict[RecordId, _State | None] = {}
         self._histories: dict[RecordId, _History] = {}
         self._shown: dict[RecordId, _Shown[Any]] = {}
+        self._records: dict[RecordId, Record] = {}
+        self._item_ids: dict[RecordId, frozenset[RecordId]] = {}
+        self._area_ids: dict[RecordId, tuple[RecordId, ...]] = {}
 
     # Visibility.
 
@@ -249,23 +287,52 @@ class Reader:
             raise RecordWithdrawnError(record_id)
         return state
 
-    async def _history(self, record_id: RecordId) -> _History:
-        if record_id not in self._histories:
-            revisions = await self.store.revisions_of(record_id)
-            rows = await self.connection.execute(
-                select(
-                    t.redaction.c.revision_id, t.redaction.c.operation, t.redaction.c.redacted_at
-                )
-                .join(t.revision, t.revision.c.id == t.redaction.c.revision_id)
-                .where(t.revision.c.record_id == record_id)
+    async def _load_histories(self, ids: Iterable[RecordId]) -> None:
+        missing = [id_ for id_ in set(ids) if id_ not in self._histories]
+        if not missing:
+            return
+        revisions = await self.store.revisions_of_many(missing)
+        rows = await self.connection.execute(
+            select(
+                t.revision.c.record_id,
+                t.redaction.c.revision_id,
+                t.redaction.c.operation,
+                t.redaction.c.redacted_at,
             )
-            redacted = {(row.revision_id, row.operation): row.redacted_at for row in rows}
-            self._histories[record_id] = _History(revisions, redacted)
+            .join(t.revision, t.revision.c.id == t.redaction.c.revision_id)
+            .where(t.revision.c.record_id.in_(missing))
+        )
+        redacted: dict[RecordId, dict[tuple[int, int], datetime]] = {id_: {} for id_ in missing}
+        for row in rows:
+            redacted[row.record_id][(row.revision_id, row.operation)] = row.redacted_at
+        for id_ in missing:
+            self._histories[id_] = _History(revisions[id_], redacted[id_])
+
+    async def _history(self, record_id: RecordId) -> _History:
+        await self._load_histories([record_id])
         return self._histories[record_id]
+
+    async def _warm(self, ids: Iterable[RecordId | None]) -> list[RecordId]:
+        """Read the states and histories of the listed ones among these records in a few
+        queries, so that showing each costs only its own rows; the listed ones, in order."""
+        listed = await self.listed(ids)
+        await self._load_histories(listed)
+        kinds = {
+            id_: state.kind
+            for id_ in listed
+            if id_ not in self._shown and id_ not in self._records
+            if (state := self._states[id_]) is not None
+        }
+        if kinds:
+            self._records.update(await self.store.get_many(kinds))
+        return listed
 
     async def shown(self, record_id: RecordId) -> _Shown[Any]:
         if record_id not in self._shown:
-            record = await self.store.get(record_id)
+            state = self._states.get(record_id)
+            record = self._records.pop(record_id, None) or await self.store.get(
+                record_id, state.kind if state else None
+            )
             assert record is not None
             hidden = (await self._history(record_id)).hidden()
             if hidden and not self.viewer.moderator:
@@ -322,7 +389,9 @@ class Reader:
         location = (await self.shown(location_id)).record
         if location.geometry is None:  # redacted: no membership to show
             return []
-        return await self.listed(await self.store.areas_of_location(location_id))
+        if location_id not in self._area_ids:
+            self._area_ids[location_id] = await self.store.areas_of_location(location_id)
+        return await self.listed(self._area_ids[location_id])
 
     async def _location_title(self, location_id: RecordId) -> v.LocationTitle:
         location = (await self.shown(location_id)).record
@@ -338,6 +407,18 @@ class Reader:
             place=title.place,
         )
 
+    async def _point(self, location_id: RecordId, location: Location) -> tuple[float, float] | None:
+        """Where the Location's sign sits; `None` when the geometry is redacted."""
+        if location.geometry is None:
+            return None
+        stored = await self.connection.scalar(
+            select(func.ST_AsGeoJSON(t.location.c.representative_point, 6)).where(
+                t.location.c.id == location_id
+            )
+        )
+        longitude, latitude = json.loads(stored)["coordinates"]
+        return (longitude, latitude)
+
     async def _location_summary(self, location_id: RecordId) -> v.LocationSummary:
         location: Location = (await self.shown(location_id)).record
         return v.LocationSummary(
@@ -346,6 +427,7 @@ class Reader:
             title=await self._location_title(location_id),
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
         )
@@ -362,7 +444,9 @@ class Reader:
 
     async def _documentation(self, artwork_id: RecordId) -> list[ApprovedItem]:
         """The listed Documentation items of the Artwork, with their latest approval."""
-        ids = await self.store.documentation_items_of([artwork_id])
+        if artwork_id not in self._item_ids:
+            self._item_ids[artwork_id] = await self.store.documentation_items_of([artwork_id])
+        ids = self._item_ids[artwork_id]
         items = []
         for item_id in await self.listed(sorted(ids)):
             item: DocumentationItem = (await self.shown(item_id)).record
@@ -388,6 +472,149 @@ class Reader:
             evidence_level=level,
             event=reading.event.id if reading.event else None,
         )
+
+    # What Discovery reads.
+
+    async def facts(self, artwork_id: RecordId, time_zone: ZoneInfo) -> ArtworkFacts:
+        """The Artwork's derived facts as the public sees them (Redactions applied)."""
+        artwork: Artwork = (await self.shown(artwork_id)).record
+        events = await self._approved_events(artwork_id)
+        items = await self._documentation(artwork_id)
+        history = await self._history(artwork_id)
+
+        def submitted_on(revision: Revision) -> date:
+            return revision.provenance.submitted_at.astimezone(time_zone).date()
+
+        # An `unknown` date has no range worth matching: it stays out of the date filters.
+        creation = creation_event(events)
+        created = None
+        if creation is not None and creation.observed_date.precision is not Precision.UNKNOWN:
+            revision = history.event_revisions[creation.id]
+            created = creation.observed_date.range(submitted_on(revision))
+        documented = []
+        for item in items:
+            if item.observed_date.precision is not Precision.UNKNOWN:
+                latest = (await self._history(item.id)).revisions[-1]
+                documented.append(item.observed_date.range(submitted_on(latest)))
+        first = first_documentation(items)
+        last = last_documented(items)
+
+        public = await self._public(a.artist for a in artwork.attributions)  # type: ignore[misc]
+        readout = attribution_readout(artwork, public)
+        artists: list[str] = []
+        for shown in (*readout.attributed, *readout.disputed):
+            artist: Artist = (await self.shown(shown.attribution.artist)).record  # type: ignore[arg-type]
+            artists += [name for name in (artist.name, *artist.aliases) if name]
+        states = [
+            state
+            for state, present in (
+                ("unknown", readout.unknown),
+                ("attributed", bool(readout.attributed)),
+                ("disputed", bool(readout.disputed)),
+            )
+            if present
+        ]
+
+        site_name = None
+        area_names: list[str] = []
+        if await self.listed([artwork.location]):  # type: ignore[list-item]
+            location: Location = (await self.shown(artwork.location)).record  # type: ignore[arg-type]
+            [site] = await self.listed([location.site]) or [None]  # type: ignore[list-item]
+            site_name = await self._name(site) if site is not None else None
+            area_names = [
+                name
+                for area in await self._areas(artwork.location)  # type: ignore[arg-type]
+                if (name := await self._name(area)) is not None
+            ]
+        series_names = [
+            name
+            for series in await self.listed(artwork.series)  # type: ignore[arg-type]
+            if (name := await self._name(series)) is not None
+        ]
+        return ArtworkFacts(
+            artwork=artwork,
+            condition=derive_condition(events),
+            creation=created,
+            documented=tuple(documented),
+            first_documented=first.observed_date.chronological_key if first else None,
+            last_documented=last.observed_date.chronological_key if last else None,
+            added_at=history.revisions[0].provenance.approved_at,
+            attribution=tuple(states),
+            artists=tuple(artists),
+            series=tuple(series_names),
+            site=site_name,
+            areas=tuple(area_names),
+        )
+
+    async def stratigraphy_of(self, location_id: RecordId) -> tuple[RecordId, ...]:
+        """The listed Artworks on a Location, most recent first."""
+        strata = []
+        for artwork_id in await self.listed(await self.store.artworks_on_location(location_id)):
+            events = await self._approved_events(artwork_id)
+            documentation = await self._documentation(artwork_id)
+            strata.append(
+                Stratum(artwork_id, creation_event(events), first_documentation(documentation))
+            )
+        return stratigraphy(strata)
+
+    async def entry(self, artwork_id: RecordId) -> v.ListEntry:
+        """The Artwork as a list entry: the card, where it is, who by, and its thumbnail."""
+        card = await self.card(artwork_id)
+        artwork: Artwork = (await self.shown(artwork_id)).record
+        where = await self.where(artwork.location, nearby=False)
+        public = await self._public(a.artist for a in artwork.attributions)  # type: ignore[misc]
+        readout = attribution_readout(artwork, public)
+        items = await self._documentation(artwork_id)
+        picture = last_documented(
+            [
+                item
+                for item in items
+                if item.item.medium in (Medium.IMAGE, Medium.PDF) and item.item.file
+            ]
+        )
+        latest = last_documented(items)
+        return v.ListEntry(
+            **card.model_dump(),
+            location=artwork.location,  # type: ignore[arg-type]
+            location_point=where.location.point if where.location else None,
+            site=where.site,
+            area=where.areas[0] if where.areas else None,
+            approximate=bool(where.location and where.location.approximate),
+            attributed=[await self.link(a.attribution.artist) for a in readout.attributed],  # type: ignore[arg-type]
+            disputed=[await self.link(a.attribution.artist) for a in readout.disputed],  # type: ignore[arg-type]
+            probable=[
+                a.attribution.artist  # type: ignore[misc]
+                for a in readout.attributed
+                if a.certainty is Certainty.PROBABLE
+            ],
+            thumbnail=await self._documentation_summary(picture.id) if picture else None,
+            latest_item_medium=latest.item.medium if latest else None,
+        )
+
+    async def entries(self, ids: Iterable[RecordId]) -> list[v.ListEntry]:
+        """The list entries of the listed Artworks among these ids.
+
+        What the entries read is loaded for the whole page first, a kind of record at a
+        time, so that the queries do not grow with the page.
+        """
+        artworks = await self._warm(ids)
+        shown = [(await self.shown(id_)).record for id_ in artworks]
+        for id_ in artworks:
+            self._item_ids.setdefault(id_, frozenset())
+        self._item_ids.update(await self.store.documentation_items_by_artwork(artworks))
+        locations = await self._warm(artwork.location for artwork in shown)
+        await self._warm(
+            [a.artist for artwork in shown for a in artwork.attributions]  # type: ignore[misc]
+            + [item for id_ in artworks for item in sorted(self._item_ids[id_])]
+        )
+        places = [(await self.shown(id_)).record for id_ in locations]
+        self._area_ids.update({id_: () for id_ in locations})
+        self._area_ids.update(await self.store.areas_of_locations(locations))
+        await self._warm(
+            [place.site for place in places]
+            + [area for id_ in locations for area in self._area_ids[id_]]
+        )
+        return [await self.entry(id_) for id_ in artworks]
 
     async def card(self, artwork_id: RecordId) -> v.ArtworkCard:
         artwork: Artwork = (await self.shown(artwork_id)).record
@@ -534,7 +761,7 @@ class Reader:
                 disputed=await shown_attributions(readout.disputed),
             ),
             gallery=[await self._documentation_summary(item.id) for item in gallery],
-            where=await self._where(artwork.location),
+            where=await self.where(artwork.location),
             series=await self.links(artwork.series),  # type: ignore[arg-type]
             timeline=v.TimelineView(**entries),
             sources=await self.links(artwork.sources),  # type: ignore[arg-type]
@@ -542,7 +769,8 @@ class Reader:
             **visibility,
         )
 
-    async def _where(self, location_id: Any) -> v.Where:
+    async def where(self, location_id: Any, *, nearby: bool = True) -> v.Where:
+        """Where an Artwork is; `nearby` adds the mini-map's neighbours, a list entry skips them."""
         if location_id is None or not await self.listed([location_id]):
             # Withdrawn (or redacted): a placeholder, and nothing that would place it.
             return v.Where(location=None, location_withdrawn=True, site=None, areas=[])
@@ -553,7 +781,34 @@ class Reader:
             location_withdrawn=False,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
+            nearby=await self._nearby(location_id) if nearby else [],
         )
+
+    async def _nearby(self, location_id: RecordId) -> list[v.NearbyLocation]:
+        """The other listed Locations whose representative point is within 500 m."""
+        if (await self.shown(location_id)).record.geometry is None:  # redacted: no place to show
+            return []
+        here = select(t.location.c.representative_point).where(t.location.c.id == location_id)
+        there = t.location.c.representative_point
+        rows = await self.connection.execute(
+            select(t.location.c.id, func.ST_AsGeoJSON(there, 6))
+            .join(t.record, t.record.c.id == t.location.c.id)
+            .where(
+                t.location.c.id != location_id,
+                t.record.c.withdrawn_at.is_(None),
+                t.record.c.merged_into.is_(None),
+                func.ST_DWithin(
+                    cast(there, Geography),
+                    cast(here.scalar_subquery(), Geography),
+                    NEARBY_METRES,
+                ),
+            )
+            .order_by(t.location.c.id)
+        )
+        return [
+            v.NearbyLocation(id=id_, point=tuple(json.loads(point)["coordinates"]))  # type: ignore[arg-type]
+            for id_, point in rows
+        ]
 
     async def _related(
         self, artwork_id: RecordId, artwork: Artwork, public: frozenset[RecordId]
@@ -643,13 +898,6 @@ class Reader:
     async def _location(
         self, location_id: RecordId, location: Location, visibility: dict[str, Any]
     ) -> v.LocationView:
-        strata = []
-        for artwork_id in await self.listed(await self.store.artworks_on_location(location_id)):
-            events = await self._approved_events(artwork_id)
-            documentation = await self._documentation(artwork_id)
-            strata.append(
-                Stratum(artwork_id, creation_event(events), first_documentation(documentation))
-            )
         disappearances = await self.connection.scalars(
             select(t.documentation_item.c.id)
             .where(t.documentation_item.c.location_id == location_id)
@@ -663,11 +911,13 @@ class Reader:
             place_description=location.place_description,
             surface_type=location.surface_type,
             geometry=location.geometry.to_geojson() if location.geometry else None,
+            point=await self._point(location_id, location),
             approximate=location.approximate,
             uncertainty_radius=location.uncertainty_radius,
             site=await self.link(site) if site else None,
             areas=await self.links(await self._areas(location_id)),
-            stratigraphy=await self.cards(stratigraphy(strata)),
+            nearby=await self._nearby(location_id),
+            stratigraphy=await self.cards(await self.stratigraphy_of(location_id)),
             disappearances=[
                 await self._documentation_summary(item_id)
                 for item_id in await self.listed(disappearances)
@@ -725,6 +975,12 @@ class Reader:
             )
             artwork_ids = list(artworks)
         listed_locations = await self.listed(location_ids)
+        cards = await self.cards(artwork_ids)
+        counts: dict[RecordId, dict[str, int]] = {}
+        for card in cards:
+            on = (await self.shown(card.id)).record.location
+            group = counts.setdefault(on, {})
+            group[card.condition.group.value] = group.get(card.condition.group.value, 0) + 1
         return v.PlaceView(
             kind=kind.value,  # type: ignore[arg-type]
             id=record_id,
@@ -732,8 +988,13 @@ class Reader:
             name=record.name,
             description=record.description,
             geometry=geometry,
-            locations=[await self._location_summary(id_) for id_ in listed_locations],
-            artworks=await self.cards(artwork_ids),
+            locations=[
+                v.PlaceLocation(
+                    **(await self._location_summary(id_)).model_dump(), **counts.get(id_, {})
+                )
+                for id_ in listed_locations
+            ],
+            artworks=cards,
             sources=await self.links(record.sources),  # type: ignore[arg-type]
             **visibility,
         )
@@ -884,27 +1145,53 @@ class Reader:
             records={str(link.id): link for link in await self.links(sorted(referenced))},
         )
 
-    async def index(self, kind: Kind, page: int) -> v.IndexPage:
-        """The listed records of a kind with an index, by name, alphabetically."""
+    async def index(self, kind: Kind, page: int, name: str | None = None) -> v.IndexPage:
+        """The listed records of a kind with an index, by name, alphabetically.
+
+        With `name`, only those whose name (or, for an Artist, an Alias) matches it as in
+        Search; a name hidden by a Redaction is never found.
+        """
         table = _NAMED[kind]
         listed = (
             select(table.c.id)
             .join(t.record, t.record.c.id == table.c.id)
             .where(t.record.c.withdrawn_at.is_(None), t.record.c.merged_into.is_(None))
         )
-        total = await self.connection.scalar(select(func.count()).select_from(listed.subquery()))
-        ids = await self.connection.scalars(
-            listed.order_by(table.c.name.collate("und-x-icu"), table.c.id)
-            .limit(INDEX_PAGE_SIZE)
-            .offset((page - 1) * INDEX_PAGE_SIZE)
-        )
-        # A redacted name still sorts by its stored value; the link shows the placeholder.
-        return v.IndexPage(
-            items=await self.links(list(ids)),
-            page=page,
-            page_size=INDEX_PAGE_SIZE,
-            total=total or 0,
-        )
+        wanted = normalise_query(name)
+        if wanted is not None:
+            folded = func.lower(func.unaccent(literal(wanted)))
+
+            def matches(column: Any) -> Any:
+                return func.word_similarity(folded, func.lower(func.unaccent(column))) >= (
+                    NAME_THRESHOLD
+                )
+
+            condition = matches(table.c.name)
+            if kind is Kind.ARTIST:
+                alias = t.artist_alias
+                condition = or_(
+                    condition,
+                    exists().where(alias.c.artist_id == table.c.id, matches(alias.c.name)),
+                )
+            listed = listed.where(condition)
+        ordered = listed.order_by(table.c.name.collate("und-x-icu"), table.c.id)
+        if wanted is None:
+            total = await self.connection.scalar(
+                select(func.count()).select_from(listed.subquery())
+            )
+            ids = list(
+                await self.connection.scalars(
+                    ordered.limit(INDEX_PAGE_SIZE).offset((page - 1) * INDEX_PAGE_SIZE)
+                )
+            )
+            # A redacted name still sorts by its stored value; the link shows the placeholder.
+            items = await self.links(ids)
+        else:
+            found = await self.links(list(await self.connection.scalars(ordered)))
+            found = [link for link in found if link.name is not None]
+            total = len(found)
+            items = found[(page - 1) * INDEX_PAGE_SIZE :][:INDEX_PAGE_SIZE]
+        return v.IndexPage(items=items, page=page, page_size=INDEX_PAGE_SIZE, total=total or 0)
 
 
 _REFERENCE_KEYS = frozenset(

@@ -13,7 +13,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 
 from psycopg import Error as PsycopgError
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -99,6 +99,35 @@ def _run_on_database(action: Callable[[AsyncConnection, Instance], Awaitable[str
     except (OSError, RuntimeError, SQLAlchemyError) as error:
         print(f"cannot reach the database: {error}", file=sys.stderr)
         return 1
+    return 0
+
+
+def _discovery_rebuild(_: argparse.Namespace) -> int:
+    from tart.archive_persistence import rules_from_instance
+    from tart.discovery import tables as discovery_tables
+    from tart.discovery.index import rebuild
+
+    async def run(instance: Instance) -> int:
+        engine = create_engine()
+        try:
+            await rebuild(engine, rules_from_instance(instance))
+            async with engine.connect() as connection:
+                count = await connection.scalar(
+                    select(func.count()).select_from(discovery_tables.discovery_artwork)
+                )
+            return count or 0
+        finally:
+            await engine.dispose()
+
+    try:
+        count = asyncio.run(run(load_instance(config_dir(os.environ))))
+    except ConfigurationError as error:
+        print(error, file=sys.stderr)
+        return 1
+    except (OSError, RuntimeError, SQLAlchemyError) as error:
+        print(f"cannot reach the database: {error}", file=sys.stderr)
+        return 1
+    print(f"the Discovery index is rebuilt: {count} Artworks")
     return 0
 
 
@@ -365,6 +394,22 @@ def _parser() -> argparse.ArgumentParser:
     which.add_argument("id", nargs="?", type=_job_id, help="the job number")
     which.add_argument("--all", action="store_true", help="every failed job")
     retry.set_defaults(handler=_jobs_retry)
+
+    discovery_command = commands.add_parser("discovery", help="maintain the Discovery index")
+    discovery_commands = discovery_command.add_subparsers(
+        title="commands", metavar="<command>", required=True
+    )
+    rebuild = discovery_commands.add_parser(
+        "rebuild",
+        help="rebuild the search and filter index from the archive",
+        description=(
+            "Rebuild the Discovery index of every Artwork from the public archive. Run it once "
+            "after upgrading an archive that already holds records, and after changing the "
+            "Content language; ordinary writes keep the index current by themselves. Safe to "
+            "repeat."
+        ),
+    )
+    rebuild.set_defaults(handler=_discovery_rebuild)
 
     tiles_command = commands.add_parser("tiles", help="manage the basemap tiles")
     tiles_commands = tiles_command.add_subparsers(

@@ -397,7 +397,8 @@ def test_criterion_29_the_archive_stores_only_the_public_geometry(
         "SELECT string_agg(f_table_name || '.' || f_geometry_column, ',' ORDER BY f_table_name) "
         "FROM geometry_columns WHERE f_table_schema = 'public'",
     )
-    assert columns == "area.geometry,location.geometry"
+    # The representative point is derived from the public geometry: nothing more precise.
+    assert columns == "area.geometry,location.geometry,location.representative_point"
 
 
 # Criterion 42.

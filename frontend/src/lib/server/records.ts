@@ -1,4 +1,5 @@
 import { error, redirect, type RequestEvent } from '@sveltejs/kit';
+import { readIndexQuery } from '#lib/archive/index-query.ts';
 import { API_SEGMENTS, ROUTES, type Kind } from '#lib/archive/records.ts';
 import { localizeHref } from '#lib/paraglide/runtime.js';
 import { api, onBehalfOf } from './api';
@@ -14,7 +15,7 @@ const REF = /^(\d+)(?:-.*)?$/;
 
 type Fetched<T> = { data?: T; response: Response };
 
-async function fetchView<T>(event: RequestEvent, path: string): Promise<Fetched<T>> {
+export async function fetchView<T>(event: RequestEvent, path: string): Promise<Fetched<T>> {
 	// The archive routes are many and alike; they are typed by the caller's `T`.
 	const get = api().GET as unknown as (
 		path: string,
@@ -80,11 +81,11 @@ export async function loadRevisions<T extends { record: { id: number; path: stri
 
 /** A page of an index (Artists, Sites, Areas, Series). */
 export async function loadIndex<T>(event: RequestEvent, kind: Kind): Promise<T> {
-	const page = Number(event.url.searchParams.get('page') ?? '1');
-	if (!Number.isInteger(page) || page < 1) error(404);
+	const { page, name } = readIndexQuery(event.url.searchParams);
+	const query = new URLSearchParams({ page: String(page), ...(name ? { name } : {}) });
 	const { data, response } = await fetchView<T>(
 		event,
-		`/api/archive/${API_SEGMENTS[kind]}?page=${page}`
+		`/api/archive/${API_SEGMENTS[kind]}?${query}`
 	);
 	if (!data) failOn(response);
 	return data;

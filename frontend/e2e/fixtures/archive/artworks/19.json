@@ -95,6 +95,10 @@
      41.885
     ]
    },
+   "point": [
+    12.48,
+    41.885
+   ],
    "approximate": false,
    "uncertainty_radius": null
   },
@@ -108,7 +112,8 @@
     "name": "Quartiere Immaginario",
     "location_title": null
    }
-  ]
+  ],
+  "nearby": []
  },
  "series": [],
  "timeline": {

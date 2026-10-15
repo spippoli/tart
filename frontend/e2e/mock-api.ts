@@ -20,6 +20,13 @@
  * is one, everyone the `redacted/` one. Id 9001 is a withdrawn record (410) and 9002 an
  * Artwork merged into the complete record (301).
  *
+ * `GET /api/discovery/artworks` answers the Discovery query over thirty fictional
+ * list entries made here (the backend's own tests cover the query): the Condition,
+ * type, attribution, creation-year, and search filters, the title order, the `bbox` of
+ * the Explore viewport, and pages of 24. They stand on ten fictional Locations, three
+ * to each (`/api/discovery/locations` and `/api/discovery/locations/{id}`).
+ * A session cookie of `archivio-vuoto` makes the archive empty.
+ *
  *     node e2e/mock-api.ts [port]
  */
 import { createHash, randomBytes } from 'node:crypto';
@@ -300,13 +307,29 @@ const ARCHIVE = new URL('fixtures/archive/', import.meta.url);
 export const WITHDRAWN_ID = 9001;
 export const MERGED_ID = 9002;
 
+// Records the fictional dataset has no case for (a Location with neighbours within
+// 500 m, a Series with no visible Location), written by hand.
+const EXTRA = new URL('fixtures/archive-extra/', import.meta.url);
+
 function archiveFile(name: string): unknown {
-	const file = new URL(name, ARCHIVE);
-	return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+	for (const directory of [ARCHIVE, EXTRA]) {
+		const file = new URL(name, directory);
+		if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
+	}
+	return undefined;
+}
+
+const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+/** The index by name: a stand-in for the API's name matching, which its own tests cover. */
+function filtered(index: { items: { name: string | null }[] }, name: string | null) {
+	if (!name) return index;
+	const items = index.items.filter((item) => fold(item.name ?? '').includes(fold(name)));
+	return { ...index, items, total: items.length };
 }
 
 function archive(request: IncomingMessage, response: ServerResponse, url: string) {
-	const [path] = url.slice('/api/archive/'.length).split('?');
+	const [path, query] = url.slice('/api/archive/'.length).split('?');
 	const [segment, id, revisions] = path.split('/');
 	if (Number(id) === WITHDRAWN_ID) return send(response, 410, { code: 'record_withdrawn' });
 	if (Number(id) === MERGED_ID && segment === 'artworks') {
@@ -324,7 +347,240 @@ function archive(request: IncomingMessage, response: ServerResponse, url: string
 		archiveFile(`redacted/${name}`) ??
 		archiveFile(name);
 	if (body === undefined) return send(response, 404, { code: 'record_not_found' });
-	send(response, 200, body);
+	send(
+		response,
+		200,
+		id === undefined
+			? filtered(
+					body as { items: { name: string | null }[] },
+					new URLSearchParams(query).get('name')
+				)
+			: body
+	);
+}
+
+const CONDITION_CYCLE: [string, string][] = [
+	['intact', 'present'],
+	['covered', 'disappeared'],
+	['destroyed', 'disappeared'],
+	['unknown', 'unknown'],
+	['damaged', 'present']
+];
+const yearDate = (year: number) => ({
+	precision: 'year',
+	qualifier: 'exact',
+	first: `${year}-01-01`,
+	second: null
+});
+const link = (kind: string, id: number, path: string, name: string) => ({
+	kind,
+	id,
+	path,
+	name,
+	location_title: null
+});
+
+/** Ten fictional Locations of three Artworks each, about 300 m apart, around the default view. */
+const locationPoint = (id: number): [number, number] => [
+	12.4823 + ((id - 200) % 5) * 0.0035,
+	41.8955 + Math.floor((id - 200) / 5) * 0.004
+];
+
+/** Thirty fictional list entries: ten have no creation date, one has no documentation. */
+const entries = Array.from({ length: 30 }, (_, index) => {
+	const [condition, group] = CONDITION_CYCLE[index % CONDITION_CYCLE.length];
+	const undocumented = index === 2;
+	return {
+		id: 100 + index,
+		path: `${100 + index}-opera-di-prova-${index + 1}`,
+		title: index === 29 ? null : `Opera di prova ${String(index + 1).padStart(2, '0')}`,
+		expression_types: index % 2 ? ['mural'] : ['stencil'],
+		creationYear: index < 10 ? null : 2000 + index,
+		attribution: index % 4 === 0 ? 'attributed' : index % 4 === 1 ? 'disputed' : 'unknown',
+		condition: {
+			condition,
+			group,
+			since: yearDate(2019),
+			evidence_level: 'reported',
+			event: null
+		},
+		last_documented: undocumented ? null : yearDate(2020 + (index % 5)),
+		location: 200 + Math.floor(index / 3),
+		location_point: locationPoint(200 + Math.floor(index / 3)),
+		site: index % 3 === 0 ? link('site', 5, '5-deposito', 'Deposito fittizio') : null,
+		area: link('area', 3, '3-quartiere-immaginario', 'Quartiere Immaginario'),
+		approximate: index % 7 === 0,
+		attributed:
+			index % 4 === 0 ? [link('artist', 7, '7-nebbia-finta', 'Nebbia Finta')] : ([] as unknown[]),
+		disputed:
+			index % 4 === 1
+				? [link('artist', 8, '8-collettivo-vernice-assente', 'Collettivo Vernice Assente')]
+				: ([] as unknown[]),
+		// On the second page, which the map tests never load: the stand-in serves no media.
+		probable: index % 8 === 0 ? [7] : ([] as unknown[]),
+		thumbnail:
+			index === 27
+				? {
+						id: 300,
+						path: '300',
+						medium: 'image',
+						observed_date: yearDate(2021),
+						file: 'fictional/photo',
+						renditions: { view: { width: 400, height: 300 } },
+						alt_text: 'Una fotografia fittizia di un muro dipinto.'
+					}
+				: null,
+		latest_item_medium: undocumented ? null : index % 5 === 0 ? 'link' : 'text'
+	};
+});
+
+/** The entries that the filters of a query select, in the API's own parameters (no page or box). */
+function matchingEntries(query: URLSearchParams, emptyArchive: boolean) {
+	const list = (name: string) => query.getAll(name);
+	const number = (name: string) => (query.get(name) === null ? null : Number(query.get(name)));
+	const text = query.get('q')?.trim().toLowerCase() ?? '';
+	let matching = emptyArchive ? [] : entries;
+	if (text.length >= 2) {
+		matching = matching.filter((entry) =>
+			(entry.title ?? 'senza titolo').toLowerCase().includes(text)
+		);
+	}
+	if (list('condition').length) {
+		matching = matching.filter((entry) => list('condition').includes(entry.condition.condition));
+	}
+	if (list('type').length) {
+		matching = matching.filter((entry) =>
+			entry.expression_types.some((type) => list('type').includes(type))
+		);
+	}
+	if (list('attribution').length) {
+		matching = matching.filter((entry) => list('attribution').includes(entry.attribution));
+	}
+	const [from, to] = [number('created_from'), number('created_to')];
+	const dated = from !== null || to !== null;
+	const leftOut = dated ? matching.filter((entry) => entry.creationYear === null).length : 0;
+	if (dated) {
+		matching = matching.filter(
+			(entry) =>
+				entry.creationYear !== null &&
+				(from === null || entry.creationYear >= from) &&
+				(to === null || entry.creationYear <= to)
+		);
+	}
+	if (query.get('order') === 'title') {
+		matching = [...matching].sort((a, b) => (a.title ?? '￿').localeCompare(b.title ?? '￿'));
+	}
+	return { matching, leftOut, text };
+}
+
+/** What the API does not send: the fixture's own bookkeeping. */
+function shownEntry(entry: (typeof entries)[number]) {
+	const shown: Record<string, unknown> = { ...entry };
+	delete shown.creationYear;
+	delete shown.attribution;
+	return shown;
+}
+
+function discovery(url: URL, emptyArchive: boolean) {
+	const query = url.searchParams;
+	const { leftOut, text, ...found } = matchingEntries(query, emptyArchive);
+	let { matching } = found;
+	// `bbox`: west, south, east, north; only Locations whose sign lies inside.
+	const box = query.get('bbox')?.split(',').map(Number);
+	if (box) {
+		matching = matching.filter(({ location_point: [lon, lat] }) => {
+			return lon >= box[0] && lat >= box[1] && lon <= box[2] && lat <= box[3];
+		});
+	}
+	const page = Number(query.get('page') ?? '1');
+	const shown = matching.slice((page - 1) * 24, page * 24);
+	return {
+		entries: shown.map(shownEntry),
+		total: matching.length,
+		page,
+		page_size: 24,
+		also_matching: text.includes('nebbia')
+			? {
+					kinds: [
+						{
+							kind: 'artist',
+							items: [
+								{ record: link('artist', 7, '7-nebbia-finta', 'Nebbia Finta'), alias: 'Nebbia' }
+							],
+							total: 4
+						}
+					]
+				}
+			: null,
+		left_out: leftOut
+	};
+}
+
+const GROUPS = ['present', 'unknown', 'disappeared'] as const;
+
+/** `GET /api/discovery/locations`: one feature per Location with a matching Artwork. */
+function mapLocations(url: URL, emptyArchive: boolean) {
+	const { matching } = matchingEntries(url.searchParams, emptyArchive);
+	const byLocation = new Map<number, typeof matching>();
+	for (const entry of matching) {
+		byLocation.set(entry.location, [...(byLocation.get(entry.location) ?? []), entry]);
+	}
+	const features = [...byLocation].map(([id, found]) => {
+		const counts = Object.fromEntries(
+			GROUPS.map((group) => [
+				group,
+				found.filter((entry) => entry.condition.group === group).length
+			])
+		);
+		const point = locationPoint(id);
+		return {
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: point },
+			properties: {
+				id,
+				...counts,
+				group: GROUPS.find((group) => counts[group] > 0),
+				count: found.length,
+				point,
+				approximate: false,
+				radius: null
+			}
+		};
+	});
+	return {
+		type: 'FeatureCollection',
+		features,
+		sites: [],
+		areas: [{ name: 'Quartiere Immaginario', point: [12.4923, 41.9] }]
+	};
+}
+
+/** `GET /api/discovery/locations/{id}`: the header and the stratigraphy, or none. */
+function locationPanel(id: number, url: URL, emptyArchive: boolean) {
+	const here = entries.filter((entry) => entry.location === id);
+	if (here.length === 0) return null;
+	const found = new Set(matchingEntries(url.searchParams, emptyArchive).matching.map((e) => e.id));
+	const shown = here.filter((entry) => found.has(entry.id));
+	const point = locationPoint(id);
+	return {
+		location: {
+			id,
+			path: `${id}-superficie-di-prova`,
+			title: { place_description: `Parete di prova ${id - 199}`, surface_type: null, place: null },
+			surface_type: 'building_wall',
+			geometry: { type: 'Point', coordinates: point },
+			point,
+			// The first Location is approximate with a radius, the second without.
+			approximate: id === 200 || id === 201,
+			uncertainty_radius: id === 200 ? 30 : null
+		},
+		site: null,
+		areas: [link('area', 3, '3-quartiere-immaginario', 'Quartiere Immaginario')],
+		// Most recent first; with none matching, all of them.
+		entries: (shown.length > 0 ? shown : here).reverse().map(shownEntry),
+		matches: shown.length > 0,
+		other: shown.length > 0 ? here.length - shown.length : 0
+	};
 }
 
 const port = Number(process.argv[2] ?? 8795);
@@ -337,6 +593,19 @@ createServer((request, response) => {
 	if (path.startsWith('/api/archive/')) {
 		archive(request, response, path);
 		return;
+	}
+	if (path.startsWith('/api/discovery/')) {
+		const empty = sessionEmail(request)?.startsWith('archivio-vuoto') ?? false;
+		const url = new URL(path, 'http://mock');
+		if (url.pathname === '/api/discovery/artworks')
+			return send(response, 200, discovery(url, empty));
+		if (url.pathname === '/api/discovery/locations')
+			return send(response, 200, mapLocations(url, empty));
+		const id = /^\/api\/discovery\/locations\/(\d+)$/.exec(url.pathname)?.[1];
+		const panel = id && locationPanel(Number(id), url, empty);
+		return panel
+			? send(response, 200, panel)
+			: send(response, 404, { code: 'location_not_available' });
 	}
 	const body = variants[request.url ?? ''];
 	if (request.method !== 'GET' || body === undefined) {

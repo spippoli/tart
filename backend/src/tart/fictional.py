@@ -80,6 +80,7 @@ from tart.auth import operator
 from tart.config import ConfigurationError, config_dir
 from tart.config.loader import load_configuration
 from tart.db import create_engine
+from tart.discovery.index import rebuild
 from tart.media import quarantine_key, uploads
 from tart.media.tables import READY
 from tart.storage import Area as StorageArea
@@ -757,7 +758,7 @@ async def seed(
         nonlocal submission
         written = []
         async with engine.begin() as connection:
-            store = PostgresArchiveStore(connection)
+            store = PostgresArchiveStore(connection, index=False)
             for changeset in changesets:
                 submission += 1
                 provenance = _provenance(submission, contributor, moderator)
@@ -787,6 +788,9 @@ async def seed(
             batch = []
     if batch:
         await write(batch)
+    # The records were written without refreshing the Discovery index, once for each
+    # changeset; it is built once here, from the committed archive.
+    await rebuild(engine, rules)
     return Seeded(counts, ids)
 
 

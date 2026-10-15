@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { serveStyles, TOKENS } from './map-style';
+import { serveLocations, serveStyles, TOKENS } from './map-style';
 
 /**
  * The map module on Explore (Discovery spec, Map controls, legend, attribution;
@@ -29,6 +29,7 @@ async function camera(page: Page) {
 
 async function openExplore(page: Page, path = '/en/') {
 	await serveStyles(page);
+	await serveLocations(page);
 	await page.goto(path);
 	await expect(map(page)).toBeVisible();
 }
