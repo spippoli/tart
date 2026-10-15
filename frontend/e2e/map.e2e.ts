@@ -125,6 +125,8 @@ test.describe('AC 12: pan and zoom without dragging', () => {
 test('AC 64: no map pans beyond the boundary box plus 2 km or zooms beyond z19', async ({
 	page
 }) => {
+	// About fifty clicks, each followed by a map render: more than 30 s on a CI mobile profile.
+	test.slow();
 	await openExplore(page);
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.reload();
