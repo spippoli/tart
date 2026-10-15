@@ -9,6 +9,7 @@ import tart.auth.tables
 import tart.discovery.tables
 import tart.health.tables
 import tart.media.tables
+import tart.moderation_persistence.tables
 import tart.rate_limits  # noqa: F401
 from tart.db import Base
 
