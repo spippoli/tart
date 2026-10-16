@@ -23,6 +23,7 @@ from python_multipart.exceptions import MultipartParseError
 from python_multipart.multipart import MultipartParser, parse_options_header
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from tart import rate_limits
 from tart.api.auth import (
     SIGN_IN_REQUIRED,
     Clock,
@@ -32,7 +33,9 @@ from tart.api.auth import (
     get_configuration,
     get_engine,
     get_jobs,
+    get_key,
 )
+from tart.api.limits import LimitedError, limited
 from tart.auth.sessions import SessionUser
 from tart.config import Configuration
 from tart.jobs import PROCESS_UPLOAD
@@ -47,6 +50,7 @@ from tart.media import (
     rendition_key,
     uploads,
 )
+from tart.moderation_persistence import limits
 from tart.storage import Area, ObjectNotFoundError, Storage
 
 router = APIRouter(prefix="/api/media")
@@ -152,7 +156,8 @@ class Suggestions(BaseModel):
 
 class UploadState(BaseModel):
     id: uuid.UUID
-    status: Literal["processing", "ready", "rejected"]
+    status: Literal["processing", "ready", "rejected", "deleted"]
+    """`deleted`: the file went with the media of a rejected or retracted Submission."""
     error: str | None = None
     """Why the file was refused: `file_type_unsupported`, `file_unreadable`, `image_too_large`."""
     format: Literal["jpeg", "png", "webp", "avif", "heic", "pdf"] | None = None
@@ -169,6 +174,11 @@ _ERRORS = {
     401: {"model": Error},
     400: {"model": Error, "description": "`file_missing`, `one_file_per_request`"},
     413: {"model": Error, "description": "`file_too_large`"},
+    429: {
+        "model": LimitedError,
+        "description": "`moderation.uploads_limited`: 100 files or 1 GB in 24 hours; Moderators "
+        "are exempt.",
+    },
 }
 
 
@@ -181,8 +191,13 @@ async def upload_file(
     storage: Annotated[Storage, Depends(get_storage)],
     jobs: Annotated[App, Depends(get_jobs)],
     clock: Annotated[Clock, Depends(get_clock)],
+    key: Annotated[bytes, Depends(get_key)],
 ) -> UploadState | JSONResponse:
-    """Upload one file, in a multipart field (any name), at most `max_upload_mb`."""
+    """Upload one file, in a multipart field (any name), at most `max_upload_mb`.
+
+    Each User may upload 100 files and 1 GB in 24 hours, rejected files included; the size
+    counted is the one the request declares, or the per-file limit when it declares none.
+    """
     if user is None:
         return _refused(SIGN_IN_REQUIRED, 401)
     media = configuration.instance.settings.media
@@ -194,8 +209,22 @@ async def upload_file(
     if kind != b"multipart/form-data" or not params.get(b"boundary"):
         return _refused(FILE_MISSING, 400)
 
+    now = clock()
     async with engine.begin() as connection:
-        upload_id = await uploads.create(connection, user.id, clock())
+        if not user.moderator:
+            cost = max(int(declared), 1) if declared.isdigit() else limit
+            wait = await rate_limits.hit(
+                connection,
+                [
+                    (limits.UPLOAD_FILES, str(user.id)),
+                    (limits.UPLOAD_BYTES, str(user.id), cost),
+                ],
+                now,
+                key,
+            )
+            if wait is not None:
+                return limited(limits.UPLOADS_LIMITED, wait)
+        upload_id = await uploads.create(connection, user.id, now)
     reader = _OneFile(params[b"boundary"], limit)
     try:
         await storage.put(
@@ -213,6 +242,10 @@ async def upload_file(
         upload_id=str(upload_id), cap=media.public_rendition_max_px
     )
     return UploadState(id=upload_id, status="processing")
+
+
+def _state_of(upload: uploads.Upload) -> str:
+    return "deleted" if upload.deleted_at is not None else upload.status
 
 
 def _visible_to(user: SessionUser | None, upload: uploads.Upload) -> bool:
@@ -235,7 +268,7 @@ async def upload_state(
     return UploadState.model_validate(
         {
             "id": upload.id,
-            "status": upload.status,
+            "status": _state_of(upload),
             "error": upload.error,
             "format": upload.format,
             "renditions": {r: {"width": w, "height": h} for r, (w, h) in renditions.items()}
@@ -267,7 +300,12 @@ async def rendition_file(
     async with engine.begin() as connection:
         upload = await uploads.read(connection, upload_id)
         public = upload is not None and await uploads.is_public(connection, upload_id)
-    if upload is None or upload.status != "ready" or not (public or _visible_to(user, upload)):
+    if (
+        upload is None
+        or upload.status != "ready"
+        or upload.deleted_at is not None
+        or not (public or _visible_to(user, upload))
+    ):
         return _refused(UPLOAD_NOT_FOUND, 404)
     # Objects are immutable, so the key names the content.
     headers = {

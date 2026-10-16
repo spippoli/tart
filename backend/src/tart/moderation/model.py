@@ -40,6 +40,20 @@ class Event(StrEnum):
     CHANGES_REQUESTED = "changes_requested"
     RETRACTED = "retracted"
     EXPIRED = "expired"
+    RETRY_OF = "retry_of"
+    """On a draft started from a rejected or retracted Submission: "Retry of …"."""
+    RETRIED_IN = "retried_in"
+    """On the rejected or retracted Submission: "Retried in …"."""
+    CONVERSION_OF = "conversion_of"
+    """On a draft that converts a Submission into documentation: "Conversion of …"."""
+    CONVERTED_INTO = "converted_into"
+    """On the original, retracted by the system when its conversion is submitted."""
+
+
+FINAL_EVENTS = frozenset(
+    {Event.APPROVED, Event.REJECTED, Event.RETRACTED, Event.EXPIRED, Event.CONVERTED_INTO}
+)
+"""The log entries that end a Submission."""
 
 
 class ActorKind(StrEnum):
@@ -96,6 +110,8 @@ class LogEntry:
     round: int | None = None
     message: str | None = None
     reason: str | None = None
+    related: int | None = None
+    """The other Submission of a retry or conversion link."""
 
 
 @dataclass(frozen=True)
@@ -126,6 +142,14 @@ class Submission:
     last_autosave_at: datetime | None = None
     working_copy_discarded: bool = field(default=False, compare=False)
     """A decision discarded an open working copy; the Submitter sees a notice."""
+    retry_of: int | None = None
+    """The rejected or retracted Submission this draft starts again from."""
+    converts: int | None = None
+    """The `changes requested` Submission this draft converts into documentation."""
+    reduced_at: datetime | None = None
+    """When a rejected or retracted Submission was reduced to its stub."""
+    stub: Json = None
+    """What the stub keeps of the deleted changesets: `{"labels": [...]}`."""
 
     @property
     def version(self) -> int:
@@ -135,6 +159,13 @@ class Submission:
     @property
     def first_submitted_at(self) -> datetime | None:
         return self.rounds[0].submitted_at if self.rounds else None
+
+    @property
+    def final_at(self) -> datetime | None:
+        """When the Submission reached its final status; `None` while it is open."""
+        if self.status not in FINAL:
+            return None
+        return next(entry.at for entry in reversed(self.log) if entry.event in FINAL_EVENTS)
 
     @property
     def changes_requested_at(self) -> datetime | None:

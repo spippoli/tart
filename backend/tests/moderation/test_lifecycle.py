@@ -19,11 +19,16 @@ from tart.moderation import (
     Submission,
     Verdict,
     add_note,
+    convert,
     decide,
+    draft_deadline,
     expire,
     expiry_deadline,
+    media_deletion_due,
+    reduce_to_stub,
     retract,
     save_working_copy,
+    stub_due,
     submit,
 )
 
@@ -95,6 +100,8 @@ def attempt(submission: Submission, action: Action) -> Submission:
             return retract(submission, SUBMITTER, at(5))
         case Action.EXPIRE:
             return expire(submission, at(24 * 400), 90)
+        case Action.CONVERT:
+            return convert(submission, at(5), 99)
         case Action.APPROVE:
             return decide(
                 submission, MODERATOR, Verdict.APPROVE, at(5), expected_version=version, rules=RULES
@@ -160,6 +167,7 @@ def test_the_table_has_the_rows_of_the_spec_and_no_others() -> None:
         (Status.SUBMITTED, Action.RETRACT),
         (Status.CHANGES_REQUESTED, Action.RETRACT),
         (Status.CHANGES_REQUESTED, Action.EXPIRE),
+        (Status.CHANGES_REQUESTED, Action.CONVERT),
     }
 
 
@@ -445,3 +453,57 @@ def test_changes_requested_expires_after_the_later_of_the_request_and_the_last_a
 def test_only_changes_requested_has_an_expiry_deadline() -> None:
     assert expiry_deadline(submitted(), 90) is None
     assert expiry_deadline(draft(), 90) is None
+
+
+# Acceptance criterion 10: the draft clocks.
+def test_a_draft_never_edited_is_discarded_24_hours_after_creation() -> None:
+    assert draft_deadline(draft(), 90) == at(24)
+
+
+def test_an_edited_draft_is_abandoned_the_expiry_after_its_last_autosave() -> None:
+    saved = save_working_copy(draft(), SUBMITTER, at(30), {"title": "First"})
+
+    assert draft_deadline(saved, 90) == at(30) + timedelta(days=90)
+
+
+# The system retracts a Submission whose conversion was submitted.
+def test_the_conversion_retracts_the_original_and_links_it_to_the_conversion() -> None:
+    converted = convert(changes_requested(), at(9), 12)
+
+    assert converted.status is Status.RETRACTED
+    entry = converted.log[-1]
+    assert (entry.event, entry.actor, entry.related) == (Event.CONVERTED_INTO, Actor.system(), 12)
+
+
+# Acceptance criterion 56: retention of rejected and retracted Submissions.
+def test_the_media_go_30_days_and_the_changesets_12_months_after_the_final_transition() -> None:
+    rejected = decide(
+        submitted(),
+        MODERATOR,
+        Verdict.REJECT,
+        at(2),
+        expected_version=1,
+        rules=RULES,
+        decision=REASON,
+    )
+
+    assert not media_deletion_due(rejected, at(2) + timedelta(days=30) - timedelta(seconds=1))
+    assert media_deletion_due(rejected, at(2) + timedelta(days=30))
+    assert not stub_due(rejected, at(2) + timedelta(days=364))
+    stub = reduce_to_stub(rejected, at(2) + timedelta(days=365), ["adds_documentation"])
+    assert [round_.snapshot for round_ in stub.rounds] == [None]
+    assert (len(stub.rounds), stub.log, stub.stub) == (
+        1,
+        rejected.log,
+        {"labels": ["adds_documentation"]},
+    )
+    assert not stub_due(stub, at(2) + timedelta(days=999))
+
+
+@pytest.mark.parametrize("status", [Status.DRAFT, Status.SUBMITTED, Status.APPROVED])
+def test_only_rejected_and_retracted_submissions_have_retention(status: Status) -> None:
+    submission = in_status(status)
+    far = at(24 * 900)
+
+    assert not media_deletion_due(submission, far)
+    assert not stub_due(submission, far)

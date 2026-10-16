@@ -21,6 +21,7 @@ from tart.media import (
 )
 from tart.media.processing import Processed, process
 from tart.media.tables import PROCESSING, READY, REJECTED, upload
+from tart.moderation_persistence.tables import submission_upload
 from tart.storage import Area, ObjectExistsError, ObjectNotFoundError, Storage
 
 ABANDONED_AFTER = timedelta(hours=24)
@@ -37,6 +38,8 @@ class Upload:
     format: str | None
     renditions: dict[str, list[int]] | None
     suggestions: dict[str, object] | None
+    deleted_at: datetime | None = None
+    """When its files were deleted with a rejected or retracted Submission's media."""
 
 
 async def create(connection: AsyncConnection, user_id: int, now: datetime) -> uuid.UUID:
@@ -68,12 +71,19 @@ async def read(connection: AsyncConnection, upload_id: uuid.UUID) -> Upload | No
         format=row.format,
         renditions=row.renditions,
         suggestions=row.suggestions,
+        deleted_at=row.deleted_at,
     )
 
 
-def _attached():
-    """Uploads that an archive record holds. Drafts and Submissions add theirs (C03)."""
+def _in_record():
+    """Uploads that an archive record holds."""
     return exists().where(documentation_item.c.file == cast(upload.c.id, Text))
+
+
+def _attached():
+    """Uploads that an archive record holds, or that a Submission's content names (the
+    draft's and the rounds'): the sweep leaves both alone."""
+    return _in_record() | exists().where(submission_upload.c.upload_id == upload.c.id)
 
 
 async def is_public(connection: AsyncConnection, upload_id: uuid.UUID) -> bool:
@@ -82,7 +92,7 @@ async def is_public(connection: AsyncConnection, upload_id: uuid.UUID) -> bool:
     Archive records hold only approved data; a withdrawn item stops being public once
     Withdrawals exist (Rights and legal actions spec).
     """
-    query = select(_attached()).where(upload.c.id == upload_id)
+    query = select(_in_record()).where(upload.c.id == upload_id)
     return bool((await connection.execute(query)).scalar())
 
 

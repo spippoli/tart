@@ -631,6 +631,209 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contributions/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Terms State
+         * @description The terms the User must have accepted to submit, and the version they accepted.
+         */
+        get: operations["terms_state_api_contributions_terms_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Contributions
+         * @description The User's own Submissions, drafts included, the latest first; filter by status.
+         */
+        get: operations["my_contributions_api_contributions_get"];
+        put?: never;
+        /**
+         * Start Draft
+         * @description Start a contribution as a draft. A new record is created only of the kinds a
+         *     Submission may create as its primary target; an edit stores the record's current
+         *     Revision as its Base revision. At most 20 drafts are open at once.
+         */
+        post: operations["start_draft_api_contributions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Submission
+         * @description A Submission, for its Submitter and for Moderators only.
+         */
+        get: operations["read_submission_api_contributions__submission_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Draft
+         * @description Delete a draft with its media. Deleting a retry or a conversion draft leaves the
+         *     Submission it came from as it was.
+         */
+        delete: operations["delete_draft_api_contributions__submission_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/working-copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Autosave
+         * @description Store the Submitter's private copy. Nothing is validated: the form never blocks.
+         *     A twenty-first uploaded Documentation item is refused (`moderation.too_many_files`).
+         */
+        put: operations["autosave_api_contributions__submission_id__working_copy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit
+         * @description Submit a draft, revise a `submitted` Submission, or resubmit one with changes
+         *     requested; each opens a new round. The content must validate against the current
+         *     archive, and the User must have accepted the current terms. Submissions and
+         *     resubmissions are limited to 20 per 24 hours (revisions are not).
+         */
+        post: operations["submit_api_contributions__submission_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/retract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retract
+         * @description The Submitter withdraws a `submitted` or `changes requested` Submission.
+         */
+        post: operations["retract_api_contributions__submission_id__retract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/start-again": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Again
+         * @description "Start again from this": a draft pre-filled from the last round of a rejected or
+         *     retracted Submission, its files copied, an edit rebased onto the current Revision. Both
+         *     Submissions record the link.
+         */
+        post: operations["start_again_api_contributions__submission_id__start_again_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert
+         * @description Convert a `changes requested` new Artwork into a draft that adds its Documentation
+         *     items and History events to an existing Artwork. The original stays as it is until the
+         *     draft is submitted, which retracts it ("Converted into …").
+         */
+        post: operations["convert_api_contributions__submission_id__convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide
+         * @description A Moderator approves, rejects, or requests changes on the last submitted round.
+         *
+         *     Approval writes the archive in the same transaction. The first of two concurrent
+         *     decisions wins (`moderation.already_decided`); `self_approval = false` refuses a
+         *     decision on one's own Submission.
+         */
+        post: operations["decide_api_contributions__submission_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/discovery/artworks": {
         parameters: {
             query?: never;
@@ -813,6 +1016,9 @@ export interface paths {
         /**
          * Upload File
          * @description Upload one file, in a multipart field (any name), at most `max_upload_mb`.
+         *
+         *     Each User may upload 100 files and 1 GB in 24 hours, rejected files included; the size
+         *     counted is the one the request declares, or the per-file limit when it declares none.
          */
         post: operations["upload_file_api_media_post"];
         delete?: never;
@@ -890,6 +1096,15 @@ export interface components {
             display_name: string;
             /** Preferred Language */
             preferred_language: string;
+        };
+        /** ActorOut */
+        ActorOut: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "submitter" | "moderator" | "system";
+            user?: components["schemas"]["Person"] | null;
         };
         /** AlsoMatch */
         AlsoMatch: {
@@ -1174,6 +1389,21 @@ export interface components {
             dsa_languages: string[];
             /** Privacy */
             privacy: string;
+        };
+        /** ConvertBody */
+        ConvertBody: {
+            /** Target Id */
+            target_id: number;
+        };
+        /** DecisionBody */
+        DecisionBody: {
+            verdict: components["schemas"]["Verdict"];
+            /** Version */
+            version: number;
+            /** Reason */
+            reason?: string | null;
+            /** Text */
+            text?: string | null;
         };
         /** DefaultView */
         DefaultView: {
@@ -1486,6 +1716,13 @@ export interface components {
             /** Data Attribution */
             data_attribution: string | null;
         };
+        /** LimitedError */
+        LimitedError: {
+            /** Code */
+            code: string;
+            /** Retry After */
+            retry_after: number;
+        };
         /**
          * ListEntry
          * @description An Artwork in the Explore list, the Archive view, and a Location's panel
@@ -1625,6 +1862,25 @@ export interface components {
             /** Disappearances */
             disappearances: components["schemas"]["DocumentationSummary"][];
         };
+        /** LogEntryOut */
+        LogEntryOut: {
+            /** Event */
+            event: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Round */
+            round: number | null;
+            /** Message */
+            message: string | null;
+            /** Reason */
+            reason: string | null;
+            actor: components["schemas"]["ActorOut"];
+            /** Related Submission */
+            related_submission: number | null;
+        };
         /** Logo */
         Logo: {
             /** Light */
@@ -1745,6 +2001,13 @@ export interface components {
         Period: {
             start?: components["schemas"]["UncertainDate"] | null;
             end?: components["schemas"]["UncertainDate"] | null;
+        };
+        /** Person */
+        Person: {
+            /** Number */
+            number: number;
+            /** Display Name */
+            display_name: string;
         };
         /**
          * PlaceLocation
@@ -1962,6 +2225,14 @@ export interface components {
          * @enum {string}
          */
         RightsBasis: "own_work" | "third_party";
+        /** Saved */
+        Saved: {
+            /**
+             * Last Autosave At
+             * Format: date-time
+             */
+            last_autosave_at: string;
+        };
         /** SessionState */
         SessionState: {
             user: components["schemas"]["SignedInUser"] | null;
@@ -2047,6 +2318,118 @@ export interface components {
             /** Cited By */
             cited_by: components["schemas"]["RecordLink"][];
         };
+        /** StartBody */
+        StartBody: {
+            target_kind?: components["schemas"]["Kind"] | null;
+            /** Target Id */
+            target_id?: number | null;
+        };
+        /**
+         * Status
+         * @description The closed Submission status vocabulary (ADR 0009).
+         * @enum {string}
+         */
+        Status: "draft" | "submitted" | "changes_requested" | "approved" | "rejected" | "retracted";
+        /** SubmissionList */
+        SubmissionList: {
+            /** Items */
+            items: components["schemas"]["SubmissionSummary"][];
+        };
+        /** SubmissionOut */
+        SubmissionOut: {
+            /** Id */
+            id: number;
+            status: components["schemas"]["Status"];
+            target_kind: components["schemas"]["Kind"];
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "create" | "edit";
+            /** Target Id */
+            target_id: number | null;
+            /** Base Revisions */
+            base_revisions: number[];
+            /** Labels */
+            labels: string[];
+            /** Version */
+            version: number;
+            submitter: components["schemas"]["Person"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** First Submitted At */
+            first_submitted_at: string | null;
+            /** Rounds */
+            rounds: number;
+            /** Last Round */
+            last_round: unknown | null;
+            /** Working Copy */
+            working_copy?: unknown | null;
+            /**
+             * Working Copy Discarded
+             * @default false
+             */
+            working_copy_discarded: boolean;
+            /** Last Autosave At */
+            last_autosave_at?: string | null;
+            /** Outdated */
+            outdated: string[];
+            /** Expires At */
+            expires_at: string | null;
+            /** Retry Of */
+            retry_of: number | null;
+            /** Converts */
+            converts: number | null;
+            /** Stub */
+            stub: boolean;
+            /** Log */
+            log: components["schemas"]["LogEntryOut"][];
+        };
+        /** SubmissionSummary */
+        SubmissionSummary: {
+            /** Id */
+            id: number;
+            status: components["schemas"]["Status"];
+            target_kind: components["schemas"]["Kind"];
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "create" | "edit";
+            /** Target Id */
+            target_id: number | null;
+            /** Labels */
+            labels: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Expires At */
+            expires_at: string | null;
+        };
+        /** SubmitBody */
+        SubmitBody: {
+            /** Content */
+            content?: {
+                [key: string]: unknown;
+            } | null;
+            /** Note */
+            note?: string | null;
+            /**
+             * Accept Terms
+             * @default false
+             */
+            accept_terms: boolean;
+        };
         /**
          * Suggestions
          * @description From the file's EXIF, only to prefill the form; never a stored Location.
@@ -2059,6 +2442,15 @@ export interface components {
                 number,
                 number
             ] | null;
+        };
+        /** TermsState */
+        TermsState: {
+            /** Version */
+            version: number;
+            /** Accepted Version */
+            accepted_version: number | null;
+            /** Acceptance Required */
+            acceptance_required: boolean;
         };
         /**
          * Texts
@@ -2106,7 +2498,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "processing" | "ready" | "rejected";
+            status: "processing" | "ready" | "rejected" | "deleted";
             /** Error */
             error?: string | null;
             /** Format */
@@ -2130,6 +2522,11 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /**
+         * Verdict
+         * @enum {string}
+         */
+        Verdict: "approve" | "reject" | "request_changes";
         /** Verified */
         Verified: {
             /**
@@ -2180,6 +2577,13 @@ export interface components {
              * @default []
              */
             nearby: components["schemas"]["NearbyLocation"][];
+        };
+        /** WorkingCopyBody */
+        WorkingCopyBody: {
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
         };
         /** Rendition */
         tart__archive_read__views__Rendition: {
@@ -3882,6 +4286,779 @@ export interface operations {
             };
         };
     };
+    terms_state_api_contributions_terms_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermsState"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_contributions_api_contributions_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["Status"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_draft_api_contributions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    read_submission_api_contributions__submission_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_draft_api_contributions__submission_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    autosave_api_contributions__submission_id__working_copy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkingCopyBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Saved"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    submit_api_contributions__submission_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    retract_api_contributions__submission_id__retract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    start_again_api_contributions__submission_id__start_again_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    convert_api_contributions__submission_id__convert_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    decide_api_contributions__submission_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
     artworks_api_discovery_artworks_get: {
         parameters: {
             query?: {
@@ -4387,6 +5564,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `moderation.uploads_limited`: 100 files or 1 GB in 24 hours; Moderators are exempt. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
                 };
             };
         };

@@ -42,6 +42,8 @@ rate_limit_event = Table(
     Column("key_hash", LargeBinary, nullable=False),
     Column("at", DateTime(timezone=True), nullable=False),
     Column("expires_at", DateTime(timezone=True), nullable=False, index=True),
+    # What the action costs against the limit's count: 1, or a number of bytes.
+    Column("weight", BigInteger, nullable=False, server_default="1"),
     Index(None, "name", "key_hash", "at"),
 )
 
@@ -53,58 +55,84 @@ class Limit:
     window: timedelta
 
 
+type Check = tuple[Limit, str] | tuple[Limit, str, int]
+"""A limit and the key to count against, with the action's cost (default 1)."""
+
+
+def _normalised(checks: Sequence[Check]) -> list[tuple[Limit, str, int]]:
+    return [(c[0], c[1], c[2] if len(c) == 3 else 1) for c in checks]  # type: ignore[misc]
+
+
 async def hit(
     connection: AsyncConnection,
-    checks: Sequence[tuple[Limit, str]],
+    checks: Sequence[Check],
     now: datetime,
     key: bytes,
 ) -> timedelta | None:
     """Count one action against every `(limit, key)` pair, or refuse it.
 
-    Returns None when every limit allows the action, which is then counted for
-    each; otherwise the longest wait before all of them would allow it.
+    An action costs 1 against a limit unless the check gives a cost, such as the bytes of
+    an upload against a limit in bytes. Returns None when every limit allows the action,
+    which is then counted for each; otherwise the longest wait before all of them would
+    allow it.
     """
-    hashed = [(limit, keyed_hash(key, limit.name, value)) for limit, value in checks]
+    hashed = [
+        (limit, keyed_hash(key, limit.name, value), cost)
+        for limit, value, cost in _normalised(checks)
+    ]
     # Serialise concurrent actions on the same keys, so that two requests cannot
     # both take the last place in a window.
-    for _, key_hash in sorted(hashed, key=lambda pair: pair[1]):
+    for _, key_hash, _ in sorted(hashed, key=lambda triple: triple[1]):
         await connection.execute(
             select(func.pg_advisory_xact_lock(func.hashtextextended(key_hash.hex(), 0)))
         )
-    waits = [await _wait(connection, limit, key_hash, now) for limit, key_hash in hashed]
+    waits = [
+        await _wait(connection, limit, key_hash, cost, now) for limit, key_hash, cost in hashed
+    ]
     refused = [wait for wait in waits if wait is not None]
     if refused:
         return max(refused)
     await connection.execute(
         insert(rate_limit_event),
         [
-            {"name": limit.name, "key_hash": key_hash, "at": now, "expires_at": now + limit.window}
-            for limit, key_hash in hashed
+            {
+                "name": limit.name,
+                "key_hash": key_hash,
+                "at": now,
+                "expires_at": now + limit.window,
+                "weight": cost,
+            }
+            for limit, key_hash, cost in hashed
         ],
     )
     return None
 
 
 async def _wait(
-    connection: AsyncConnection, limit: Limit, key_hash: bytes, now: datetime
+    connection: AsyncConnection, limit: Limit, key_hash: bytes, cost: int, now: datetime
 ) -> timedelta | None:
-    # The `count` most recent actions in the window; when there are that many, the
-    # oldest of them must leave the window before another action is allowed.
+    # The actions in the window, oldest first. The action is allowed when their weight plus
+    # its own cost fits the limit; otherwise the oldest ones must leave the window until it
+    # does. A cost above the limit itself is never allowed, and waits a whole window.
     recent = (
-        await connection.scalars(
-            select(rate_limit_event.c.at)
+        await connection.execute(
+            select(rate_limit_event.c.at, rate_limit_event.c.weight)
             .where(
                 rate_limit_event.c.name == limit.name,
                 rate_limit_event.c.key_hash == key_hash,
                 rate_limit_event.c.at > now - limit.window,
             )
-            .order_by(rate_limit_event.c.at.desc())
-            .limit(limit.count)
+            .order_by(rate_limit_event.c.at)
         )
     ).all()
-    if len(recent) < limit.count:
+    used = sum(row.weight for row in recent)
+    if used + cost <= limit.count:
         return None
-    return recent[-1] + limit.window - now
+    for row in recent:
+        used -= row.weight
+        if used + cost <= limit.count:
+            return row.at + limit.window - now
+    return limit.window
 
 
 async def delete_expired(connection: AsyncConnection, now: datetime) -> None:

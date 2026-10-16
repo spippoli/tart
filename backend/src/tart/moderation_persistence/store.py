@@ -7,9 +7,10 @@ database does not have yet.
 
 from datetime import datetime
 
-from sqlalchemy import Table, delete, func, insert, select, update
+from sqlalchemy import Table, delete, func, insert, null, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
+from tart.archive.codec import Json
 from tart.archive.records import Kind
 from tart.moderation.model import (
     Actor,
@@ -32,8 +33,13 @@ async def create_draft(
     *,
     target_id: int | None = None,
     base_revisions: tuple[int, ...] = (),
+    retry_of: int | None = None,
+    converts: int | None = None,
+    working_copy: Json = None,
 ) -> Submission:
-    """A contribution starts as a draft, as soon as it is started."""
+    """A contribution starts as a draft, as soon as it is started. A retry or a conversion
+    starts with the content it is pre-filled with, which is not the Submitter's own entry:
+    the draft still counts as never edited."""
     submission_id = await connection.scalar(
         insert(t.submission)
         .values(
@@ -43,11 +49,23 @@ async def create_draft(
             base_revisions=list(base_revisions),
             status=Status.DRAFT.value,
             created_at=now,
+            retry_of=retry_of,
+            converts=converts,
+            working_copy=working_copy,
         )
         .returning(t.submission.c.id)
     )
     return Submission(
-        submission_id, submitter_id, target_kind, target_id, base_revisions, Status.DRAFT, now
+        submission_id,
+        submitter_id,
+        target_kind,
+        target_id,
+        base_revisions,
+        Status.DRAFT,
+        now,
+        working_copy=working_copy,
+        retry_of=retry_of,
+        converts=converts,
     )
 
 
@@ -98,6 +116,7 @@ async def load(
                 e.round,
                 e.message,
                 e.reason,
+                e.related_submission_id,
             )
             for e in log
         ),
@@ -105,6 +124,10 @@ async def load(
         working_copy=row.working_copy,
         last_autosave_at=row.last_autosave_at,
         working_copy_discarded=row.working_copy_discarded,
+        retry_of=row.retry_of,
+        converts=row.converts,
+        reduced_at=row.reduced_at,
+        stub=row.stub,
     )
 
 
@@ -126,9 +149,18 @@ async def save(connection: AsyncConnection, submission: Submission) -> None:
             working_copy=submission.working_copy,
             last_autosave_at=submission.last_autosave_at,
             working_copy_discarded=submission.working_copy_discarded,
+            reduced_at=submission.reduced_at,
+            stub=submission.stub,
         )
     )
     stored_rounds = await _count(connection, t.submission_round, submission.id)
+    if submission.reduced_at is not None:
+        # The stub keeps the rounds' number and date, never their changesets.
+        await connection.execute(
+            update(t.submission_round)
+            .where(t.submission_round.c.submission_id == submission.id)
+            .values(snapshot=null())
+        )
     for round_ in submission.rounds[stored_rounds:]:
         await connection.execute(
             insert(t.submission_round).values(
@@ -151,6 +183,7 @@ async def save(connection: AsyncConnection, submission: Submission) -> None:
                 round=entry.round,
                 message=entry.message,
                 reason=entry.reason,
+                related_submission_id=entry.related,
             )
         )
     stored_notes = await _count(connection, t.moderation_note, submission.id)
@@ -178,3 +211,38 @@ async def changes_requested(connection: AsyncConnection) -> list[int]:
             select(t.submission.c.id).where(t.submission.c.status == Status.CHANGES_REQUESTED.value)
         )
     )
+
+
+async def of_submitter(
+    connection: AsyncConnection, submitter_id: int, status: Status | None = None
+) -> list[int]:
+    """The ids of a User's Submissions, drafts included, the latest first."""
+    query = select(t.submission.c.id).where(t.submission.c.submitter_id == submitter_id)
+    if status is not None:
+        query = query.where(t.submission.c.status == status.value)
+    return list(await connection.scalars(query.order_by(t.submission.c.id.desc())))
+
+
+async def drafts_of(connection: AsyncConnection, submitter_id: int) -> list[Submission]:
+    """The User's open drafts, oldest first (without their rounds, log, or notes)."""
+    rows = await connection.execute(
+        select(t.submission)
+        .where(
+            t.submission.c.submitter_id == submitter_id,
+            t.submission.c.status == Status.DRAFT.value,
+        )
+        .order_by(t.submission.c.id)
+    )
+    return [
+        Submission(
+            id=row.id,
+            submitter_id=row.submitter_id,
+            target_kind=Kind(row.target_kind),
+            target_id=row.target_id,
+            base_revisions=tuple(row.base_revisions),
+            status=Status.DRAFT,
+            created_at=row.created_at,
+            last_autosave_at=row.last_autosave_at,
+        )
+        for row in rows
+    ]

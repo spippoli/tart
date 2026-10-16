@@ -35,6 +35,8 @@ upload = Table(
     Column("suggestions", JSONB(none_as_null=True)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("processed_at", DateTime(timezone=True)),
+    # The files of a rejected or retracted Submission are deleted after 30 days; the row stays.
+    Column("deleted_at", DateTime(timezone=True)),
     CheckConstraint(f"status IN ('{PROCESSING}', '{READY}', '{REJECTED}')", name="status_allowed"),
     CheckConstraint(
         "format IN ({})".format(", ".join(f"'{f.value}'" for f in Format)), name="format_allowed"

@@ -23,6 +23,7 @@ from tart.auth.tables import email_change_code, sign_in_code
 from tart.email import Mailer
 from tart.health import alerts
 from tart.media import uploads
+from tart.moderation_persistence import retention
 from tart.storage import Storage
 
 SEND_EMAIL = "send_email"
@@ -45,6 +46,8 @@ ENGINE = "engine"
 """The key of the worker's database engine in the job context."""
 STORAGE = "storage"
 """The key of the worker's `Storage` in the job context."""
+DRAFT_EXPIRY_DAYS = "draft_expiry_days"
+"""The key of `community.draft_expiry_days` in the job context."""
 HEALTH = "health"
 """The key of the worker's `health.Settings` in the job context."""
 ALERTING = "alerting"
@@ -80,13 +83,15 @@ async def process_upload(context: JobContext, *, upload_id: str, cap: int) -> No
 
 
 async def sweep(context: JobContext, timestamp: int) -> None:
-    """The hourly cleanup. Later features add their steps: expired drafts."""
+    """The hourly cleanup: expired counters, codes, and sessions, abandoned uploads, and the
+    retention of contributions (drafts, unanswered Submissions, rejected and retracted ones)."""
     logger.info("hourly sweep (scheduled at %s)", timestamp)
     engine: AsyncEngine = context.additional_context[ENGINE]
     storage: Storage = context.additional_context[STORAGE]
     now = datetime.now(UTC)
     await sweep_database(engine, now)
     await uploads.sweep(engine, storage, now)
+    await retention.sweep(engine, storage, now, context.additional_context[DRAFT_EXPIRY_DAYS])
 
 
 async def sweep_database(engine: AsyncEngine, now: datetime) -> None:

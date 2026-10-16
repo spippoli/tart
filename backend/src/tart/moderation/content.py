@@ -70,6 +70,37 @@ def encode_content(content: Content) -> Json:
     }
 
 
+MAX_UPLOADED_ITEMS = 20
+"""At most this many uploaded Documentation items in one Submission; links are not counted."""
+
+
+def uploaded_files(snapshot: Json) -> list[str]:
+    """The files of the Documentation items a snapshot creates, in order.
+
+    Read from the JSON as it is, so that an incomplete draft can be scanned too; anything
+    that is not a Documentation item with a file is skipped.
+    """
+    if not isinstance(snapshot, dict) or not isinstance(snapshot.get("operations"), list):
+        return []
+    files: list[str] = []
+    for operation in snapshot["operations"]:  # type: ignore[union-attr]
+        if not isinstance(operation, dict) or operation.get("op") != "create":
+            continue
+        record = operation.get("record")
+        if (
+            operation.get("kind") == "documentation_item"
+            and isinstance(record, dict)
+            and isinstance(record.get("file"), str)
+        ):
+            files.append(record["file"])
+    return files
+
+
+def check_file_count(snapshot: Json) -> None:
+    if len(uploaded_files(snapshot)) > MAX_UPLOADED_ITEMS:
+        raise ModerationError("moderation.too_many_files")
+
+
 def resolve_conflict(content: Content, index: int, *, keep: bool) -> Content:
     """Keep or drop one conflict; nothing is resolved silently.
 

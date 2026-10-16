@@ -25,7 +25,7 @@ from tart.archive.records import (
     Location,
     New,
 )
-from tart.moderation.content import Content
+from tart.moderation.content import MAX_UPLOADED_ITEMS, Content
 from tart.moderation.errors import ModerationError
 from tart.moderation.model import Submission
 
@@ -59,6 +59,14 @@ def check_content(submission: Submission, content: Content) -> None:
     """Raise a `ModerationError` unless the content is a valid Submission on its target."""
     if content.conflicts:
         raise ModerationError("moderation.unresolved_conflicts")
+    uploaded = sum(
+        isinstance(operation, Create)
+        and isinstance(operation.record, DocumentationItem)
+        and operation.record.file is not None
+        for operation in content.operations
+    )
+    if uploaded > MAX_UPLOADED_ITEMS:
+        raise ModerationError("moderation.too_many_files")
     if submission.target_id is None:
         _check_create(submission, content)
     else:

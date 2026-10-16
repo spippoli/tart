@@ -18,7 +18,16 @@ from tart.db import create_engine
 from tart.email import Mailer
 from tart.email.smtp import SmtpEmailSender
 from tart.health.alerts import Alerting
-from tart.jobs import ALERTING, ENGINE, HEALTH, MAILER, STORAGE, connector_for, create_app
+from tart.jobs import (
+    ALERTING,
+    DRAFT_EXPIRY_DAYS,
+    ENGINE,
+    HEALTH,
+    MAILER,
+    STORAGE,
+    connector_for,
+    create_app,
+)
 from tart.logs import logging_config
 from tart.messages import load_catalogue
 from tart.migrations import RevisionMismatchError
@@ -42,6 +51,7 @@ async def _run() -> None:
                     MAILER: mailer,
                     ENGINE: engine,
                     STORAGE: storage,
+                    DRAFT_EXPIRY_DAYS: configuration.instance.settings.community.draft_expiry_days,
                     HEALTH: health.Settings.from_environment(environment),
                     ALERTING: Alerting(
                         environment.OPERATOR_ALERT_EMAIL,
