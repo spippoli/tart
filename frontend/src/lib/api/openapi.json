@@ -3177,6 +3177,148 @@
         }
       }
     },
+    "/api/contribution/duplicates/locations": {
+      "post": {
+        "summary": "Location Candidates",
+        "operationId": "location_candidates_api_contribution_duplicates_locations_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationCandidates"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/contribution/duplicates/names": {
+      "post": {
+        "summary": "Name Candidates For",
+        "operationId": "name_candidates_for_api_contribution_duplicates_names_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NameCandidates"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health Status",
@@ -5867,6 +6009,59 @@
         "title": "ListEntry",
         "description": "An Artwork in the Explore list, the Archive view, and a Location's panel\n(Discovery spec, List entries)."
       },
+      "LocationCandidate": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/LocationSummary"
+          },
+          "distance": {
+            "type": "number",
+            "title": "Distance"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artworks": {
+            "items": {
+              "$ref": "#/components/schemas/ListEntry"
+            },
+            "type": "array",
+            "title": "Artworks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "distance",
+          "site",
+          "artworks"
+        ],
+        "title": "LocationCandidate",
+        "description": "A Location within the proximity rule, with all its Artworks, disappeared ones too."
+      },
+      "LocationCandidates": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/LocationCandidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "candidates"
+        ],
+        "title": "LocationCandidates"
+      },
       "LocationPanel": {
         "properties": {
           "location": {
@@ -5915,6 +6110,48 @@
           "other"
         ],
         "title": "LocationPanel"
+      },
+      "LocationQuery": {
+        "properties": {
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "uncertainty_radius": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uncertainty Radius"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          }
+        },
+        "type": "object",
+        "title": "LocationQuery",
+        "description": "Either a geometry just placed, or an existing Location that was chosen."
       },
       "LocationSummary": {
         "properties": {
@@ -6354,6 +6591,15 @@
         ],
         "title": "MapProperties"
       },
+      "Match": {
+        "type": "string",
+        "enum": [
+          "name",
+          "alias",
+          "url"
+        ],
+        "title": "Match"
+      },
       "Medium": {
         "type": "string",
         "enum": [
@@ -6386,6 +6632,87 @@
           "period"
         ],
         "title": "Membership"
+      },
+      "NameCandidate": {
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "match": {
+            "$ref": "#/components/schemas/Match"
+          },
+          "matched": {
+            "type": "string",
+            "title": "Matched"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record",
+          "match",
+          "matched",
+          "score"
+        ],
+        "title": "NameCandidate"
+      },
+      "NameCandidates": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/NameCandidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "candidates"
+        ],
+        "title": "NameCandidates"
+      },
+      "NameQuery": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "artist",
+              "site",
+              "series",
+              "area",
+              "source"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "name"
+        ],
+        "title": "NameQuery"
       },
       "NearbyLocation": {
         "properties": {
