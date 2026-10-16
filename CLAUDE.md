@@ -47,6 +47,7 @@ uv run tart config check   # validate the configuration directory at CONFIG_DIR 
 uv run tart config check --database   # also the checks against the database at DATABASE_URL
 uv run tart config schema instance    # JSON Schema of instance.toml (or `vocabulary`), for editors
 uv run tart users grant moderator <email> [--display-name NAME]   # also `revoke moderator <email>`, `list --role moderator`
+uv run tart invites create <email>   # invite an address to register; only under community.registration = invite
 uv run tart users suspend <email> --reason TEXT   # and `unsuspend <email>`; the email goes through the worker
 uv run tart tiles update [--build YYYYMMDD] [--source URL]   # extract the basemap into PMTILES_PATH; needs go-pmtiles (`pmtiles`) on PATH
 uv run tart discovery rebuild   # rebuild the Discovery index of every Artwork; run it once after upgrading an archive that already holds records
