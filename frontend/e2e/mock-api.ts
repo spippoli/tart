@@ -36,7 +36,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 const config = JSON.parse(readFileSync(new URL('fixtures/config.json', import.meta.url), 'utf8'));
 const variants: Record<string, unknown> = {
 	'/api/config': config,
-	'/it-only/api/config': { ...config, languages: { ...config.languages, ui: ['it'] } }
+	'/it-only/api/config': { ...config, languages: { ...config.languages, ui: ['it'] } },
+	'/invite/api/config': { ...config, registration: 'invite' }
 };
 
 const CODE = '123456';
@@ -231,6 +232,99 @@ async function account(request: IncomingMessage, response: ServerResponse, path:
 		return send(response, 200, state());
 	}
 	send(response, 404);
+}
+
+interface Invitation {
+	id: number;
+	email: string;
+	status: 'pending' | 'used' | 'expired' | 'revoked';
+	issuer: { number: number; display_name: string } | null;
+	created_at: string;
+	expires_at: string;
+	used_at: string | null;
+	revoked_at: string | null;
+}
+const DAY = 86_400_000;
+const at = (days: number) => new Date(Date.now() + days * DAY).toISOString();
+/** The Invitations of the `/invite` Instance, the latest first: one of each status but revoked. */
+const invitationList: Invitation[] = [
+	{
+		id: 3,
+		email: 'dal-terminale@example.org',
+		status: 'pending',
+		issuer: null,
+		created_at: at(-2),
+		expires_at: at(12),
+		used_at: null,
+		revoked_at: null
+	},
+	{
+		id: 2,
+		email: 'usata@example.org',
+		status: 'used',
+		issuer: { number: 7, display_name: 'Altra Moderatrice' },
+		created_at: at(-5),
+		expires_at: at(9),
+		used_at: at(-3),
+		revoked_at: null
+	},
+	{
+		id: 1,
+		email: 'scaduta@example.org',
+		status: 'expired',
+		issuer: { number: 7, display_name: 'Altra Moderatrice' },
+		created_at: at(-20),
+		expires_at: at(-6),
+		used_at: null,
+		revoked_at: null
+	}
+];
+
+/** The Moderator API of Invitations: the real one has its own tests; this keeps a list. */
+async function invitations(
+	request: IncomingMessage,
+	response: ServerResponse,
+	path: string,
+	inviteMode: boolean
+) {
+	const user = sessionUser(request);
+	if (!user) return send(response, 401, { code: 'sign_in_required' });
+	if (!user.moderator) return send(response, 403, { code: 'moderator_only' });
+	if (!inviteMode) return send(response, 409, { code: 'registration_not_invite' });
+	if (request.method === 'GET') return send(response, 200, { items: invitationList });
+	if (!request.headers['x-tart-request'] || !request.headers['x-tart-client-ip']) {
+		return send(response, 403, { code: 'csrf_refused' });
+	}
+	const revocation = /^\/api\/moderation\/invitations\/(\d+)\/revoke$/.exec(path);
+	if (revocation) {
+		const found = invitationList.find((each) => each.id === Number(revocation[1]));
+		if (!found) return send(response, 404, { code: 'invitation_not_found' });
+		if (found.status !== 'pending') return send(response, 409, { code: 'invitation_not_pending' });
+		found.status = 'revoked';
+		found.revoked_at = at(0);
+		return send(response, 204);
+	}
+	const body = await readJson(request);
+	const email = String(body.email ?? '')
+		.trim()
+		.toLowerCase();
+	if (!/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(email))
+		return send(response, 400, { code: 'email_invalid' });
+	if (invitationList.some((each) => each.email === email && each.status === 'pending')) {
+		return send(response, 409, { code: 'invitation_pending' });
+	}
+	const created: Invitation = {
+		id: Math.max(...invitationList.map((each) => each.id)) + 1,
+		email,
+		status: 'pending',
+		issuer: { number: user.number, display_name: user.display_name },
+		created_at: at(0),
+		expires_at: at(14),
+		used_at: null,
+		revoked_at: null
+	};
+	invitationList.unshift(created);
+	send(response, 201, created);
 }
 
 const challenge = () => randomBytes(32).toString('base64url');
@@ -585,7 +679,13 @@ function locationPanel(id: number, url: URL, emptyArchive: boolean) {
 
 const port = Number(process.argv[2] ?? 8795);
 createServer((request, response) => {
-	const path = (request.url ?? '').replace(/^\/it-only/, '');
+	const path = (request.url ?? '').replace(/^\/(it-only|invite)/, '');
+	if (path.startsWith('/api/moderation/invitations')) {
+		invitations(request, response, path, (request.url ?? '').startsWith('/invite/')).catch(() =>
+			send(response, 500)
+		);
+		return;
+	}
 	if (path.startsWith('/api/auth/')) {
 		auth(request, response, path).catch(() => send(response, 500));
 		return;

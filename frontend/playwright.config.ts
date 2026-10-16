@@ -7,7 +7,8 @@ export default defineConfig({
 	testMatch: '**/*.e2e.ts',
 	forbidOnly: !!process.env.CI,
 	// Started in order: the stand-in API, then the production build against it, then
-	// a second server of the same build whose Instance enables Italian only.
+	// a second server of the same build whose Instance enables Italian only, and a third
+	// whose Instance registers by invitation.
 	webServer: [
 		{ command: 'node e2e/mock-api.ts 8795', url: `${MOCK_API}/api/config` },
 		{
@@ -19,6 +20,12 @@ export default defineConfig({
 			command: 'pnpm preview --port 4274 --strictPort',
 			port: 4274,
 			env: { API_URL: `${MOCK_API}/it-only` }
+		},
+		// A third one whose Instance registers by invitation.
+		{
+			command: 'pnpm preview --port 4275 --strictPort',
+			port: 4275,
+			env: { API_URL: `${MOCK_API}/invite` }
 		}
 	],
 	use: { baseURL: 'http://localhost:4273' },
