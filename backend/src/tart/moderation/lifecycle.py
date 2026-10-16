@@ -222,6 +222,24 @@ def save_working_copy(
     )
 
 
+def rebase_working_copy(
+    submission: Submission,
+    actor: Actor,
+    now: datetime,
+    *,
+    target_id: int,
+    base_revision: int,
+    content: Json,
+) -> Submission:
+    """The Submitter opens the editor on an Outdated edit: its Base revision (and, for a
+    merged target, its target) moves to the current Revision and the rebased content is
+    the working copy. The round the Moderators see does not change."""
+    if submission.target_id is None:
+        raise ModerationError("moderation.cannot_rebase")
+    moved = replace(submission, target_id=target_id, base_revisions=(base_revision,))
+    return save_working_copy(moved, actor, now, content)
+
+
 def expiry_deadline(submission: Submission, expiry_days: int) -> datetime | None:
     """When an unanswered `changes requested` Submission is retracted: `draft_expiry_days`
     after the later of the request and the Submitter's last autosave."""
