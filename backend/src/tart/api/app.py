@@ -14,6 +14,7 @@ from tart.api import (
     contributions,
     csrf,
     discovery,
+    duplicates,
     invitations,
     map_style,
     media,
@@ -83,6 +84,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(contributions.router)
     app.include_router(discovery.router)
+    app.include_router(duplicates.router)
     app.include_router(health_api.router)
     app.include_router(invitations.router)
     app.include_router(map_style.router)

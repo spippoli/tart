@@ -899,6 +899,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contribution/duplicates/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Location Candidates */
+        post: operations["location_candidates_api_contribution_duplicates_locations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contribution/duplicates/names": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Name Candidates For */
+        post: operations["name_candidates_for_api_contribution_duplicates_names_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -1759,6 +1793,23 @@ export interface components {
             thumbnail: components["schemas"]["DocumentationSummary"] | null;
             latest_item_medium: components["schemas"]["Medium"] | null;
         };
+        /**
+         * LocationCandidate
+         * @description A Location within the proximity rule, with all its Artworks, disappeared ones too.
+         */
+        LocationCandidate: {
+            location: components["schemas"]["LocationSummary"];
+            /** Distance */
+            distance: number;
+            site: components["schemas"]["RecordLink"] | null;
+            /** Artworks */
+            artworks: components["schemas"]["ListEntry"][];
+        };
+        /** LocationCandidates */
+        LocationCandidates: {
+            /** Candidates */
+            candidates: components["schemas"]["LocationCandidate"][];
+        };
         /** LocationPanel */
         LocationPanel: {
             location: components["schemas"]["LocationSummary"];
@@ -1771,6 +1822,20 @@ export interface components {
             matches: boolean;
             /** Other */
             other: number;
+        };
+        /**
+         * LocationQuery
+         * @description Either a geometry just placed, or an existing Location that was chosen.
+         */
+        LocationQuery: {
+            /** Geometry */
+            geometry?: {
+                [key: string]: unknown;
+            } | null;
+            /** Uncertainty Radius */
+            uncertainty_radius?: number | null;
+            /** Location Id */
+            location_id?: number | null;
         };
         /** LocationSummary */
         LocationSummary: {
@@ -1942,6 +2007,11 @@ export interface components {
             radius: number | null;
         };
         /**
+         * Match
+         * @enum {string}
+         */
+        Match: "name" | "alias" | "url";
+        /**
          * Medium
          * @enum {string}
          */
@@ -1950,6 +2020,32 @@ export interface components {
         Membership: {
             artist: components["schemas"]["RecordLink"];
             period: components["schemas"]["Period"] | null;
+        };
+        /** NameCandidate */
+        NameCandidate: {
+            record: components["schemas"]["RecordLink"];
+            match: components["schemas"]["Match"];
+            /** Matched */
+            matched: string;
+            /** Score */
+            score: number;
+        };
+        /** NameCandidates */
+        NameCandidates: {
+            /** Candidates */
+            candidates: components["schemas"]["NameCandidate"][];
+        };
+        /** NameQuery */
+        NameQuery: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "artist" | "site" | "series" | "area" | "source";
+            /** Name */
+            name: string;
+            /** Url */
+            url?: string | null;
         };
         /**
          * NearbyLocation
@@ -5191,6 +5287,103 @@ export interface operations {
             };
             /** @description `location_not_available` */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_candidates_api_contribution_duplicates_locations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationCandidates"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    name_candidates_for_api_contribution_duplicates_names_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NameCandidates"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
