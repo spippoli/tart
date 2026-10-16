@@ -20,6 +20,8 @@
  * is one, everyone the `redacted/` one. Id 9001 is a withdrawn record (410) and 9002 an
  * Artwork merged into the complete record (301).
  *
+ * `/api/contributions` keeps, for each User, one Submission of every status (see `contributions`).
+ *
  * `GET /api/discovery/artworks` answers the Discovery query over thirty fictional
  * list entries made here (the backend's own tests cover the query): the Condition,
  * type, attribution, creation-year, and search filters, the title order, the `bbox` of
@@ -397,6 +399,249 @@ async function passkey(
 	send(response, 404);
 }
 
+/**
+ * The contribution API (`/api/contributions`): the real one has its own tests; this keeps,
+ * for each signed-in User, one Submission of every status (ids 101 to 106, and 107 an
+ * Outdated one), as the Submitter reads them. A Moderator is never named to the
+ * Submitter. Submission 200 belongs to someone else, so it answers 404.
+ */
+interface MockSubmission {
+	id: number;
+	status: string;
+	target_kind: string;
+	intent: 'create' | 'edit';
+	target_id: number | null;
+	labels: string[];
+	outdated: string[];
+	rounds: number;
+	retry_of: number | null;
+	log: Record<string, unknown>[];
+	updated_at: string;
+}
+
+const submissionsOf = new Map<string, MockSubmission[]>();
+
+function entry(
+	event: string,
+	days: number,
+	actor: 'submitter' | 'moderator' | 'system',
+	extra: Record<string, unknown> = {}
+) {
+	return {
+		event,
+		at: at(days),
+		round: null,
+		message: null,
+		reason: null,
+		related_submission: null,
+		actor: { role: actor, user: null },
+		...extra
+	};
+}
+
+function seed(): MockSubmission[] {
+	const submitted = entry('submitted', -3, 'submitter', { round: 1, message: 'Foto del 2021.' });
+	const base = {
+		target_kind: 'artwork',
+		target_id: null,
+		labels: [],
+		outdated: [],
+		retry_of: null
+	};
+	return [
+		{
+			...base,
+			id: 101,
+			status: 'draft',
+			intent: 'create',
+			rounds: 0,
+			log: [],
+			updated_at: at(-1)
+		},
+		{
+			...base,
+			id: 102,
+			status: 'submitted',
+			intent: 'create',
+			labels: ['adds_documentation'],
+			rounds: 1,
+			log: [submitted],
+			updated_at: at(-3)
+		},
+		{
+			...base,
+			id: 103,
+			status: 'changes_requested',
+			intent: 'create',
+			rounds: 1,
+			log: [
+				submitted,
+				entry('changes_requested', -2, 'moderator', {
+					reason: 'duplicate',
+					message: 'Sembra la stessa opera di una scheda esistente.'
+				})
+			],
+			updated_at: at(-2)
+		},
+		{
+			...base,
+			id: 104,
+			status: 'approved',
+			intent: 'create',
+			rounds: 1,
+			log: [submitted, entry('approved', -1, 'moderator')],
+			updated_at: at(-1)
+		},
+		{
+			...base,
+			id: 105,
+			status: 'rejected',
+			intent: 'create',
+			rounds: 1,
+			log: [
+				submitted,
+				entry('rejected', -1, 'moderator', {
+					reason: 'duplicate',
+					message: 'Esiste già una scheda per questo muro.'
+				})
+			],
+			updated_at: at(-1)
+		},
+		{
+			...base,
+			id: 106,
+			status: 'retracted',
+			intent: 'create',
+			rounds: 1,
+			log: [submitted, entry('retracted', -1, 'submitter')],
+			updated_at: at(-1)
+		},
+		{
+			...base,
+			id: 107,
+			status: 'submitted',
+			intent: 'edit',
+			target_id: 42,
+			outdated: ['field_changed'],
+			rounds: 1,
+			log: [submitted],
+			updated_at: at(-4)
+		}
+	];
+}
+
+let nextSubmissionId = 300;
+
+function detail(item: MockSubmission, number: number, name: string) {
+	return {
+		id: item.id,
+		status: item.status,
+		target_kind: item.target_kind,
+		intent: item.intent,
+		target_id: item.target_id,
+		base_revisions: [],
+		labels: item.labels,
+		version: 1,
+		submitter: { number, display_name: name },
+		created_at: at(-5),
+		first_submitted_at: item.rounds > 0 ? at(-3) : null,
+		rounds: item.rounds,
+		last_round:
+			item.rounds > 0
+				? {
+						operations: [
+							{
+								op: 'create',
+								ref: 'a',
+								kind: 'artwork',
+								record: { title: 'Mercato di prova (opera fittizia)' }
+							}
+						]
+					}
+				: null,
+		working_copy: null,
+		working_copy_discarded: false,
+		last_autosave_at: null,
+		outdated: item.outdated,
+		expires_at: item.status === 'changes_requested' ? at(28) : null,
+		retry_of: item.retry_of,
+		converts: null,
+		stub: false,
+		log: item.log
+	};
+}
+
+async function contributions(
+	request: IncomingMessage,
+	response: ServerResponse,
+	path: string
+): Promise<void> {
+	const user = sessionUser(request);
+	const email = sessionEmail(request);
+	if (!user || !email) return send(response, 401, { code: 'sign_in_required' });
+	if (request.method !== 'GET') {
+		if (!request.headers['x-tart-request'] || !request.headers['x-tart-client-ip']) {
+			return send(response, 403, { code: 'csrf_refused' });
+		}
+	}
+	const mine = submissionsOf.get(email) ?? (email.startsWith('persona-vuota') ? [] : seed());
+	submissionsOf.set(email, mine);
+	const url = new URL(path, 'http://mock');
+	const summary = (each: MockSubmission) => ({
+		id: each.id,
+		status: each.status,
+		target_kind: each.target_kind,
+		intent: each.intent,
+		target_id: each.target_id,
+		labels: each.labels,
+		created_at: at(-5),
+		updated_at: each.updated_at,
+		expires_at: each.status === 'changes_requested' ? at(28) : null
+	});
+	if (url.pathname === '/api/contributions' && request.method === 'GET') {
+		const status = url.searchParams.get('status');
+		const items = mine.filter((each) => !status || each.status === status);
+		return send(response, 200, { items: items.map(summary) });
+	}
+	if (url.pathname === '/api/contributions' && request.method === 'POST') {
+		const created: MockSubmission = {
+			...seed()[0],
+			id: nextSubmissionId++
+		};
+		mine.unshift(created);
+		return send(response, 201, detail(created, user.number, user.display_name));
+	}
+	const found = /^\/api\/contributions\/(\d+)(?:\/([a-z-]+))?$/.exec(url.pathname);
+	if (!found) return send(response, 404);
+	const item = mine.find((each) => each.id === Number(found[1]));
+	if (!item) return send(response, 404, { code: 'moderation.unknown_submission' });
+	const action = found[2];
+	const open = item.status === 'submitted' || item.status === 'changes_requested';
+	if (request.method === 'GET')
+		return send(response, 200, detail(item, user.number, user.display_name));
+	if (request.method === 'DELETE') {
+		if (item.status !== 'draft')
+			return send(response, 409, { code: 'moderation.invalid_transition' });
+		mine.splice(mine.indexOf(item), 1);
+		return send(response, 204);
+	}
+	if (action === 'retract') {
+		if (!open) return send(response, 409, { code: 'moderation.invalid_transition' });
+		item.status = 'retracted';
+		item.log.push(entry('retracted', 0, 'submitter'));
+		return send(response, 200, detail(item, user.number, user.display_name));
+	}
+	if (action === 'start-again') {
+		if (item.status !== 'rejected' && item.status !== 'retracted') {
+			return send(response, 409, { code: 'moderation.cannot_start_again' });
+		}
+		const created: MockSubmission = { ...seed()[0], id: nextSubmissionId++, retry_of: item.id };
+		mine.unshift(created);
+		return send(response, 201, detail(created, user.number, user.display_name));
+	}
+	send(response, 404);
+}
+
 const ARCHIVE = new URL('fixtures/archive/', import.meta.url);
 export const WITHDRAWN_ID = 9001;
 export const MERGED_ID = 9002;
@@ -684,6 +929,10 @@ createServer((request, response) => {
 		invitations(request, response, path, (request.url ?? '').startsWith('/invite/')).catch(() =>
 			send(response, 500)
 		);
+		return;
+	}
+	if (path.startsWith('/api/contributions')) {
+		contributions(request, response, path).catch(() => send(response, 500));
 		return;
 	}
 	if (path.startsWith('/api/auth/')) {

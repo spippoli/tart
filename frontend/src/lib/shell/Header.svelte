@@ -117,7 +117,12 @@
 				<span class="user-name"
 					>{m.user_menu_signed_in_as()} <bdi lang="">{user.displayName}</bdi></span
 				>
-				<a href={localizeHref('/account')} aria-current={isCurrent('/account') ? 'page' : undefined}
+				<a
+					href={localizeHref('/account/contributions')}
+					aria-current={route === '/account/contributions' ? 'page' : undefined}
+					>{m.user_menu_contributions()}</a
+				>
+				<a href={localizeHref('/account')} aria-current={route === '/account' ? 'page' : undefined}
 					>{m.user_menu_account()}</a
 				>
 				<form method="post" action="{localizeHref('/sign-in')}?/signOut">
