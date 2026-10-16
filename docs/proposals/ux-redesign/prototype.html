@@ -4,201 +4,246 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TART UX redesign prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-/* Throwaway prototype of docs/proposals/ux-redesign.md. All content is fictional. */
+/* Throwaway prototype of docs/proposals/ux-redesign.md. All content is fictional.
+   Inter is loaded from Google Fonts for the prototype only; it falls back to system-ui offline. */
 :root {
   color-scheme: light dark;
-  --bg: #ffffff; --text: #1c1b1a; --muted: #55524e; --line: #d9d4cc; --line-strong: #8a857f;
-  --surface: #f6f3ee; --raised: #ffffff; --accent: #7a2e1c; --on-accent: #ffffff;
-  --paper: #f3eee2; --block: #e6dfcd; --park: #d9dfc3; --water: #cbd8da; --road: #fbf8f0; --ink: #2a2521;
-  --shadow: 0 6px 24px rgba(30,20,10,.18);
-  --r: 12px; --gutter: 16px;
-  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  --sans: system-ui,-apple-system,"Segoe UI",sans-serif;
-  font-family: var(--sans); line-height: 1.5; font-size: 16px;
+  --bg:#ffffff; --text:#14120f; --muted:#625e57; --line:rgba(20,18,15,.10); --line-strong:rgba(20,18,15,.38);
+  --surface:#f4f2ee; --surface-2:#ebe8e2; --raised:#ffffff; --glass:rgba(255,255,255,.78);
+  --accent:#7a2e1c; --on-accent:#ffffff; --accent-soft:color-mix(in srgb,var(--accent) 10%,transparent);
+  --paper:#ece9e1; --block:#e0dcd1; --park:#cddcc0; --water:#bcd2db; --road:#fbfaf6; --ink:#1f1b17;
+  --shadow-s:0 1px 2px rgba(20,12,5,.08),0 2px 8px rgba(20,12,5,.06);
+  --shadow-m:0 2px 4px rgba(20,12,5,.06),0 12px 32px rgba(20,12,5,.14);
+  --r:20px; --gutter:20px;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:var(--sans); line-height:1.5; font-size:16px; font-feature-settings:"cv11","ss01";
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg:#121212; --text:#ecebe9; --muted:#b8b4ae; --line:#34312e; --line-strong:#8a857f; --surface:#1c1b1a; --raised:#242220;
-    --accent:#f0a08c; --on-accent:#1c1b1a; --paper:#1e1b18; --block:#27231f; --park:#2a2e22; --water:#22302f; --road:#35302a; --ink:#eae2d5; --shadow:0 6px 24px rgba(0,0,0,.5); }
+  :root { --bg:#121212; --text:#f1efeb; --muted:#aaa6a0; --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.4);
+    --surface:#1c1b1a; --surface-2:#262422; --raised:#201f1d; --glass:rgba(24,23,22,.72);
+    --accent:#f0a08c; --on-accent:#1c1210;
+    --paper:#1b1916; --block:#262320; --park:#26301f; --water:#1d2c31; --road:#34302a; --ink:#ece4d7;
+    --shadow-s:0 1px 2px rgba(0,0,0,.4); --shadow-m:0 2px 4px rgba(0,0,0,.3),0 16px 40px rgba(0,0,0,.55); }
 }
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text)}
-a{color:inherit} h1,h2,h3{line-height:1.2;margin:0} p{margin:0}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-block-size:100dvh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+a{color:inherit} h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em;font-weight:700} p{margin:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
 .vh{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 button,input,select,textarea{font:inherit;color:inherit}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-block-size:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;cursor:pointer;text-decoration:none;font-weight:600;white-space:nowrap}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.quiet{border-color:transparent;padding:0 10px}
-.btn.quiet:hover,.btn.quiet:focus-visible{text-decoration:underline}
-.btn.sm{min-block-size:36px;padding:0 12px;font-size:.9rem}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--raised);font-size:.85rem;font-weight:600}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:.9rem}
-.chip button{border:0;background:none;cursor:pointer;min-inline-size:28px;min-block-size:28px;border-radius:50%}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-.note{background:var(--surface);border-block-end:1px solid var(--line);padding:6px var(--gutter);font-size:.85rem;color:var(--muted);text-align:center}
-.sign{inline-size:14px;block-size:14px;flex:none;border:2px solid currentColor;display:inline-block}
-.sign.present{background:currentColor}.sign.disappeared{border-style:dashed}.sign.unknown{border-style:dotted}
-
-/* Shell */
-header.site{display:flex;align-items:center;gap:16px;padding:10px var(--gutter);border-block-end:3px solid var(--accent);background:var(--bg);position:sticky;top:0;z-index:20}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-inline-end:auto}
-.brand b{font-family:var(--serif);font-size:1.15rem;line-height:1.15}
-.mark{inline-size:36px;block-size:36px;border-radius:8px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:1.3rem;flex:none}
-.nav-main{display:flex;gap:4px}
-.nav-main a{padding:8px 14px;border-radius:999px;text-decoration:none;font-weight:600;min-block-size:40px;display:inline-flex;align-items:center}
-.nav-main a[aria-current=page]{background:var(--surface);box-shadow:inset 0 -3px 0 var(--accent)}
-.lang{display:flex;gap:2px;font-size:.9rem}.lang a{padding:8px;text-decoration:none;color:var(--muted)}.lang a[aria-current=true]{color:var(--text);font-weight:700;text-decoration:underline}
-details.acct{position:relative}details.acct>summary{list-style:none;cursor:pointer;min-block-size:44px;display:inline-flex;align-items:center;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong);font-weight:600}
-details.acct>summary::-webkit-details-marker{display:none}
-details.acct .menu{position:absolute;inset-inline-end:0;top:calc(100% + 6px);min-inline-size:15rem;background:var(--raised);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:6px;z-index:30}
-.menu a,.menu button{display:flex;inline-size:100%;padding:10px 12px;border-radius:8px;text-decoration:none;background:none;border:0;text-align:start;cursor:pointer;min-block-size:44px;align-items:center}
-.menu a:hover,.menu button:hover{background:var(--surface)}
-.search-open{display:flex;align-items:center}
-.search-open input{inline-size:13rem;min-block-size:44px;border-radius:999px;border:1px solid var(--line-strong);padding:0 16px;background:var(--bg)}
-.tabbar{display:none}.mob{display:none}
-footer.site{border-block-start:1px solid var(--line);padding:24px var(--gutter);color:var(--muted);font-size:.9rem;display:flex;flex-wrap:wrap;gap:8px 24px}
-main{min-block-size:60vh}
 [hidden]{display:none!important}
+.help{font-size:.875rem;color:var(--muted)}
 
-/* Explore */
-.explore{display:grid;grid-template-columns:27rem 1fr;block-size:calc(100vh - 100px);min-block-size:34rem}
-.pane{display:flex;flex-direction:column;min-inline-size:0;border-inline-end:1px solid var(--line);overflow:hidden;background:var(--bg)}
-.pane-head{padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;border-block-end:1px solid var(--line)}
-.field{display:flex;gap:8px;min-inline-size:0}.field .btn{flex:none}
-.field input[type=search]{flex:1;min-block-size:44px;border-radius:999px;border:1px solid var(--line-strong);padding:0 16px;background:var(--bg);min-inline-size:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.count{font-size:.9rem;color:var(--muted)}
-.list{overflow:auto;padding:12px 16px;display:grid;gap:12px;align-content:start;flex:1}
-.entry{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--raised)}
-.entry[data-selected=true]{outline:3px solid var(--accent);outline-offset:-1px}
-.thumb{aspect-ratio:4/3;border-radius:8px;background:linear-gradient(135deg,var(--c1),var(--c2));position:relative;display:grid;place-items:end start;overflow:hidden}
-.thumb small{font-size:.65rem;padding:2px 6px;background:rgba(0,0,0,.55);color:#fff;border-end-start-radius:0}
-.entry h3{font-family:var(--serif);font-size:1.05rem}
-.entry h3 a{text-decoration:none}.entry h3 a:hover{text-decoration:underline}
-.meta{font-size:.88rem;color:var(--muted);display:grid;gap:2px;margin-block:4px;justify-items:start}
-.sel-label{font-size:.8rem;font-weight:700;color:var(--accent);margin-inline-start:6px}
-.mapwrap{position:relative;min-inline-size:0;background:var(--paper);overflow:hidden}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-block-size:44px;padding:0 20px;border-radius:999px;border:0;background:var(--surface);cursor:pointer;text-decoration:none;font-weight:600;white-space:nowrap;transition:background .15s,transform .15s}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--on-accent);box-shadow:0 1px 2px rgba(0,0,0,.2),0 8px 20px -6px color-mix(in srgb,var(--accent) 55%,transparent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.outline{background:transparent;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.quiet{background:transparent;padding:0 12px}.btn.quiet:hover{background:var(--accent-soft)}
+.btn.sm{min-block-size:36px;padding:0 14px;font-size:.875rem}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 12px 4px 10px;border-radius:999px;background:var(--surface);font-size:.8125rem;font-weight:600}
+.pill.glass{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow-s)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 12px;border-radius:999px;background:var(--accent-soft);font-size:.875rem;font-weight:600}
+.chip button{border:0;background:none;cursor:pointer;min-inline-size:32px;min-block-size:32px;border-radius:50%}
+/* Condition signs (ADR 0015): shape carries the meaning, never colour. Drawn with masks so dashes survive at small sizes. */
+.sign{inline-size:14px;block-size:14px;flex:none;display:inline-block;background:currentColor}
+.sign.disappeared{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M1 1h4M9 1h4v4M13 9v4h-4M5 13H1V9M1 5V1' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M1 1h4M9 1h4v4M13 9v4h-4M5 13H1V9M1 5V1' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center/100% no-repeat}
+.sign.unknown{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='%23000'%3E%3Crect x='0' y='0' width='3' height='3'/%3E%3Crect x='5.5' y='0' width='3' height='3'/%3E%3Crect x='11' y='0' width='3' height='3'/%3E%3Crect x='0' y='5.5' width='3' height='3'/%3E%3Crect x='11' y='5.5' width='3' height='3'/%3E%3Crect x='0' y='11' width='3' height='3'/%3E%3Crect x='5.5' y='11' width='3' height='3'/%3E%3Crect x='11' y='11' width='3' height='3'/%3E%3C/g%3E%3C/svg%3E") center/100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cg fill='%23000'%3E%3Crect x='0' y='0' width='3' height='3'/%3E%3Crect x='5.5' y='0' width='3' height='3'/%3E%3Crect x='11' y='0' width='3' height='3'/%3E%3Crect x='0' y='5.5' width='3' height='3'/%3E%3Crect x='11' y='5.5' width='3' height='3'/%3E%3Crect x='0' y='11' width='3' height='3'/%3E%3Crect x='5.5' y='11' width='3' height='3'/%3E%3Crect x='11' y='11' width='3' height='3'/%3E%3C/g%3E%3C/svg%3E") center/100% no-repeat}
+.card{background:var(--surface);border-radius:var(--r);padding:20px}
+.note{background:var(--surface);padding:5px var(--gutter);font-size:.75rem;color:var(--muted);text-align:center}
+.note a{text-underline-offset:2px}
+
+/* Art placeholders: abstract, fictional */
+.art{position:relative;overflow:hidden;background:
+  radial-gradient(70% 80% at 18% 22%,var(--c1),transparent 72%),
+  radial-gradient(60% 70% at 88% 82%,var(--c3,#f2b66d),transparent 70%),
+  linear-gradient(160deg,var(--c2),#14110f)}
+.art::after{content:"";position:absolute;inset:0;opacity:.22;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.art>*{position:relative;z-index:1}
+
+/* Header: floating glass bar */
+header.site{position:sticky;top:10px;z-index:40;margin:10px 12px 0;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:999px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:var(--shadow-s),inset 0 0 0 1px var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-inline-end:auto;min-inline-size:0}
+.mark{inline-size:36px;block-size:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:800;font-size:1.1rem;flex:none;letter-spacing:-.04em}
+.brand b{font-size:.95rem;letter-spacing:-.015em;line-height:1.15;font-weight:700}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:.75rem;letter-spacing:0}
+.nav-main{display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface)}
+.nav-main a{padding:0 16px;border-radius:999px;text-decoration:none;font-weight:600;font-size:.9375rem;min-block-size:38px;display:inline-flex;align-items:center;color:var(--muted)}
+.nav-main a[aria-current=page]{background:var(--raised);color:var(--text);box-shadow:var(--shadow-s)}
+.search-open input{inline-size:11rem;min-block-size:44px;border-radius:999px;border:0;padding:0 16px 0 40px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M13 13l4 4'/%3E%3C/svg%3E") no-repeat 14px 50%}
+.search-open input:focus{inline-size:15rem;outline-offset:0}
+.lang{display:flex;font-size:.875rem;font-weight:600}.lang a{padding:8px 7px;text-decoration:none;color:var(--muted)}.lang a[aria-current=true]{color:var(--text)}
+details.acct{position:relative}
+details.acct>summary{list-style:none;cursor:pointer;min-block-size:44px;display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 6px;border-radius:999px;background:var(--surface);font-weight:600}
+details.acct>summary::-webkit-details-marker{display:none}
+details.acct>summary i{inline-size:32px;block-size:32px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-style:normal;font-size:.8rem}
+.menu{position:absolute;inset-inline-end:0;top:calc(100% + 10px);min-inline-size:16rem;background:var(--raised);border-radius:18px;box-shadow:var(--shadow-m),inset 0 0 0 1px var(--line);padding:6px}
+.menu a{display:flex;padding:0 14px;border-radius:12px;text-decoration:none;min-block-size:44px;align-items:center}
+.menu a:hover{background:var(--surface)}
+.mob{display:none}
+footer.site{margin-block-start:48px;padding:32px var(--gutter);color:var(--muted);font-size:.875rem;display:flex;flex-wrap:wrap;gap:8px 24px;background:var(--surface)}
+main{flex:1;display:flex;flex-direction:column;min-inline-size:0}
+.tabbar{display:none}
+
+/* Explore: full-bleed map, floating panel */
+.explore{position:relative;flex:1;min-block-size:34rem;margin:10px 12px 12px;border-radius:28px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.mapwrap{position:absolute;inset:0;background:var(--paper);overflow:hidden}
 .mapwrap svg.base{position:absolute;inset:0;inline-size:100%;block-size:100%}
-.sg{position:absolute;transform:translate(-50%,-50%);inline-size:44px;block-size:44px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--ink)}
-.sg .sign{inline-size:18px;block-size:18px;background-color:var(--paper)}
-.sg .sign.present{background-color:var(--ink)}
-.sg.stack::after{content:"";position:absolute;inline-size:18px;block-size:18px;border:2px solid var(--ink);transform:translate(4px,-4px);z-index:-1;background:var(--paper)}
-.sg[aria-pressed=true] .sign{outline:3px solid var(--accent);outline-offset:3px}
-.cluster{position:absolute;transform:translate(-50%,-50%);inline-size:44px;block-size:44px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);font-weight:700;color:var(--ink);cursor:pointer}
-.mctl{position:absolute;inset-inline-end:12px;inset-block-start:12px;display:grid;gap:6px}
-.mctl button{inline-size:44px;block-size:44px;border-radius:10px;border:1px solid var(--line-strong);background:var(--raised);cursor:pointer;font-size:1.2rem}
-.attr{position:absolute;inset-inline-end:8px;inset-block-end:6px;font-size:.72rem;background:var(--bg);padding:0 6px;border-radius:4px}
-.legend{position:absolute;inset-inline-start:12px;inset-block-end:28px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.85rem;display:grid;gap:4px}
+.pane{position:absolute;z-index:5;inset-block:12px;inset-inline-start:12px;inline-size:26.5rem;display:flex;flex-direction:column;border-radius:22px;background:var(--bg);box-shadow:var(--shadow-m);overflow:hidden;min-inline-size:0}
+.grab{display:none}
+.pane-head{padding:14px 14px 10px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.field{display:flex;gap:8px;min-inline-size:0}
+.field input[type=search]{flex:1;min-block-size:46px;border-radius:999px;border:0;padding:0 16px 0 42px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M13 13l4 4'/%3E%3C/svg%3E") no-repeat 15px 50%;min-inline-size:0}
+.field .btn{flex:none}
+.count-badge{background:var(--accent);color:var(--on-accent);border-radius:999px;min-inline-size:22px;block-size:22px;display:inline-grid;place-items:center;font-size:.75rem;padding:0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips:empty{display:none}
+.count{font-size:.875rem;color:var(--muted);font-weight:500}
+.list{overflow:auto;padding:4px 8px 12px;display:grid;gap:2px;align-content:start;flex:1}
+.entry{display:grid;grid-template-columns:104px minmax(0,1fr);gap:14px;padding:8px;border-radius:18px}
+.entry:hover{background:var(--surface)}
+.entry[data-selected=true]{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.thumb{aspect-ratio:1;border-radius:14px}
+.entry h3{font-size:1rem;letter-spacing:-.01em;line-height:1.25}
+.entry h3 a{text-decoration:none}.entry h3 a:hover{text-decoration:underline}
+.cond{display:flex;align-items:center;gap:7px;font-size:.8125rem;font-weight:600;margin-block:5px 2px}
+.meta{font-size:.8125rem;color:var(--muted)}
+.sel-label{font-size:.7rem;font-weight:700;background:var(--accent);color:var(--on-accent);padding:1px 8px;border-radius:999px;margin-inline-start:6px;vertical-align:2px}
+.show{margin-block-start:4px;margin-inline-start:-12px}
+.sg{position:absolute;transform:translate(-50%,-50%);inline-size:44px;block-size:44px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--ink);z-index:2}
+.sg .sign{inline-size:22px;block-size:22px;background:var(--ink);box-shadow:none;transition:transform .15s;filter:drop-shadow(0 0 0 var(--paper)) drop-shadow(0 0 2px var(--paper)) drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.sg:hover .sign{transform:scale(1.12)}
+.sg.stack::after{content:"";position:absolute;inline-size:20px;block-size:20px;border:2.5px solid var(--ink);transform:translate(7px,-7px);z-index:-1;background:var(--paper)}
+.sg[aria-pressed=true]::before{content:"";position:absolute;inline-size:34px;block-size:34px;border-radius:10px;box-shadow:0 0 0 3px var(--accent);background:var(--paper);z-index:-1}
+.mctl{position:absolute;inset-inline-end:14px;inset-block-start:14px;display:grid;border-radius:16px;background:var(--raised);box-shadow:var(--shadow-m);overflow:hidden;z-index:3}
+.mctl button{inline-size:44px;block-size:44px;border:0;background:none;cursor:pointer;font-size:1.25rem}
+.mctl button+button{box-shadow:inset 0 1px var(--line)}
+.legend{position:absolute;inset-inline-end:14px;inset-block-end:34px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:16px;padding:10px 14px;font-size:.8125rem;font-weight:500;display:grid;gap:4px;box-shadow:var(--shadow-s);z-index:3}
 .legend div{display:flex;gap:8px;align-items:center}
-.panel{padding:16px;display:grid;gap:14px;overflow:auto}
-.panel h2{font-family:var(--serif);font-size:1.35rem}
-.sheet-peek{display:none}
+.attr{position:absolute;inset-inline-end:12px;inset-block-end:8px;font-size:.7rem;color:var(--muted);z-index:3}
+.panel{padding:12px 14px 16px;display:grid;gap:12px;overflow:auto;align-content:start}
+.panel h2{font-size:1.5rem}
 
 /* Dialog */
-dialog{border:0;border-radius:16px;padding:0;max-inline-size:min(34rem,calc(100vw - 24px));inline-size:100%;background:var(--raised);color:var(--text);box-shadow:var(--shadow)}
-dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog form{display:grid;gap:18px;padding:20px}
-fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}legend{font-weight:700;padding:0;margin-block-end:6px}
-.opt{display:flex;gap:10px;align-items:center;min-block-size:40px}
-.opt input{inline-size:20px;block-size:20px}
+dialog{border:0;border-radius:28px;padding:0;max-inline-size:min(32rem,calc(100vw - 24px));inline-size:100%;background:var(--raised);color:var(--text);box-shadow:var(--shadow-m)}
+dialog::backdrop{background:rgba(10,8,6,.5);backdrop-filter:blur(4px)}
+dialog form{display:grid;gap:22px;padding:26px}
+dialog h2{font-size:1.5rem}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}legend{font-weight:700;padding:0;margin-block-end:8px}
+.opt{display:flex;gap:12px;align-items:center;min-block-size:48px;padding:0 14px;border-radius:14px;background:var(--surface);cursor:pointer}
+.opt input{inline-size:20px;block-size:20px;accent-color:var(--accent)}
 .dlg-actions{display:flex;gap:8px;justify-content:space-between}
-select,.txt{min-block-size:44px;border-radius:10px;border:1px solid var(--line-strong);padding:0 12px;background:var(--bg);inline-size:100%}
-textarea.txt{padding:10px 12px;min-block-size:96px}
+select,.txt{min-block-size:48px;border-radius:14px;border:0;box-shadow:inset 0 0 0 1px var(--line-strong);padding:0 14px;background:var(--bg);inline-size:100%}
+select:focus,.txt:focus{outline:3px solid var(--accent);outline-offset:0}
+textarea.txt{padding:12px 14px;min-block-size:110px}
 
 /* Artwork */
-.wrap{max-inline-size:72rem;margin-inline:auto;padding:16px var(--gutter) 48px}
-.crumbs{font-size:.9rem;color:var(--muted);margin-block-end:12px}
-.hero{aspect-ratio:16/8;max-block-size:22rem;inline-size:100%;border-radius:var(--r);background:linear-gradient(135deg,#9a5a3c,#2f4a56);position:relative;display:grid;place-items:end start;overflow:hidden}
-.hero small{background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;font-size:.8rem}
-.thumbs{display:flex;gap:8px;margin-block:8px 20px}
-.thumbs button{inline-size:88px;aspect-ratio:4/3;border-radius:8px;border:2px solid transparent;cursor:pointer;background:linear-gradient(135deg,var(--c1),var(--c2))}
-.thumbs button[aria-current=true]{border-color:var(--accent)}
-.two{display:grid;grid-template-columns:1fr 20rem;gap:32px;align-items:start}
-.title-row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-block-end:6px}
-.title-row h1{font-family:var(--serif);font-size:2.1rem}
-.anchors{display:flex;gap:4px;margin-block:16px;border-block-end:1px solid var(--line);position:sticky;top:67px;background:var(--bg);z-index:5}
-.anchors a{padding:10px 14px;text-decoration:none;font-weight:600;border-block-end:3px solid transparent}
-.anchors a:hover,.anchors a:focus-visible{border-color:var(--accent)}
-.sec{margin-block:28px}.sec h2{font-family:var(--serif);font-size:1.4rem;margin-block-end:10px}
-.tl{list-style:none;margin:0;padding:0;border-inline-start:2px solid var(--line-strong)}
-.tl li{padding:0 0 18px 20px;position:relative}.tl li::before{content:"";position:absolute;inset-inline-start:-7px;top:6px;inline-size:12px;block-size:12px;background:var(--bg);border:2px solid var(--ink)}
-.tl b{display:block}
-.side{position:sticky;top:130px;display:grid;gap:14px}
-.mini{aspect-ratio:16/10;border-radius:10px;background:var(--paper);position:relative;overflow:hidden}
+.wrap{max-inline-size:76rem;margin-inline:auto;padding:20px var(--gutter) 0;inline-size:100%}
+.crumbs{font-size:.875rem;color:var(--muted);margin-block-end:14px}
+.gallery{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:8px;block-size:26rem;border-radius:26px;overflow:hidden}
+.gallery .art{border-radius:0;display:grid;align-content:end;justify-items:start;padding:14px}
+.gallery .g1{grid-row:1/3}
+.hero-title{margin-block:28px 8px}
+.hero-title h1{font-size:clamp(2rem,5vw,3.25rem);letter-spacing:-.035em;font-weight:800;line-height:1.05}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-block-start:14px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:48px;align-items:start}
+.two .side{margin-block-start:28px}
+.anchors{display:flex;gap:6px;margin-block:22px 8px;position:sticky;top:84px;background:var(--bg);padding-block:8px;z-index:5}
+.anchors a{padding:0 16px;min-block-size:40px;display:inline-flex;align-items:center;border-radius:999px;background:var(--surface);text-decoration:none;font-weight:600;font-size:.9375rem}
+.anchors a:hover{background:var(--surface-2)}
+.sec{margin-block:32px}.sec h2{font-size:1.5rem;margin-block-end:12px}
+.sec p{max-inline-size:62ch}
+.tl{list-style:none;margin:0;padding:0;border-inline-start:2px solid var(--line)}
+.tl li{padding:0 0 22px 24px;position:relative;color:var(--muted)}
+.tl li::before{content:"";position:absolute;inset-inline-start:-8px;top:5px;inline-size:14px;block-size:14px;background:var(--bg);border:2.5px solid var(--ink)}
+.tl b{display:block;color:var(--text);font-size:1rem}
+.side{position:sticky;top:90px;display:grid;gap:16px}
+.mini{aspect-ratio:16/10;border-radius:16px;background:var(--paper);position:relative;overflow:hidden}
+.mini svg.base{position:absolute;inset:0;inline-size:100%;block-size:100%}
 .actions{display:grid;gap:8px}
+.actions h2{font-size:1.0625rem;margin-block-end:4px}
 .mobile-bar{display:none}
 
 /* Contribute */
-.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.choice{display:grid;gap:8px;padding:20px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);text-align:start;cursor:pointer;font:inherit}
-.choice:hover,.choice:focus-visible{border-color:var(--accent)}
-.choice h3{font-family:var(--serif);font-size:1.2rem}.choice span{color:var(--muted)}
-.wiz{display:grid;grid-template-columns:15rem 1fr;gap:32px;align-items:start}
-.steps{list-style:none;padding:0;margin:0;display:grid;gap:4px;position:sticky;top:90px}
-.steps button{inline-size:100%;text-align:start;padding:10px 12px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid}
-.steps button[aria-current=step]{background:var(--surface);box-shadow:inset 3px 0 var(--accent)}
-.steps small{color:var(--muted)}
-.wizbody{display:grid;gap:20px;max-inline-size:40rem;padding-block-end:90px}
-.wizbody label.l{font-weight:600;display:block;margin-block-end:4px}
-.help{font-size:.88rem;color:var(--muted);margin-block-start:4px}
-.drop{border:2px dashed var(--line-strong);border-radius:var(--r);padding:28px;text-align:center;display:grid;gap:10px;justify-items:center}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.choice{display:grid;grid-template-columns:auto 1fr auto;gap:4px 16px;align-items:center;padding:22px;border-radius:var(--r);border:0;background:var(--surface);text-align:start;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.choice:hover,.choice:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+.choice .ic{grid-row:1/3;inline-size:48px;block-size:48px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:1.3rem;font-weight:700}
+.choice h3{font-size:1.0625rem}.choice span.d{color:var(--muted);font-size:.9rem;grid-column:2}
+.choice .go{grid-row:1/3;grid-column:3;color:var(--muted)}
+.wiz{display:grid;grid-template-columns:16rem minmax(0,1fr);gap:48px;align-items:start}
+.steps{list-style:none;padding:0;margin:0;display:grid;gap:4px;position:sticky;top:96px}
+.steps button{inline-size:100%;text-align:start;padding:10px 12px;border-radius:16px;border:0;background:none;cursor:pointer;display:grid;grid-template-columns:32px 1fr;gap:0 12px;align-items:center}
+.steps button i{grid-row:1/3;inline-size:32px;block-size:32px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:.875rem}
+.steps button[aria-current=step]{background:var(--surface)}
+.steps button[aria-current=step] i{background:var(--accent);color:var(--on-accent)}
+.steps b{font-weight:600;font-size:.9375rem}.steps small{color:var(--muted)}
+.wizbody{display:grid;gap:22px;max-inline-size:40rem;padding-block-end:110px}
+.wizbody h1{font-size:2rem;letter-spacing:-.03em}
+.wizbody label.l{font-weight:600;display:block;margin-block-end:6px}
+.drop{border-radius:var(--r);padding:36px 20px;text-align:center;display:grid;gap:10px;justify-items:center;background:var(--surface);box-shadow:inset 0 0 0 2px var(--line)}
+.drop .big{inline-size:56px;block-size:56px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:1.6rem}
 .progress{display:none}
-.wizbar{position:fixed;inset-inline:0;inset-block-end:0;background:var(--bg);border-block-start:1px solid var(--line);padding:10px var(--gutter);display:flex;gap:8px;align-items:center;z-index:15}
-.wizbar .saved{margin-inline-end:auto;font-size:.88rem;color:var(--muted)}
-details.sec2{border:1px solid var(--line);border-radius:var(--r);padding:0}
-details.sec2>summary{padding:14px 16px;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:12px;min-block-size:44px}
-details.sec2>summary small{font-weight:400;color:var(--muted)}
-details.sec2>div{padding:0 16px 16px;display:grid;gap:12px}
-.prev{border:2px dashed var(--line-strong);border-radius:var(--r);padding:16px;background:repeating-linear-gradient(45deg,transparent 0 8px,color-mix(in srgb,var(--line) 60%,transparent) 8px 9px);display:grid;gap:6px}
-.todo{padding-inline-start:20px;margin:6px 0 0}
+.wizbar{position:fixed;inset-inline:12px;inset-block-end:12px;max-inline-size:60rem;margin-inline:auto;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:999px;padding:8px 8px 8px 22px;display:flex;gap:8px;align-items:center;z-index:30;box-shadow:var(--shadow-m),inset 0 0 0 1px var(--line)}
+.wizbar .saved{margin-inline-end:auto;font-size:.875rem;color:var(--muted)}
+details.sec2{background:var(--surface);border-radius:var(--r)}
+details.sec2>summary{padding:16px 20px;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:12px;min-block-size:44px}
+details.sec2>summary small{font-weight:500;color:var(--muted)}
+details.sec2>div{padding:0 20px 20px;display:grid;gap:12px}
+.prev{border-radius:var(--r);padding:20px;outline:2px dashed var(--line-strong);outline-offset:-2px;background:repeating-linear-gradient(45deg,transparent 0 8px,var(--line) 8px 9px);display:grid;gap:8px;justify-items:start}
+.todo{padding-inline-start:20px;margin:8px 0 0}
 
 /* Sign-in */
-.signin{max-inline-size:26rem;margin:48px auto;display:grid;gap:16px;padding:0 var(--gutter)}
-.signin h1{font-family:var(--serif);font-size:1.8rem}
+.signin{inline-size:min(26rem,calc(100% - 2*var(--gutter)));margin:56px auto;display:grid;gap:16px;padding:32px;border-radius:28px;background:var(--surface)}
+.signin h1{font-size:1.75rem;letter-spacing:-.03em}
+.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.875rem}.or::before,.or::after{content:"";flex:1;block-size:1px;background:var(--line)}
 
 @media (max-width: 60rem) {
+  header.site{padding-inline-start:12px}
+  .nav-main,.search-open,.lang.desk,.btn.desk,details.acct.desk,.brand small{display:none}
   .mob{display:inline-flex}
-  .nav-main,.search-open,.lang.desk,header .btn.primary.desk,details.acct.desk{display:none}
-  header.site{padding-block:8px}
-  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;inset-inline:0;inset-block-end:0;background:var(--bg);border-block-start:1px solid var(--line);z-index:25;padding-block-end:env(safe-area-inset-bottom)}
-  .tabbar a{display:grid;justify-items:center;gap:2px;padding:8px 4px;min-block-size:56px;text-decoration:none;font-size:.78rem;font-weight:600;align-content:center}
-  .tabbar a[aria-current=page]{box-shadow:inset 0 3px var(--accent)}
-  .tabbar a.plus b{display:grid;place-items:center;inline-size:34px;block-size:34px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.3rem;line-height:1}
-  main{padding-block-end:60px}
-  footer.site{padding-block-end:80px}
-  .explore{grid-template-columns:1fr;position:relative}
-  .explore{block-size:calc(100vh - 191px)}
-  .pane{position:absolute;inset-inline:0;inset-block-end:0;z-index:10;border-start-start-radius:20px;border-start-end-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);max-block-size:62%;transition:max-block-size .2s}
-  .pane[data-sheet=peek]{max-block-size:176px}
-  .pane[data-sheet=peek] .pane-head{border:0}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;inset-inline:12px;inset-block-end:12px;border-radius:28px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:var(--shadow-m),inset 0 0 0 1px var(--line);z-index:45;padding:6px}
+  .tabbar a{display:grid;justify-items:center;gap:2px;padding:6px 4px;min-block-size:54px;text-decoration:none;font-size:.75rem;font-weight:600;align-content:center;border-radius:22px;color:var(--muted)}
+  .tabbar a[aria-current=page]{background:var(--surface);color:var(--text)}
+  .tabbar a.plus b{display:grid;place-items:center;inline-size:32px;block-size:32px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.3rem;line-height:1;box-shadow:0 6px 14px -4px color-mix(in srgb,var(--accent) 60%,transparent)}
+  .tabbar a.plus{color:var(--text)}
+  main{padding-block-end:84px}
+  footer.site{padding-block-end:100px;margin-block-start:24px}
+  .explore{margin:8px 8px 0;border-radius:24px;min-block-size:calc(100dvh - 210px)}
+  .pane{inset-inline:8px;inset-block:auto 30px;inline-size:auto;max-block-size:64%;border-radius:24px;transition:max-block-size .2s}
+  .grab{display:block;inline-size:40px;block-size:5px;border-radius:3px;background:var(--line-strong);margin:8px auto 0}
+  .pane[data-sheet=peek]{max-block-size:188px}
   .pane[data-sheet=peek] .list,.pane[data-sheet=peek] .chips{display:none}
-  .pane[data-sheet=full]{max-block-size:78%}
-  .mapwrap{grid-area:1/1}
-  .mctl{inset-block-start:8px}
-  .legend{inset-block-end:auto;inset-block-start:8px}
-  .two{grid-template-columns:1fr}
-  .side{position:static}
-  .side .actions{display:none}
-  .mobile-bar{display:flex;position:fixed;inset-inline:0;inset-block-end:56px;padding:10px var(--gutter);background:var(--bg);border-block-start:1px solid var(--line);z-index:20}
-  .mobile-bar .btn{flex:1}
-  .anchors{top:60px;overflow-x:auto}
+  .legend{inset-block-end:auto;inset-block-start:14px;inset-inline-end:auto;inset-inline-start:14px}
+  .attr{inset-block-start:8px;inset-block-end:auto}
+  .gallery{grid-template-columns:1fr;grid-template-rows:1fr;block-size:19rem;border-radius:22px}
+  .gallery .g2,.gallery .g3{display:none}
+  .two{grid-template-columns:1fr;gap:0}
+  .side{position:static}.two .side{margin-block-start:0}.side .actions{display:none}
+  .mobile-bar{display:flex;position:fixed;inset-inline:12px;inset-block-end:84px;z-index:40}
+  .mobile-bar .btn{flex:1;min-block-size:50px}
+  .anchors{top:74px;overflow-x:auto}
   .choices{grid-template-columns:1fr}
   .wiz{grid-template-columns:1fr}
   .steps{display:none}
-  .progress{display:grid;gap:6px;margin-block-end:8px}
-  .bar{block-size:6px;border-radius:3px;background:var(--line);overflow:hidden}.bar i{display:block;block-size:100%;background:var(--accent)}
-  .wizbar{inset-block-end:56px}
-  .title-row h1{font-size:1.7rem}
-  .hero{aspect-ratio:4/3}
+  .progress{display:grid;gap:8px;margin-block-end:12px}
+  .bar{block-size:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}.bar i{display:block;block-size:100%;background:var(--accent);border-radius:3px}
+  .wizbar{inset-block-end:84px}
+  .wizbody h1{font-size:1.6rem}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<p class="note">Prototype of the UX redesign proposal · every record, name, and date here is fictional · views: <a href="#/explore">Explore</a> · <a href="#/artwork">Artwork</a> · <a href="#/contribute">Contribute</a> · <a href="#/sign-in">Sign in</a></p>
+<p class="note">Prototype of the UX redesign proposal · every record, name, and date here is fictional · <a href="#/explore">Explore</a> · <a href="#/artwork">Artwork</a> · <a href="#/contribute">Contribute</a> · <a href="#/sign-in">Sign in</a></p>
 
 <header class="site">
-  <a class="brand" href="#/explore"><span class="mark" aria-hidden="true">A</span><b>Archivio dell'arte<br>urbana (fittizio)</b></a>
+  <a class="brand" href="#/explore"><span class="mark" aria-hidden="true">A</span><b>Archivio dell'arte urbana<small>Roma · fictional demo</small></b></a>
   <nav class="nav-main" aria-label="Main">
     <a href="#/explore" data-nav="explore">Explore</a>
     <a href="#/archive" data-nav="archive">Archive</a>
@@ -207,9 +252,9 @@ details.sec2>div{padding:0 16px 16px;display:grid;gap:12px}
   <form class="search-open" role="search" onsubmit="return false"><label class="vh" for="gs">Search the archive</label><input id="gs" type="search" placeholder="Search"></form>
   <div class="lang desk" aria-label="Language"><a href="#" aria-current="true" lang="it">IT</a><a href="#" lang="en">EN</a></div>
   <a class="btn primary desk" href="#/contribute">+ Contribute</a>
-  <details class="acct desk"><summary>Account</summary>
+  <details class="acct desk"><summary><i aria-hidden="true">◡</i>Account</summary>
     <div class="menu"><a href="#/sign-in">Sign in</a><a href="#/contribute">My contributions</a><a href="#/sign-in">Moderation (Moderators)</a></div></details>
-  <a class="btn quiet mob" href="#/sign-in">Sign in</a>
+  <a class="btn mob" href="#/sign-in">Sign in</a>
 </header>
 
 <main id="view" tabindex="-1"></main>
@@ -220,9 +265,9 @@ details.sec2>div{padding:0 16px 16px;display:grid;gap:12px}
 
 <nav class="tabbar" aria-label="Main">
   <a href="#/explore" data-nav="explore"><span aria-hidden="true">◎</span>Explore</a>
-  <a href="#/archive" data-nav="archive"><span aria-hidden="true">☰</span>Archive</a>
+  <a href="#/archive" data-nav="archive"><span aria-hidden="true">▤</span>Archive</a>
   <a href="#/contribute" data-nav="contribute" class="plus"><b aria-hidden="true">+</b>Contribute</a>
-  <a href="#/sign-in" data-nav="sign-in"><span aria-hidden="true">○</span>Account</a>
+  <a href="#/sign-in" data-nav="sign-in"><span aria-hidden="true">◡</span>Account</a>
 </nav>
 
 <dialog id="filters" aria-labelledby="ft">
@@ -249,11 +294,11 @@ details.sec2>div{padding:0 16px 16px;display:grid;gap:12px}
 const $ = (s, r=document) => r.querySelector(s);
 const view = $('#view');
 const works = [
-  {id:1,t:'Il gatto sul muro (fictional)',cond:'present',w:'Condition: present',who:'Attributed to “Anonimo A” · probable',where:'Fictional district A · Site: Ex-depot',x:34,y:42,c1:'#b0703f',c2:'#3d5560'},
-  {id:2,t:'Senza titolo, stencil blu (fictional)',cond:'disappeared',w:'Condition: covered over',who:'Unknown artist',where:'Fictional district A · Site: Ex-depot',x:34,y:42,c1:'#4c6b8a',c2:'#1d2733',loc:1},
-  {id:3,t:'Onde (fictional)',cond:'present',w:'Condition: present',who:'Attributed to “Collettivo B” · confirmed',where:'Fictional district B',x:62,y:30,c1:'#3f8f84',c2:'#183a45'},
-  {id:4,t:'Portone dipinto (fictional)',cond:'unknown',w:'Condition: unknown',who:'Disputed attribution',where:'Fictional district B',x:70,y:62,c1:'#8a7a3a',c2:'#4a3b27'},
-  {id:5,t:'Sagome (fictional)',cond:'present',w:'Condition: present',who:'Unknown artist',where:'Fictional district A',x:22,y:68,c1:'#9a4a4a',c2:'#2c1f2d'}
+  {id:1,t:'Il gatto sul muro (fictional)',cond:'present',who:'Attributed to “Anonimo A” · probable',where:'Fictional district A · Ex-depot',c1:'#d9763a',c2:'#27424d',c3:'#f2c46d'},
+  {id:2,t:'Senza titolo, stencil blu (fictional)',cond:'disappeared',who:'Unknown artist',where:'Fictional district A · Ex-depot',c1:'#4f7fb0',c2:'#1a2430',c3:'#9fd0e8'},
+  {id:3,t:'Onde (fictional)',cond:'present',who:'Attributed to “Collettivo B” · confirmed',where:'Fictional district B',c1:'#2fb3a0',c2:'#12323c',c3:'#c4f0a8'},
+  {id:4,t:'Portone dipinto (fictional)',cond:'unknown',who:'Disputed attribution',where:'Fictional district B',c1:'#c0a23a',c2:'#3d2f20',c3:'#e98a5a'},
+  {id:5,t:'Sagome (fictional)',cond:'present',who:'Unknown artist',where:'Fictional district A',c1:'#c0506a',c2:'#241a2c',c3:'#f0a070'}
 ];
 const signs = [
   {id:'L1',x:34,y:42,cond:'present',works:[1,2],stack:true,label:'Location, 2 artworks: 1 present, 1 disappeared'},
@@ -262,44 +307,46 @@ const signs = [
   {id:'L4',x:22,y:68,cond:'present',works:[5],label:'Location, 1 artwork: 1 present'}
 ];
 const condWord = c => ({present:'Present',disappeared:'Disappeared',unknown:'Unknown'})[c];
-const badge = c => `<span class="badge"><span class="sign ${c}"></span>${condWord(c)}</span>`;
+const artStyle = w => `--c1:${w.c1};--c2:${w.c2};--c3:${w.c3}`;
 const mapSvg = `<svg class="base" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
 <rect width="100" height="100" fill="var(--paper)"/>
-<g fill="var(--block)"><rect x="4" y="6" width="24" height="20"/><rect x="34" y="8" width="20" height="16"/><rect x="60" y="6" width="34" height="14"/><rect x="6" y="34" width="20" height="22"/><rect x="40" y="52" width="22" height="18"/><rect x="68" y="42" width="26" height="12"/><rect x="8" y="76" width="30" height="16"/><rect x="48" y="80" width="42" height="14"/></g>
-<rect x="64" y="64" width="26" height="12" fill="var(--park)"/><path d="M0 92 C 30 84, 60 98, 100 88 L100 100 L0 100Z" fill="var(--water)"/>
-<g stroke="var(--road)" stroke-width="2.2" fill="none"><path d="M0 30 H100"/><path d="M0 72 H100"/><path d="M30 0 V100"/><path d="M58 0 V100"/><path d="M0 50 L100 40" stroke-width="1.4"/></g></svg>`;
+<g fill="var(--block)"><rect rx="1.2" x="4" y="6" width="24" height="20"/><rect rx="1.2" x="34" y="8" width="20" height="16"/><rect rx="1.2" x="60" y="6" width="34" height="14"/><rect rx="1.2" x="6" y="34" width="20" height="22"/><rect rx="1.2" x="40" y="52" width="22" height="18"/><rect rx="1.2" x="68" y="42" width="26" height="12"/><rect rx="1.2" x="8" y="76" width="30" height="16"/><rect rx="1.2" x="48" y="80" width="42" height="14"/></g>
+<rect rx="1.5" x="64" y="64" width="26" height="12" fill="var(--park)"/><path d="M0 92 C 30 84, 60 98, 100 88 L100 100 L0 100Z" fill="var(--water)"/>
+<g stroke="var(--road)" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M-2 30 H102"/><path d="M-2 72 H102"/><path d="M30 -2 V102"/><path d="M58 -2 V102"/><path d="M-2 50 L102 40" stroke-width="1.5"/></g></svg>`;
 
 function card(w, selected) {
   return `<article class="entry" data-selected="${selected===w.id}">
-    <div class="thumb" style="--c1:${w.c1};--c2:${w.c2}" role="img" aria-label="Fictional placeholder photo of ${w.t}"><small>fictional photo</small></div>
+    <div class="thumb art" style="${artStyle(w)}" role="img" aria-label="Fictional placeholder photo: ${w.t}"></div>
     <div><h3><a href="#/artwork">${w.t}</a>${selected===w.id?'<span class="sel-label">Selected</span>':''}</h3>
-    <div class="meta">${badge(w.cond)}<span>${w.who}</span><span>${w.where}</span></div>
-    <button class="btn quiet sm" data-show="${w.id}" aria-label="Show on map: ${w.t}">Show on map</button></div></article>`;
+    <p class="cond"><span class="sign ${w.cond}"></span>${condWord(w.cond)}</p>
+    <p class="meta">${w.who}</p><p class="meta">${w.where}</p>
+    <button class="btn quiet sm show" data-show="${w.id}" aria-label="Show on map: ${w.t}">Show on map</button></div></article>`;
 }
 
-let selectedSign = null, sheet = matchMedia('(max-width: 60rem)').matches ? 'peek' : 'list';
+const narrow = () => matchMedia('(max-width: 60rem)').matches;
+let selectedSign = null, sheet = narrow() ? 'peek' : 'list';
 function renderExplore() {
   const sel = signs.find(s => s.id === selectedSign);
   const list = works.map(w => card(w, sel && sel.works.includes(w.id) ? w.id : null)).join('');
   const head = `<div class="pane-head">
     <div class="field"><label class="vh" for="q">Search</label><input id="q" type="search" placeholder="Search title, artist, place">
-      <button class="btn" id="open-filters" type="button">Filters <span class="badge" id="fbadge">0</span></button></div>
+      <button class="btn" id="open-filters" type="button">Filters <span class="count-badge" id="fbadge">0</span></button></div>
     <div class="chips" id="chips"></div>
     <p class="count" role="status" id="count">5 artworks in this area · page 1 of 1</p>
-    <button class="btn primary sheet-peek" id="peek-btn" type="button" style="display:none">Show list</button></div>`;
+    <button class="btn primary" id="peek-btn" type="button" style="display:none">Show list</button></div>`;
   const panel = sel ? `<div class="panel"><button class="btn quiet sm" id="back" style="justify-self:start">← Back to list</button>
     <h2 id="ptitle" tabindex="-1">Wall of the ex-depot (fictional)</h2>
-    <p class="meta">Surface: plastered wall · Fictional district A · Site: Ex-depot · <a href="#/artwork">Location page</a></p>
-    <h3>${sel.works.length} ${sel.works.length>1?'artworks on this surface':'artwork'}, most recent first</h3>
-    ${sel.works.map(id => card(works.find(w=>w.id===id), id)).join('')}
-    <p class="count">1 more artwork on this surface doesn't match the filters.</p></div>` : `${head}<div class="list" aria-label="Artwork list">${list}</div>`;
+    <p class="meta">Plastered wall · Fictional district A · Site: Ex-depot · <a href="#/artwork">Location page</a></p>
+    <h3 style="font-size:1rem">${sel.works.length} ${sel.works.length>1?'artworks on this surface':'artwork'}, most recent first</h3>
+    <div style="display:grid;gap:2px">${sel.works.map(id => card(works.find(w=>w.id===id), id)).join('')}</div>
+    <p class="help">1 more artwork on this surface doesn't match the filters.</p></div>` : `${head}<div class="list" aria-label="Artwork list">${list}</div>`;
   view.innerHTML = `<div class="explore">
-    <section class="pane" aria-label="${sel?'Location':'Artwork list'}" data-sheet="${sheet==='peek'?'peek':sheet==='full'?'full':'list'}">${panel}</section>
     <section class="mapwrap" aria-label="Map" id="explore-map">${mapSvg}
-      ${signs.map(s => `<button class="sg ${s.stack?'stack':''}" style="left:${s.x}%;top:${s.y}%" data-sign="${s.id}" aria-pressed="${selectedSign===s.id}" aria-label="${s.label}"><span class="sign ${s.cond}"></span></button>`).join('')}
+      ${signs.map(s => `<button class="sg ${s.stack?'stack':''}" style="left:${s.x+(narrow()?0:10)}%;top:${s.y}%" data-sign="${s.id}" aria-pressed="${selectedSign===s.id}" aria-label="${s.label}"><span class="sign ${s.cond}"></span></button>`).join('')}
       <div class="mctl"><button aria-label="Zoom in">+</button><button aria-label="Zoom out">−</button><button aria-label="Back to default view">⌖</button></div>
       <div class="legend" aria-label="Legend"><div><span class="sign present"></span> Present</div><div><span class="sign disappeared"></span> Disappeared</div><div><span class="sign unknown"></span> Unknown</div></div>
-      <span class="attr">© OpenStreetMap (fictional map)</span></section></div>`;
+      <span class="attr">© OpenStreetMap (fictional map)</span></section>
+    <section class="pane" aria-label="${sel?'Location':'Artwork list'}" data-sheet="${sheet}"><span class="grab" aria-hidden="true"></span>${panel}</section></div>`;
   wireExplore();
   syncFilters();
 }
@@ -312,46 +359,47 @@ function syncFilters() {
   const b = $('#fbadge'); if (b) b.textContent = chips.length;
   const ct = $('#count'); if (ct) ct.textContent = `${n} artworks in this area · page 1 of 1`;
   $('#fapply').textContent = `Show ${n} artworks`;
+  view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const v=b.dataset.rm;
+    ['present','disappeared','unknown'].forEach(c => { if (v==='Hide '+c) f.querySelector(`input[value=${c}]`).checked = true; }); if (f.t.value===v) f.t.value=''; if (f.a.value===v) f.a.value=''; syncFilters(); });
 }
 function wireExplore() {
-  view.querySelectorAll('[data-sign]').forEach(b => b.onclick = () => { selectedSign = b.dataset.sign; sheet='list'; renderExplore(); $('#ptitle')?.focus(); });
+  view.querySelectorAll('[data-sign]').forEach(b => b.onclick = () => { selectedSign = b.dataset.sign; sheet = narrow() ? 'full' : 'list'; renderExplore(); $('#ptitle')?.focus(); });
   view.querySelectorAll('[data-show]').forEach(b => b.onclick = () => { const w = works.find(x=>x.id==b.dataset.show); selectedSign = signs.find(s=>s.works.includes(w.id)).id; renderExplore(); $('#ptitle')?.focus(); });
   $('#back')?.addEventListener('click', () => { const prev = selectedSign; selectedSign = null; renderExplore(); view.querySelector(`[data-sign="${prev}"]`)?.focus(); });
   $('#open-filters')?.addEventListener('click', () => $('#filters').showModal());
-  $('#peek-btn')?.addEventListener('click', () => { sheet = sheet==='peek'?'list':'peek'; renderExplore(); });
-  view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const f=$('#filters form'); const v=b.dataset.rm;
-    ['present','disappeared','unknown'].forEach(c => { if (v==='Hide '+c) f.querySelector(`input[value=${c}]`).checked = true; }); if (f.t.value===v) f.t.value=''; if (f.a.value===v) f.a.value=''; syncFilters(); });
-  if (matchMedia('(max-width: 60rem)').matches) {
-    const pb = $('#peek-btn'); if (pb) { pb.style.display='inline-flex'; pb.textContent = sheet==='peek' ? 'Show list' : 'Show map'; }
-  }
+  $('#peek-btn')?.addEventListener('click', () => { sheet = sheet==='peek'?'full':'peek'; renderExplore(); });
+  if (narrow()) { const pb = $('#peek-btn'); if (pb) { pb.style.display='inline-flex'; pb.textContent = sheet==='peek' ? 'Show list' : 'Show map'; } }
 }
-$('#fapply').onclick = () => { setTimeout(syncFilters,0); };
-$('#filters form').addEventListener('change', syncFilters);
+$('#filters form').addEventListener('change', () => syncFilters());
+$('#fapply').onclick = () => setTimeout(syncFilters,0);
 $('#fclear').onclick = () => { const f=$('#filters form'); f.querySelectorAll('input[name=c]').forEach(i=>i.checked=true); f.t.value=''; f.a.value=''; syncFilters(); };
 
 function renderArtwork() {
+  const w = works[0], w2 = works[2], w3 = works[4];
   view.innerHTML = `<div class="wrap">
   <p class="crumbs"><a href="#/archive">Archive</a> › Fictional district A › Il gatto sul muro (fictional)</p>
-  <div class="hero" role="img" aria-label="Fictional placeholder photograph of a painted wall"><small>Fictional photo · CC-BY-SA-4.0 · Creator: fictional</small></div>
-  <div class="thumbs" role="group" aria-label="Documentation"><button aria-current="true" aria-label="Photo 1 of 3" style="--c1:#9a5a3c;--c2:#2f4a56"></button><button aria-label="Photo 2 of 3" style="--c1:#6a7a4a;--c2:#2a3a3a"></button><button aria-label="Photo 3 of 3" style="--c1:#7a5a8a;--c2:#2a2a3a"></button></div>
+  <div class="gallery" role="group" aria-label="Documentation, 3 photos">
+    <div class="art g1" style="${artStyle(w)}" role="img" aria-label="Fictional placeholder photograph of a painted wall"><span class="pill glass">Photo 1 of 3 · CC-BY-SA-4.0 · fictional creator</span></div>
+    <div class="art g2" style="${artStyle(w2)}" role="img" aria-label="Fictional placeholder photo 2"></div>
+    <div class="art g3" style="${artStyle(w3)}" role="img" aria-label="Fictional placeholder photo 3"></div></div>
   <div class="two"><div>
-    <div class="title-row"><h1>Il gatto sul muro (fictional)</h1>${badge('present')}</div>
-    <p class="meta">Mural · Attributed to “Anonimo A”, probable · c. 2019 · first documented 14 March 2021</p>
+    <div class="hero-title"><h1>Il gatto sul muro <span style="color:var(--muted);font-weight:600">(fictional)</span></h1>
+      <div class="tags"><span class="pill"><span class="sign present"></span>Present</span><span class="pill">Mural</span><span class="pill">c. 2019</span><span class="pill">First documented 14 March 2021</span></div></div>
     <nav class="anchors" aria-label="On this page"><a href="#">Overview</a><a href="#">Timeline</a><a href="#">Sources</a></nav>
     <section class="sec"><h2>Description</h2><p>A cat painted at the foot of a plastered wall, partly shaded by a tree. This sample record is fictional and makes no claim about any real artwork.</p></section>
     <section class="sec"><h2>Attribution</h2><p><a href="#">Anonimo A</a> — probable. <span class="help">Evidence: reported, 1 source.</span></p></section>
     <section class="sec" id="tl"><h2>Timeline</h2><ol class="tl">
       <li><b>Documented · 14 March 2021</b>First photograph in the archive. Condition: present.</li>
-      <li><b>Damaged · 2022 (estimated)</b>Part of the lower edge scratched. <span class="help">Observed 2022, submitted and approved separately.</span></li>
+      <li><b>Damaged · 2022 (estimated)</b>Part of the lower edge scratched. Observed 2022; submitted and approved separately.</li>
       <li><b>Created · c. 2019</b>Date uncertain; shown as a range in the record.</li></ol></section>
     <section class="sec"><h2>Sources</h2><p>1 · Fictional catalogue entry (document)</p></section>
     <p><a href="#">Revisions</a></p>
   </div>
   <aside class="side" aria-label="Place and actions">
     <div class="card"><div class="mini">${mapSvg}<span class="sg" style="left:50%;top:50%;pointer-events:none"><span class="sign present"></span></span></div>
-      <p style="margin-top:10px"><b>Wall of the ex-depot</b><br><span class="help">Fictional district A · Site: Ex-depot</span></p><p style="margin-top:8px"><a href="#/explore">See on the map</a></p></div>
-    <div class="card actions"><h2 style="font-size:1rem">Help document this work</h2>
-      <a class="btn" href="#/contribute">Add photos</a><a class="btn" href="#/contribute">Report a condition change</a><a class="btn quiet" href="#/contribute">Propose an edit</a></div>
+      <p style="margin-top:14px"><b>Wall of the ex-depot</b></p><p class="help">Fictional district A · Site: Ex-depot</p><p style="margin-top:10px"><a href="#/explore">See on the map →</a></p></div>
+    <div class="card actions"><h2>Help document this work</h2>
+      <a class="btn primary" href="#/contribute">Add photos</a><a class="btn outline" href="#/contribute">Report a condition change</a><a class="btn quiet" href="#/contribute">Propose an edit</a></div>
   </aside></div></div>
   <div class="mobile-bar"><a class="btn primary" href="#/contribute">Contribute to this artwork</a></div>`;
 }
@@ -360,48 +408,47 @@ let step = 1, mode = null;
 const stepsDef = [['Photos and place','Required'],['The artwork','Required'],['Details','Optional'],['Review and submit','']];
 function renderContribute() {
   if (!mode) {
-    view.innerHTML = `<div class="wrap" style="max-inline-size:52rem"><h1 style="font-family:var(--serif);font-size:2rem;margin-block-end:6px">How would you like to help?</h1>
-    <p class="help" style="margin-block-end:20px">Every contribution is reviewed by a moderator before it is public. You can sign in when you start.</p>
+    view.innerHTML = `<div class="wrap" style="max-inline-size:56rem;padding-block-start:36px"><h1 style="font-size:clamp(2rem,5vw,2.75rem);letter-spacing:-.035em;font-weight:800;margin-block-end:10px">How would you like to help?</h1>
+    <p class="help" style="margin-block-end:28px;font-size:1rem">Every contribution is reviewed by a moderator before it is public. You can sign in when you start.</p>
     <div class="choices">
-      <button class="choice" data-mode="new"><h3>Document a new artwork</h3><span>Start with a photo. Takes about five minutes.</span></button>
-      <button class="choice" data-mode="photos"><h3>Add photos to an artwork</h3><span>Show how a work looks today.</span></button>
-      <button class="choice" data-mode="change"><h3>Report a change or disappearance</h3><span>Covered, damaged, removed: the record keeps its history.</span></button>
-      <button class="choice" data-mode="fix"><h3>Fix something that is wrong</h3><span>Suggest a correction with a source.</span></button></div>
-    <p class="help" style="margin-top:20px"><a href="#">Contribution guidelines</a> · <a href="#">My contributions</a></p></div>`;
+      <button class="choice" data-mode="new"><span class="ic" aria-hidden="true">▣</span><h3>Document a new artwork</h3><span class="go" aria-hidden="true">→</span><span class="d">Start with a photo. About five minutes.</span></button>
+      <button class="choice" data-mode="photos"><span class="ic" aria-hidden="true">＋</span><h3>Add photos to an artwork</h3><span class="go" aria-hidden="true">→</span><span class="d">Show how a work looks today.</span></button>
+      <button class="choice" data-mode="change"><span class="ic" aria-hidden="true">◐</span><h3>Report a change or disappearance</h3><span class="go" aria-hidden="true">→</span><span class="d">Covered, damaged, removed: the record keeps its history.</span></button>
+      <button class="choice" data-mode="fix"><span class="ic" aria-hidden="true">✎</span><h3>Fix something that is wrong</h3><span class="go" aria-hidden="true">→</span><span class="d">Suggest a correction with a source.</span></button></div>
+    <p class="help" style="margin-top:24px"><a href="#">Contribution guidelines</a> · <a href="#">My contributions</a></p></div>`;
     view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; step = 1; renderContribute(); view.focus(); });
     return;
   }
   const bodies = {
-    1: `<h1 id="st" tabindex="-1" style="font-family:var(--serif)">Photos and place</h1>
-      <div class="drop"><span aria-hidden="true" style="font-size:2rem">▣</span><b>Take or choose a photo</b><button class="btn primary" type="button">Choose files</button><span class="help">JPEG, PNG, WebP or PDF · up to 25 MB each · at most 20 files</span></div>
-      <div class="card" style="display:grid;gap:12px"><b>Photo 1 · fictional-wall.jpg</b>
+    1: `<h1 id="st" tabindex="-1">Photos and place</h1>
+      <div class="drop"><span class="big" aria-hidden="true">▣</span><b>Take or choose a photo</b><button class="btn primary" type="button">Choose files</button><span class="help">JPEG, PNG, WebP or PDF · up to 25 MB each · at most 20 files</span></div>
+      <div class="card" style="display:grid;gap:14px"><b>Photo 1 · fictional-wall.jpg</b>
         <div><label class="l" for="d1">Observed date <span class="help">(suggested from the photo; check it)</span></label><input class="txt" id="d1" value="2026-09-12"></div>
-        <div><label class="l" for="alt">Describe what the image shows</label><input class="txt" id="alt" placeholder="A painted cat at the foot of a wall"><p class="help">What it shows, not who appears in it. Up to 250 characters.</p></div>
-        <div><label class="l" for="lic">Licence for this file</label><select id="lic"><option>CC-BY-SA-4.0</option><option>CC-BY-4.0</option><option>CC0-1.0</option></select><p class="help">Covers this file only. <a href="#">Learn more</a></p></div></div>
+        <div><label class="l" for="alt">Describe what the image shows</label><input class="txt" id="alt" placeholder="A painted cat at the foot of a wall"><p class="help" style="margin-top:4px">What it shows, not who appears in it. Up to 250 characters.</p></div>
+        <div><label class="l" for="lic">Licence for this file</label><select id="lic"><option>CC-BY-SA-4.0</option><option>CC-BY-4.0</option><option>CC0-1.0</option></select><p class="help" style="margin-top:4px">Covers this file only. <a href="#">Learn more</a></p></div></div>
       <fieldset><legend>What state was it in, in the most recent photo?</legend>
         <label class="opt"><input type="radio" name="cs" checked> <span class="sign present"></span> Present</label><label class="opt"><input type="radio" name="cs"> <span class="sign disappeared"></span> Disappeared (covered, removed, destroyed)</label><label class="opt"><input type="radio" name="cs"> <span class="sign unknown"></span> Unknown</label></fieldset>
-      <div><h2 style="font-size:1.2rem;margin-block-end:8px">Where is it?</h2><div class="mini" style="aspect-ratio:16/8">${mapSvg}<span class="sg" style="left:40%;top:46%"><span class="sign present"></span></span></div>
-      <label class="l" for="coord" style="margin-top:10px">Or type coordinates</label><input class="txt" id="coord" value="41.8986, 12.4769"><p class="help">Confirms as “41.8986 N, 12.4769 E, Fictional district A”. This is where the artwork is, not where you are.</p>
-      <p class="help">Careful with identifiable people and number plates in photos.</p></div>`,
-    2: `<h1 id="st" tabindex="-1" style="font-family:var(--serif)">The artwork</h1>
-      <div><label class="l" for="ti">Title</label><input class="txt" id="ti"><label class="opt"><input type="checkbox"> It has no known title (record as Untitled)</label></div>
-      <div><label class="l" for="ty">Expression type</label><select id="ty" class="txt"><option>Mural</option><option>Stencil</option><option>Paste-up</option><option>Sticker</option><option>Installation</option></select></div>
-      <div><label class="l" for="ds">Description</label><textarea class="txt" id="ds"></textarea><p class="help">What it shows, in Italian. No claims about legality.</p></div>`,
-    3: `<h1 id="st" tabindex="-1" style="font-family:var(--serif)">Details <small class="help">optional</small></h1>
+      <div><h2 style="font-size:1.25rem;margin-block-end:10px">Where is it?</h2><div class="mini" style="aspect-ratio:16/8">${mapSvg}<span class="sg" style="left:40%;top:46%"><span class="sign present"></span></span></div>
+      <label class="l" for="coord" style="margin-top:14px">Or type coordinates</label><input class="txt" id="coord" value="41.8986, 12.4769"><p class="help" style="margin-top:4px">Confirms as “41.8986 N, 12.4769 E, Fictional district A”. This is where the artwork is, not where you are.</p>
+      <p class="help" style="margin-top:8px">Careful with identifiable people and number plates in photos.</p></div>`,
+    2: `<h1 id="st" tabindex="-1">The artwork</h1>
+      <div><label class="l" for="ti">Title</label><input class="txt" id="ti"><label class="opt" style="margin-top:8px"><input type="checkbox"> It has no known title (record as Untitled)</label></div>
+      <div><label class="l" for="ty">Expression type</label><select id="ty"><option>Mural</option><option>Stencil</option><option>Paste-up</option><option>Sticker</option><option>Installation</option></select></div>
+      <div><label class="l" for="ds">Description</label><textarea class="txt" id="ds"></textarea><p class="help" style="margin-top:4px">What it shows, in Italian. No claims about legality.</p></div>`,
+    3: `<h1 id="st" tabindex="-1">Details <small class="help" style="font-size:1rem;font-weight:500">optional</small></h1>
       <p class="help">Skip anything you don't know. A moderator can ask for more.</p>
       <details class="sec2" open><summary>Who made it? <small>Unknown</small></summary><div><label class="opt"><input type="radio" name="at" checked> The author is unknown</label><label class="opt"><input type="radio" name="at"> I know who made it</label><p class="help">Public artist names only. “Confirmed” needs a source.</p></div></details>
-      <details class="sec2"><summary>When was it made? <small>Unknown date</small></summary><div><label class="l" for="qa">Date</label><select id="qa" class="txt"><option>Unknown date</option><option>Exact</option><option>Circa</option><option>Before</option><option>After</option></select></div></details>
-      <details class="sec2"><summary>Sources <small>None added</small></summary><div><button class="btn" type="button">Add a source</button></div></details>`,
-    4: `<h1 id="st" tabindex="-1" style="font-family:var(--serif)">Review and submit</h1>
+      <details class="sec2"><summary>When was it made? <small>Unknown date</small></summary><div><label class="l" for="qa">Date</label><select id="qa"><option>Unknown date</option><option>Exact</option><option>Circa</option><option>Before</option><option>After</option></select></div></details>
+      <details class="sec2"><summary>Sources <small>None added</small></summary><div><button class="btn outline" type="button">Add a source</button></div></details>`,
+    4: `<h1 id="st" tabindex="-1">Review and submit</h1>
       <div class="card"><b>Still needed</b><ul class="todo"><li><a href="#">Title or “Untitled” (The artwork)</a></li><li><a href="#">Alt text for photo 1 (Photos and place)</a></li></ul></div>
-      <div class="prev"><span class="badge" style="justify-self:start">Proposed · not public until approved</span><h2 style="font-family:var(--serif)">Untitled</h2><p class="help">Mural · Condition: present · Fictional district A · Attribution unknown</p></div>
+      <div class="prev"><span class="pill">Proposed · not public until approved</span><h2>Untitled</h2><p class="help">Mural · Condition: present · Fictional district A · Attribution unknown</p></div>
       <div><label class="l" for="nm">Note to moderators <span class="help">(optional, never public)</span></label><textarea class="txt" id="nm"></textarea></div>
-      <label class="opt"><input type="checkbox"> I accept the <a href="#">terms of use</a></label>`
+      <label class="opt"><input type="checkbox"> I accept the&nbsp;<a href="#">terms of use</a></label>`
   };
-  const pct = step * 25;
-  view.innerHTML = `<div class="wrap" style="max-inline-size:60rem"><p class="crumbs"><button class="btn quiet sm" id="leave">← Exit and continue later</button></p>
-  <div class="progress"><span><b>Step ${step} of 4</b> · ${stepsDef[step-1][0]}</span><div class="bar"><i style="inline-size:${pct}%"></i></div></div>
-  <div class="wiz"><ol class="steps" aria-label="Steps">${stepsDef.map((s,i)=>`<li><button data-step="${i+1}" ${i+1===step?'aria-current="step"':''}><span>${i+1}. ${s[0]}</span><small>${i+1<step?'complete':i+1===step?'in progress':'to complete'}${s[1]?' · '+s[1].toLowerCase():''}</small></button></li>`).join('')}</ol>
+  view.innerHTML = `<div class="wrap" style="max-inline-size:64rem"><p style="margin-block-end:14px"><button class="btn quiet sm" id="leave" style="margin-inline-start:-12px">← Exit and continue later</button></p>
+  <div class="progress"><span><b>Step ${step} of 4</b> · ${stepsDef[step-1][0]}</span><div class="bar"><i style="inline-size:${step*25}%"></i></div></div>
+  <div class="wiz"><ol class="steps" aria-label="Steps">${stepsDef.map((s,i)=>`<li><button data-step="${i+1}" ${i+1===step?'aria-current="step"':''}><i>${i+1}</i><b>${s[0]}</b><small>${i+1<step?'complete':i+1===step?'in progress':'to complete'}${s[1]?' · '+s[1].toLowerCase():''}</small></button></li>`).join('')}</ol>
   <div class="wizbody">${bodies[step]}</div></div></div>
   <div class="wizbar"><span class="saved" role="status">Saved automatically · 10:42</span>
     ${step>1?'<button class="btn" id="bk">Back</button>':''}<button class="btn primary" id="nx">${step===4?'Submit':'Next'}</button></div>`;
@@ -413,23 +460,22 @@ function renderContribute() {
 
 function renderSignIn() {
   view.innerHTML = `<div class="signin"><h1>Sign in or create an account</h1>
-  <button class="btn" type="button">Use a passkey</button>
-  <p class="help" style="text-align:center">or</p>
-  <form onsubmit="event.preventDefault();this.innerHTML='<p><b>Check your email.</b> We sent a code to the address you entered.</p><label class=l for=code>6-digit code</label><input class=txt id=code inputmode=numeric autocomplete=one-time-code><button class=&quot;btn primary&quot; style=margin-top:12px>Continue</button>'" style="display:grid;gap:10px">
-    <label class="l" for="em" style="font-weight:600">Email</label><input class="txt" id="em" type="email" autocomplete="email" required>
+  <button class="btn outline" type="button">Use a passkey</button>
+  <p class="or">or</p>
+  <form onsubmit="event.preventDefault();this.innerHTML='<p><b>Check your email.</b> We sent a code to the address you entered.</p><label class=l for=code style=font-weight:600>6-digit code</label><input class=txt id=code inputmode=numeric autocomplete=one-time-code><button class=&quot;btn primary&quot; style=margin-top:12px>Continue</button>'" style="display:grid;gap:10px">
+    <label for="em" style="font-weight:600">Email</label><input class="txt" id="em" type="email" autocomplete="email" required>
     <button class="btn primary">Continue</button><p class="help">We'll email you a code. No password to remember.</p></form>
   <p class="help">New here? Continuing creates your account. <a href="#">What we store</a></p></div>`;
 }
 
-function renderStub(name) { view.innerHTML = `<div class="wrap"><h1 style="font-family:var(--serif)">${name}</h1><p class="help" style="margin-top:8px">Not part of the prototype. See the proposal for the intended layout.</p></div>`; }
+function renderStub(name) { view.innerHTML = `<div class="wrap"><h1>${name}</h1><p class="help" style="margin-top:8px">Not part of the prototype. See the proposal for the intended layout.</p></div>`; }
 
 function route() {
   const h = (location.hash.replace('#/','') || 'explore').split('/')[0];
-  document.querySelectorAll('[data-nav]').forEach(a => a.toggleAttribute('aria-current', a.dataset.nav===h) || a.removeAttribute('aria-current'));
   document.querySelectorAll('[data-nav]').forEach(a => { if (a.dataset.nav===h) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   if (h !== 'contribute') mode = null;
   ({explore:renderExplore, artwork:renderArtwork, contribute:renderContribute, 'sign-in':renderSignIn}[h] || (() => renderStub(h[0].toUpperCase()+h.slice(1))))();
-  document.querySelector('footer').hidden = h==='explore' && !matchMedia('(max-width:60rem)').matches;
+  document.querySelector('footer').hidden = h==='explore';
   window.scrollTo(0,0);
 }
 addEventListener('hashchange', route); route();
