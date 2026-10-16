@@ -121,6 +121,8 @@ async def save(connection: AsyncConnection, submission: Submission) -> None:
         .where(t.submission.c.id == submission.id)
         .values(
             status=submission.status.value,
+            target_id=submission.target_id,
+            base_revisions=list(submission.base_revisions),
             working_copy=submission.working_copy,
             last_autosave_at=submission.last_autosave_at,
             working_copy_discarded=submission.working_copy_discarded,

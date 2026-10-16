@@ -13,6 +13,7 @@ from tart.archive.changeset import (
     RemoveItem,
     SetField,
 )
+from tart.archive.changeset_codec import decode_changeset, encode_changeset
 from tart.archive.errors import ArchiveRuleViolation
 from tart.archive.evidence import (
     AttributionReadout,
@@ -134,7 +135,9 @@ __all__ = [
     "condition_group",
     "condition_set_by",
     "creation_event",
+    "decode_changeset",
     "derive_condition",
+    "encode_changeset",
     "evidence_level",
     "first_documentation",
     "last_documented",
