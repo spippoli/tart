@@ -8,6 +8,7 @@ Every User, record, and file is fictional.
 import asyncio
 import json
 import uuid
+import weakref
 from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -61,21 +62,22 @@ def _run(api: Api, work: Callable[[Any], Any]) -> Any:
     return asyncio.run(go())
 
 
-_SESSIONS: dict[tuple[int, str], httpx2.Cookies] = {}
+_SESSIONS: weakref.WeakKeyDictionary[Any, dict[str, httpx2.Cookies]] = weakref.WeakKeyDictionary()
 """The cookies of each signed-in User, by client: signing in again would meet the per-IP
-limit on sign-in codes."""
+limit on sign-in codes. Keyed by the client object itself, never its `id()`, which a later
+test's client can reuse."""
 
 
 def _as(api: Api, email: str, *, moderator: bool = False, fresh: bool = False) -> int:
     """Be the User: sign in (registering them) the first time, then reuse the session."""
-    key = (id(api.client), email)
+    sessions = _SESSIONS.setdefault(api.client, {})
     api.client.cookies.clear()
-    if key in _SESSIONS and not fresh:
-        api.client.cookies.update(_SESSIONS[key])
+    if email in sessions and not fresh:
+        api.client.cookies.update(sessions[email])
         number = api.client.get("/api/auth/session").json()["user"]["number"]
     else:
         number = api.sign_in(email)
-        _SESSIONS[key] = httpx2.Cookies(api.client.cookies)
+        sessions[email] = httpx2.Cookies(api.client.cookies)
     if moderator:
         api.query(
             "INSERT INTO user_role (user_id, role) VALUES ($1, 'moderator') ON CONFLICT DO NOTHING",
