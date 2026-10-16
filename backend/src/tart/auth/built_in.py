@@ -38,6 +38,7 @@ from tart.auth import (
     Refused,
     RegistrationRequired,
     SignedIn,
+    invitations,
     passkeys,
     sessions,
 )
@@ -86,9 +87,10 @@ class BuiltInAuthentication:
     privacy_contact: str
     """`contacts.privacy`, where the Email changed notice says to contest a change."""
 
-    def _may_register(self, email: str) -> bool:
-        # Under `invite`, the Invitations ticket admits an address with a pending
-        # Invitation; until then no address may register.
+    async def _may_register(self, connection: AsyncConnection, email: str, now: datetime) -> bool:
+        """Under `invite`, an address with a pending Invitation; under `closed`, none."""
+        if self.registration == "invite":
+            return await invitations.admits(connection, email, now)
         return self.registration == "open"
 
     def _language(self, requested: str) -> str:
@@ -140,7 +142,7 @@ class BuiltInAuthentication:
             ).one_or_none()
             if user is not None and user.suspended_at is not None:
                 pass
-            elif user is not None or self._may_register(email):
+            elif user is not None or await self._may_register(connection, email, now):
                 code = new_code()
                 values = {
                     "code_hash": self._code_hash(email, code),
@@ -207,7 +209,7 @@ class BuiltInAuthentication:
                     return Refused(CODE_INVALID)
                 logger.info("signed in with a code", extra={"user_id": user.id})
                 return SignedIn(await sessions.create(connection, user.id, now, self.key))
-            if not self._may_register(email):
+            if not await self._may_register(connection, email, now):
                 await connection.execute(used_up)
                 return Refused(CODE_INVALID)
             registration = attempt.registration
@@ -230,6 +232,8 @@ class BuiltInAuthentication:
                 )
                 .returning(user_account.c.id)
             )
+            if self.registration == "invite":
+                await invitations.redeem(connection, email, user_id, now)
             await connection.execute(used_up)
             logger.info("registered and signed in", extra={"user_id": user_id})
             return SignedIn(await sessions.create(connection, user_id, now, self.key))

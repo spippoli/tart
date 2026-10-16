@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart import jobs, migrations, tiles
-from tart.auth import operator
+from tart.auth import invitations, operator
 from tart.auth.operator import OperatorError
 from tart.auth.users import display_name_problem
 from tart.config import ConfigurationError, Instance, config_dir, load_instance
@@ -228,6 +228,36 @@ def _users_unsuspend(args: argparse.Namespace) -> int:
     return _run_on_database(unsuspend)
 
 
+def _invites_create(args: argparse.Namespace) -> int:
+    async def create(connection: AsyncConnection, instance: Instance) -> str:
+        if instance.settings.community.registration != "invite":
+            raise OperatorError(
+                "Invitations exist only under community.registration = invite "
+                f"(this Instance uses {instance.settings.community.registration})"
+            )
+        email = operator.address(args.email)
+        now = datetime.now(UTC)
+        try:
+            number = await invitations.issue(connection, email, None, now)
+        except invitations.InvitationError as error:
+            raise OperatorError(
+                f"{email} already has a pending Invitation"
+                if error.code == invitations.INVITATION_PENDING
+                else error.code
+            ) from error
+        expires = now + invitations.INVITATION_LIFETIME
+        base = os.environ.get("PUBLIC_BASE_URL", "").rstrip("/")
+        # The invitation email belongs to the Notifications spec; until it exists,
+        # the Operator passes the news on.
+        return (
+            f"Invitation #{number} for {email}, valid until {expires:%Y-%m-%d}. "
+            "No email is sent: ask them to register at that address"
+            + (f" on {base}/." if base else ".")
+        )
+
+    return _run_on_database(create)
+
+
 _FAILED_JOBS = text(
     "SELECT job.id, job.task_name, job.queue_name, job.attempts, max(event.at) AS failed_at "
     "FROM procrastinate_jobs job JOIN procrastinate_events event ON event.job_id = job.id "
@@ -370,6 +400,20 @@ def _parser() -> argparse.ArgumentParser:
     unsuspend = users_commands.add_parser("unsuspend", help="lift a Suspension; no email is sent")
     unsuspend.add_argument("email")
     unsuspend.set_defaults(handler=_users_unsuspend)
+
+    invites = commands.add_parser("invites", help="manage Invitations")
+    invites_commands = invites.add_subparsers(title="commands", metavar="<command>", required=True)
+    invite = invites_commands.add_parser(
+        "create",
+        help="invite an email address to register (community.registration = invite)",
+        description=(
+            "Create an Invitation issued by the Operator: bound to the address, single-use, "
+            "valid for 14 days, redeemed by registering with the ordinary email code. "
+            "Refused unless community.registration is invite."
+        ),
+    )
+    invite.add_argument("email")
+    invite.set_defaults(handler=_invites_create)
 
     jobs_command = commands.add_parser("jobs", help="inspect and retry failed background jobs")
     jobs_commands = jobs_command.add_subparsers(

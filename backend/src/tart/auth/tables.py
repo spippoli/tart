@@ -1,4 +1,5 @@
-"""The tables of Users, roles, sessions, one-time codes, email changes, and passkeys (PostgreSQL).
+"""The tables of Users, roles, sessions, one-time codes, email changes, passkeys, and Invitations
+(PostgreSQL).
 
 A User's id is their User number, which Moderators see and which the deleted-account
 Pseudonym shows. Email addresses are stored normalised (`normalise_email`), so the
@@ -118,4 +119,23 @@ passkey_challenge = Table(
     # The User adding a passkey; null for a sign-in.
     Column("user_id", BigInteger, ForeignKey("user_account.id", ondelete="CASCADE")),
     Column("expires_at", DateTime(timezone=True), nullable=False, index=True),
+)
+
+invitation = Table(
+    "invitation",
+    metadata,
+    Column("id", BigInteger, Identity(), primary_key=True),
+    # Normalised, as `user_account.email`; not unique, as an expired or revoked
+    # Invitation may be followed by another one for the same address.
+    Column("email", Text, nullable=False, index=True),
+    # Null when the Operator issued it from the CLI. The issuer is kept when their
+    # role is revoked; the link is cleared only if the account is deleted.
+    Column("issued_by", BigInteger, ForeignKey("user_account.id", ondelete="SET NULL")),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("expires_at", DateTime(timezone=True), nullable=False),
+    Column("used_at", DateTime(timezone=True)),
+    Column("used_by", BigInteger, ForeignKey("user_account.id", ondelete="SET NULL")),
+    Column("revoked_at", DateTime(timezone=True)),
+    Column("revoked_by", BigInteger, ForeignKey("user_account.id", ondelete="SET NULL")),
+    CheckConstraint("used_at IS NULL OR revoked_at IS NULL", name="used_or_revoked"),
 )
