@@ -37,6 +37,7 @@ class Action(StrEnum):
     REQUEST_CHANGES = "request_changes"
     RETRACT = "retract"
     EXPIRE = "expire"
+    CONVERT = "convert"
 
 
 TRANSITIONS: dict[tuple[Status, Action], tuple[Status, Event]] = {
@@ -53,9 +54,9 @@ TRANSITIONS: dict[tuple[Status, Action], tuple[Status, Event]] = {
     (Status.SUBMITTED, Action.RETRACT): (Status.RETRACTED, Event.RETRACTED),
     (Status.CHANGES_REQUESTED, Action.RETRACT): (Status.RETRACTED, Event.RETRACTED),
     (Status.CHANGES_REQUESTED, Action.EXPIRE): (Status.RETRACTED, Event.EXPIRED),
+    (Status.CHANGES_REQUESTED, Action.CONVERT): (Status.RETRACTED, Event.CONVERTED_INTO),
 }
-"""Exactly the transitions of the Lifecycle table. The conversion into a documentation
-Submission, which retracts the original, belongs to the retry and conversion ticket."""
+"""Exactly the transitions of the Lifecycle table."""
 
 SUBMITTER_ACTIONS = frozenset({Action.SUBMIT, Action.REVISE, Action.RESUBMIT, Action.RETRACT})
 DECISIONS = frozenset({Action.APPROVE, Action.REJECT, Action.REQUEST_CHANGES})
@@ -93,6 +94,7 @@ def _apply(
     snapshot: Json = None,
     message: str | None = None,
     reason: str | None = None,
+    related: int | None = None,
 ) -> Submission:
     """Move to the next status, adding the log entry and, on a submission, the round."""
     status, event = _transition(submission, action)
@@ -101,7 +103,7 @@ def _apply(
     if action in {Action.SUBMIT, Action.REVISE, Action.RESUBMIT}:
         number = len(rounds) + 1
         rounds = (*rounds, Round(number, snapshot, now))
-    entry = LogEntry(event, actor, now, number, message, reason)
+    entry = LogEntry(event, actor, now, number, message, reason, related)
     return replace(
         submission,
         status=status,
@@ -256,3 +258,93 @@ def expire(submission: Submission, now: datetime, expiry_days: int) -> Submissio
     if deadline is None or now < deadline:
         raise ModerationError("moderation.invalid_transition")
     return _apply(submission, Action.EXPIRE, Actor.system(), now)
+
+
+def convert(submission: Submission, now: datetime, conversion_id: int) -> Submission:
+    """The system retracts a `changes requested` Submission whose conversion into a
+    documentation Submission was submitted; the log reads "Converted into …"."""
+    return _apply(submission, Action.CONVERT, Actor.system(), now, related=conversion_id)
+
+
+def can_start_again(submission: Submission) -> bool:
+    """A rejected or retracted Submission offers its Submitter "Start again from this"."""
+    return submission.status in {Status.REJECTED, Status.RETRACTED}
+
+
+def link(
+    submission: Submission, event: Event, actor: Actor, now: datetime, other: int
+) -> Submission:
+    """Record a retry or conversion link in the log; the status does not change."""
+    entry = LogEntry(event, actor, now, None, None, None, other)
+    return replace(submission, log=(*submission.log, entry))
+
+
+def check_can_start_again(submission: Submission, actor: Actor) -> None:
+    _require_submitter(submission, actor)
+    if not can_start_again(submission):
+        raise ModerationError("moderation.cannot_start_again")
+
+
+def check_can_convert(submission: Submission, actor: Actor) -> None:
+    """Only the Submitter converts, and only a Submission waiting for them."""
+    _require_submitter(submission, actor)
+    if submission.status is not Status.CHANGES_REQUESTED:
+        raise ModerationError("moderation.cannot_convert")
+
+
+MEDIA_RETENTION = timedelta(days=30)
+"""The media of a rejected or retracted Submission are deleted this long after its final
+transition (a platform constant)."""
+STUB_AFTER = timedelta(days=365)
+"""Twelve months after the final transition the Submission is reduced to a stub."""
+
+
+def media_deletion_due(submission: Submission, now: datetime) -> bool:
+    final = submission.final_at
+    return (
+        submission.status in {Status.REJECTED, Status.RETRACTED}
+        and final is not None
+        and now >= final + MEDIA_RETENTION
+    )
+
+
+def stub_due(submission: Submission, now: datetime) -> bool:
+    final = submission.final_at
+    return (
+        submission.status in {Status.REJECTED, Status.RETRACTED}
+        and submission.reduced_at is None
+        and final is not None
+        and now >= final + STUB_AFTER
+    )
+
+
+def reduce_to_stub(submission: Submission, now: datetime, labels: list[str]) -> Submission:
+    """Delete the changesets and round snapshots; what remains is the kind and labels
+    (kept here), target, dates, round count, log, and links."""
+    if not stub_due(submission, now):
+        raise ModerationError("moderation.invalid_transition")
+    rounds = tuple(replace(round_, snapshot=None) for round_ in submission.rounds)
+    return replace(
+        submission,
+        rounds=rounds,
+        working_copy=None,
+        reduced_at=now,
+        stub={"labels": labels},
+    )
+
+
+NEVER_EDITED_AFTER = timedelta(hours=24)
+"""A draft with nothing entered by the Submitter is discarded this long after its creation."""
+
+
+def draft_deadline(submission: Submission, expiry_days: int) -> datetime:
+    """When the system deletes a draft (with its media).
+
+    A draft is *never edited* when no autosave stored anything by the Submitter: values the
+    entry point pre-filled do not count, so a retry or a conversion draft is not edited
+    until its Submitter saves it. It is discarded 24 hours after its creation. An edited
+    draft is *abandoned* `draft_expiry_days` after its last autosave.
+    """
+    if submission.last_autosave_at is None:
+        return submission.created_at + NEVER_EDITED_AFTER
+    return submission.last_autosave_at + timedelta(days=expiry_days)

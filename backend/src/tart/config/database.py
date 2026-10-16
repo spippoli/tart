@@ -5,9 +5,8 @@ a vocabulary key stored in the database must still be in its file (retired or
 not), and `terms.version` may not go below the highest version already accepted.
 They also report warnings, which never fail: about the Moderators (`tart.auth.operator`).
 
-The tables that store vocabulary keys and terms acceptances are added by later
-tickets; each one registers its column here, in `VOCABULARY_COLUMNS` or
-`TERMS_ACCEPTANCE_COLUMN`, in the same change that creates it.
+The tables that store vocabulary keys are added by later tickets; each one registers
+its column here, in `VOCABULARY_COLUMNS`, in the same change that creates it.
 """
 
 from dataclasses import dataclass, field
@@ -32,7 +31,7 @@ VOCABULARY_COLUMNS: dict[str, tuple[Column, ...]] = {
 }
 """By vocabulary name, the columns that store its keys (a text or text-array column)."""
 
-TERMS_ACCEPTANCE_COLUMN: Column | None = None
+TERMS_ACCEPTANCE_COLUMN: Column | None = Column("user_terms_acceptance", "version")
 """The integer column that records which `terms.version` a User accepted."""
 
 

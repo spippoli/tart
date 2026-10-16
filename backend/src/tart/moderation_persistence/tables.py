@@ -13,6 +13,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Table,
     Text,
+    Uuid,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -44,6 +45,13 @@ submission = Table(
     Column("working_copy", JSONB),
     Column("last_autosave_at", DateTime(timezone=True)),
     Column("working_copy_discarded", Boolean, nullable=False, server_default=text("false")),
+    # "Start again from this": the rejected or retracted Submission this draft retries.
+    Column("retry_of", BigInteger, ForeignKey("submission.id", ondelete="SET NULL")),
+    # A conversion into documentation: the `changes requested` Submission it converts.
+    Column("converts", BigInteger, ForeignKey("submission.id", ondelete="SET NULL")),
+    # Twelve months after the final transition only a stub remains: its labels, here.
+    Column("reduced_at", DateTime(timezone=True)),
+    Column("stub", JSONB),
     _one_of("status", Status),
     _one_of("target_kind", Kind),
     Index("ix_submission_status", "status"),
@@ -74,6 +82,8 @@ submission_log = Table(
     Column("round", Integer),
     Column("message", Text),
     Column("reason", Text),
+    # The other Submission of a retry or conversion link.
+    Column("related_submission_id", BigInteger, ForeignKey("submission.id", ondelete="SET NULL")),
     PrimaryKeyConstraint("submission_id", "position"),
     _one_of("event", Event),
     _one_of("actor_kind", ActorKind),
@@ -92,3 +102,26 @@ moderation_note = Table(
     Column("text", Text, nullable=False),
     Index("ix_moderation_note_submission_id", "submission_id"),
 )
+
+submission_upload = Table(
+    "submission_upload",
+    metadata,
+    Column("submission_id", BigInteger, ForeignKey("submission.id", ondelete="CASCADE")),
+    Column("upload_id", Uuid, ForeignKey("upload.id", ondelete="CASCADE")),
+    PrimaryKeyConstraint("submission_id", "upload_id"),
+    Index("ix_submission_upload_upload_id", "upload_id"),
+)
+"""The uploads that a Submission's content holds. Such an upload is attached, so the
+abandoned-upload sweep leaves it alone, and it is private to the Submission's Submitter and
+the Moderators until the Documentation item is approved."""
+
+user_terms_acceptance = Table(
+    "user_terms_acceptance",
+    metadata,
+    Column("user_id", BigInteger, ForeignKey("user_account.id", ondelete="CASCADE")),
+    Column("version", Integer, nullable=False),
+    Column("accepted_at", DateTime(timezone=True), nullable=False),
+    PrimaryKeyConstraint("user_id"),
+    CheckConstraint("version >= 1", name="version_positive"),
+)
+"""The highest `terms.version` each User accepted, and when."""
