@@ -11,6 +11,7 @@ write operation, which the persistence layer does without storing anything.
 """
 
 from dataclasses import replace
+from datetime import datetime
 
 from tart.archive.changeset import Changeset, Create
 from tart.archive.records import (
@@ -117,7 +118,7 @@ def materialize(content: Content) -> Changeset:
     record = HistoryEvent(
         id=New(key),
         type=HistoryEventType.CONDITION_RECORDED,
-        observed_date=latest.observed_date,
+        observed_date=latest.observed_date,  # type: ignore[arg-type]
         condition=content.initial_condition,
         citations=(cited,),
     )
@@ -130,6 +131,13 @@ def materialize(content: Content) -> Changeset:
     )
 
 
+def _key(document: tuple[New, DocumentationItem]) -> datetime | None:
+    """The chronological key of the document's Observed date; `None` when it has none yet
+    (the archive's rules refuse such an item, with the field's own code)."""
+    observed = document[1].observed_date
+    return observed.chronological_key if observed is not None else None
+
+
 def _latest(
     documents: list[tuple[New, DocumentationItem]],
 ) -> tuple[New, DocumentationItem]:
@@ -137,8 +145,8 @@ def _latest(
     dated, and the last listed on a tie."""
     best = documents[0]
     for document in documents:
-        key = document[1].observed_date.chronological_key
-        best_key = best[1].observed_date.chronological_key
+        key = _key(document)
+        best_key = _key(best)
         if key is not None and (best_key is None or key >= best_key):
             best = document
     return best

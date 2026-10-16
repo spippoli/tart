@@ -2,61 +2,26 @@
 concurrent decisions wins, and the aggregate survives a round trip. Every User is fictional."""
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
-import pytest
+from archive_fixtures import RULES as ARCHIVE_RULES
+from moderation_fixtures import (
+    NOW,
+    REASON,
+    RULES,
+    new_artwork_snapshot,
+    refusal,
+    run,
+    submitted,
+    user,
+)
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart.archive import Kind
 from tart.auth import operator
 from tart.db import create_engine
-from tart.moderation import (
-    Decision,
-    DecisionRules,
-    Event,
-    ModerationError,
-    Status,
-    Verdict,
-)
+from tart.moderation import Event, ModerationError, Status, Verdict
 from tart.moderation_persistence import service, store
-
-NOW = datetime(2026, 9, 1, 10, 0, tzinfo=UTC)
-RULES = DecisionRules(self_approval=False, reasons=frozenset({"incomplete", "duplicate"}))
-REASON = Decision("incomplete", "The second photo does not show the stencil.")
-
-
-def run[T](database: str, work: Callable[[AsyncConnection], Awaitable[T]]) -> T:
-    """`work` in a transaction of its own, committed when it returns."""
-
-    async def go() -> T:
-        engine = create_engine(database)
-        try:
-            async with engine.begin() as connection:
-                return await work(connection)
-        finally:
-            await engine.dispose()
-
-    return asyncio.run(go())
-
-
-async def user(connection: AsyncConnection, name: str, *, moderator: bool = False) -> int:
-    created = await operator.create(connection, f"{name}@example.org", name.title(), "it", NOW)
-    if moderator:
-        await operator.grant_moderator(connection, created)
-    return created.id
-
-
-async def submitted(connection: AsyncConnection, submitter: int) -> int:
-    draft = await store.create_draft(connection, submitter, Kind.ARTWORK, NOW)
-    await service.submit(connection, draft.id, submitter, {"title": "First"}, NOW, note="Hello")
-    return draft.id
-
-
-def refusal(database: str, work: Callable[[AsyncConnection], Awaitable[object]]) -> str:
-    with pytest.raises(ModerationError) as error:
-        run(database, work)
-    return error.value.code
 
 
 def test_the_aggregate_survives_a_round_trip(migrated_database: str) -> None:
@@ -83,7 +48,7 @@ def test_the_aggregate_survives_a_round_trip(migrated_database: str) -> None:
 
         assert loaded is not None
         assert loaded.status is Status.CHANGES_REQUESTED
-        assert [(r.number, r.snapshot) for r in loaded.rounds] == [(1, {"title": "First"})]
+        assert [(r.number, r.snapshot) for r in loaded.rounds] == [(1, new_artwork_snapshot())]
         assert [(e.event, e.actor.user_id, e.message, e.reason) for e in loaded.log] == [
             (Event.SUBMITTED, submitter, "Hello", None),
             (Event.CHANGES_REQUESTED, moderator, REASON.text, "incomplete"),
@@ -107,15 +72,15 @@ def test_a_user_without_the_role_cannot_decide_and_revocation_applies_on_the_nex
     submitter, moderator, submission_id = run(migrated_database, setup)
 
     async def as_submitter(connection: AsyncConnection) -> object:
-        return await service.decide(
-            connection, submission_id, submitter, Verdict.APPROVE, 1, RULES, NOW
+        return await service.approve(
+            connection, submission_id, submitter, 1, RULES, ARCHIVE_RULES, NOW
         )
 
     assert refusal(migrated_database, as_submitter) == "moderation.forbidden"
 
     async def as_moderator(connection: AsyncConnection) -> object:
-        return await service.decide(
-            connection, submission_id, moderator, Verdict.APPROVE, 1, RULES, NOW
+        return await service.approve(
+            connection, submission_id, moderator, 1, RULES, ARCHIVE_RULES, NOW
         )
 
     async def revoke(connection: AsyncConnection) -> None:
@@ -148,7 +113,7 @@ def test_of_two_concurrent_decisions_only_the_first_is_applied(migrated_database
                     1,
                     RULES,
                     NOW,
-                    decision=None if verdict is Verdict.APPROVE else REASON,
+                    decision=REASON,
                 )
             return "applied"
         except ModerationError as error:
@@ -158,7 +123,7 @@ def test_of_two_concurrent_decisions_only_the_first_is_applied(migrated_database
 
     async def both() -> list[str]:
         return await asyncio.gather(
-            decide_as(first, Verdict.APPROVE), decide_as(second, Verdict.REJECT)
+            decide_as(first, Verdict.REQUEST_CHANGES), decide_as(second, Verdict.REJECT)
         )
 
     outcomes = asyncio.run(both())
