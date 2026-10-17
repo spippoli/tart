@@ -95,7 +95,7 @@ test.describe('AC 17: the Moderation area', () => {
 		await signInOnPage(page, address('moderatrice', info), 'it');
 
 		await expect(page).toHaveURL('/it/moderazione');
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moderazione');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Coda di moderazione');
 	});
 
 	test('answers a signed-in non-Moderator with a translated, explanatory 403', async ({

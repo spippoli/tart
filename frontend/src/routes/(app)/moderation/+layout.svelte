@@ -6,27 +6,26 @@
 
 	let { data, children }: LayoutProps = $props();
 
-	// The other entries (Queue, Notices, Legal actions) come with their pages.
-	const entries = $derived(
-		data.invitationsEnabled
+	// The other entries (Notices, Legal actions) come with their pages.
+	const entries = $derived([
+		{ href: localizeHref('/moderation'), label: m.moderation_nav_queue() },
+		...(data.invitationsEnabled
 			? [{ href: localizeHref('/moderation/invitations'), label: m.moderation_nav_invitations() }]
-			: []
-	);
+			: [])
+	]);
 </script>
 
-{#if entries.length > 0}
-	<nav aria-label={m.moderation_nav_label()}>
-		<ul>
-			{#each entries as entry (entry.href)}
-				<li>
-					<a href={entry.href} aria-current={page.url.pathname === entry.href ? 'page' : undefined}
-						>{entry.label}</a
-					>
-				</li>
-			{/each}
-		</ul>
-	</nav>
-{/if}
+<nav aria-label={m.moderation_nav_label()}>
+	<ul>
+		{#each entries as entry (entry.href)}
+			<li>
+				<a href={entry.href} aria-current={page.url.pathname === entry.href ? 'page' : undefined}
+					>{entry.label}</a
+				>
+			</li>
+		{/each}
+	</ul>
+</nav>
 
 {@render children()}
 

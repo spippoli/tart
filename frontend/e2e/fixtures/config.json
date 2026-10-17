@@ -93,10 +93,28 @@
 		],
 		"decision_reasons": [
 			{
+				"key": "people",
+				"label": {
+					"it": "Persone o targhe riconoscibili",
+					"en": "Identifiable people or number plates"
+				},
+				"description": null,
+				"retired": false
+			},
+			{
+				"key": "evidence",
+				"label": {
+					"it": "Prove insufficienti",
+					"en": "Insufficient evidence"
+				},
+				"description": null,
+				"retired": false
+			},
+			{
 				"key": "duplicate",
 				"label": {
-					"it": "Duplicato",
-					"en": "Duplicate"
+					"it": "Duplicato di un record esistente",
+					"en": "Duplicate of an existing record"
 				},
 				"description": null,
 				"retired": false
