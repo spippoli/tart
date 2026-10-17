@@ -138,7 +138,16 @@ def test_a_merge_is_proposed_reviewed_and_approved_through_the_api(api: Api) -> 
     ]
     assert review.json()["source"]["id"] == ids["location_x"]
 
-    _approved(api, started)
+    submitted = api.client.post(
+        f"/api/contributions/{draft['id']}/submit", json={"accept_terms": True}
+    )
+    assert submitted.status_code == 200
+    # The Moderators' comparison reads a Merge like any other changeset.
+    compared = api.client.get(f"/api/contributions/{draft['id']}/comparison")
+    assert compared.status_code == 200, compared.text
+    _as(api, "gus@example.org", moderator=True)
+    assert _decide(api, draft["id"], "approve").status_code == 200
+    _as(api, "ada@example.org")
 
     assert (
         api.client.get(f"/api/archive/locations/{ids['location_x']}", follow_redirects=False)

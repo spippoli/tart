@@ -162,7 +162,7 @@
 		<ArtworkCards cards={artwork.related.same_series} />
 	</section>
 
-	<RecordFooter kind="artwork" id={artwork.id} path={artwork.path} contribute />
+	<RecordFooter kind="artwork" id={artwork.id} path={artwork.path} />
 </article>
 
 <style>

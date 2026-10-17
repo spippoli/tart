@@ -67,6 +67,7 @@
 			<input
 				id="number"
 				name="number"
+				value={data.into ?? ''}
 				type="number"
 				min="1"
 				inputmode="numeric"

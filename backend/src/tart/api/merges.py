@@ -88,7 +88,7 @@ async def start_merge(
                 rules,
                 expiry_days=_expiry_days(configuration),
             )
-            return await _detail(connection, draft, user, _expiry_days(configuration))
+            return await _detail(connection, draft, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -120,7 +120,7 @@ async def start_unmerge(
                 clock(),
                 expiry_days=_expiry_days(configuration),
             )
-            return await _detail(connection, draft, user, _expiry_days(configuration))
+            return await _detail(connection, draft, user, configuration)
     except FAILURES as error:
         return _failure(error)
 

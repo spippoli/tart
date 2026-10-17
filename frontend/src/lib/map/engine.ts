@@ -55,7 +55,18 @@ export interface Drawn {
 	selected: number | null;
 	/** Midpoint handles, where a click inserts a vertex; none for a point. */
 	midpoints: boolean;
+	/**
+	 * What is being corrected, drawn under the proposal as a grey solid outline: the current
+	 * geometry of a record whose geometry an edit changes (ADR 0015).
+	 */
+	reference?: ReferenceShape | null;
 }
+
+/** A geometry as GeoJSON, drawn as it is and not edited. */
+export type ReferenceShape =
+	| { type: 'Point'; coordinates: Point }
+	| { type: 'LineString'; coordinates: readonly Point[] }
+	| { type: 'Polygon'; coordinates: readonly (readonly Point[])[] };
 
 /** What a map is framed on instead of the Instance's default view: a fit to an extent. */
 export interface Frame {
@@ -131,8 +142,19 @@ const DRAW = 'tart-draw';
 const HANDLE_LAYERS = [`${DRAW}-vertices`, `${DRAW}-midpoints`];
 
 function drawnCollection(drawn: Drawn) {
-	const { vertices, ring, selected, midpoints } = drawn;
+	const { vertices, ring, selected, midpoints, reference } = drawn;
 	const features: object[] = [];
+	if (reference) {
+		features.push({
+			type: 'Feature',
+			properties: { role: reference.type === 'Point' ? 'reference-point' : 'reference-line' },
+			// A polygon is outlined, never filled: the proposal is what carries the fill.
+			geometry:
+				reference.type === 'Polygon'
+					? { type: 'LineString', coordinates: reference.coordinates[0] }
+					: reference
+		});
+	}
 	const path = ring && vertices.length > 2 ? [...vertices, vertices[0]] : vertices;
 	if (ring && vertices.length > 2) {
 		features.push({
@@ -174,6 +196,28 @@ function addDrawingLayers(map: MapLibreMap, tokens: Tokens) {
 	const accent = tokens['marker.accent'];
 	const paper = tokens['map.paper'];
 	map.addSource(DRAW, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+	// The current geometry: a grey, solid outline under the dashed proposal (ADR 0015).
+	map.addLayer({
+		id: `${DRAW}-reference-line`,
+		type: 'line',
+		source: DRAW,
+		filter: ['==', ['get', 'role'], 'reference-line'],
+		paint: { 'line-color': ink, 'line-width': 3, 'line-opacity': 0.5 }
+	});
+	map.addLayer({
+		id: `${DRAW}-reference-point`,
+		type: 'circle',
+		source: DRAW,
+		filter: ['==', ['get', 'role'], 'reference-point'],
+		paint: {
+			'circle-radius': 11,
+			'circle-color': paper,
+			'circle-opacity': 0.4,
+			'circle-stroke-color': ink,
+			'circle-stroke-opacity': 0.5,
+			'circle-stroke-width': 3
+		}
+	});
 	map.addLayer({
 		id: `${DRAW}-area`,
 		type: 'fill',

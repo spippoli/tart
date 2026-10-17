@@ -270,6 +270,12 @@ def test_an_area_is_a_polygon() -> None:
     assert _violation(Area("Fictional rione", point())) == "area.geometry_not_polygon"
 
 
+def test_an_area_outside_the_instance_boundary_is_rejected() -> None:
+    assert _violation(Area("Fictional rione", square(12.30, 41.88, 12.50, 41.90))) == (
+        "area.outside_boundary"
+    )
+
+
 def test_a_name_is_required() -> None:
     assert _violation(Series("")) == "series.name_required"
     assert _violation(Artist(" ", ArtistKind.INDIVIDUAL)) == "artist.name_required"

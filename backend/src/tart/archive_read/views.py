@@ -434,6 +434,22 @@ class IndexPage(BaseModel):
     total: int
 
 
+class EditSource(BaseModel):
+    """A record as the editor starts an edit from it: its stored fields, not a display
+    view. A value hidden by a Redaction is absent and named in `redacted_fields`, whoever
+    asks; an item hidden by one is left out of its collection."""
+
+    kind: Kind
+    id: int
+    record: dict[str, Any]
+    """The record in the changeset's JSON form (`tart.archive.changeset_codec`)."""
+    redacted_fields: list[str] = []
+    links: dict[str, RecordLink]
+    """The listed records the record refers to, by id, for the words of its links."""
+    artwork_count: int | None = None
+    """For a Location: the Artworks on it, disappeared ones included."""
+
+
 RecordView = (
     ArtworkView | ArtistView | LocationView | PlaceView | SourceView | DocumentationItemView
 )

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
 	import { localizeHref } from '#lib/paraglide/runtime.js';
+	import type { Snippet } from 'svelte';
 	import { errorText } from './errors';
 	import Field from './Field.svelte';
-	import Preview from './Preview.svelte';
-	import type { EditorState } from './state.svelte';
+	import type { Session } from './session';
 	import { ids } from './validate';
 
 	/**
@@ -13,14 +13,23 @@
 	 * public), and the acceptance of the terms only when the User has not accepted the
 	 * current version. Submitting is Editor's.
 	 */
-	let { editor, onsubmit }: { editor: EditorState; onsubmit: () => void } = $props();
+	let {
+		editor,
+		onsubmit,
+		children
+	}: {
+		editor: Session;
+		onsubmit: () => void;
+		/** The preview of what is proposed, in the editorial label. */
+		children: Snippet;
+	} = $props();
 	const terms = $derived(editor.config.terms);
 	const termsError = $derived(editor.errorAt(ids.terms));
 	const termsLink = $derived(localizeHref('/about/terms'));
 </script>
 
 <div class="step">
-	<Preview {editor} />
+	{@render children()}
 
 	<Field id="editor-note" label={m.editor_review_note()} hint={m.editor_review_note_hint()}>
 		{#snippet children(props)}

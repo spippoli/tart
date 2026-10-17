@@ -5,6 +5,7 @@
  */
 import { formatWait, type FormatContext } from '#lib/i18n/format.ts';
 import { m } from '#lib/paraglide/messages.js';
+import { errorText as editorErrorText } from './errors.ts';
 import type { components } from '../api/schema';
 
 export type Status = components['schemas']['Status'];
@@ -117,13 +118,21 @@ const errorWords: Record<string, () => string> = {
 	'moderation.target_merged': m.contribution_error_target_merged,
 	'moderation.drafts_limited': m.contribution_error_drafts_limited,
 	'moderation.submissions_limited': m.contribution_error_submissions_limited,
-	'moderation.uploads_limited': m.contribution_error_uploads_limited
+	'moderation.uploads_limited': m.contribution_error_uploads_limited,
+	'moderation.already_decided': m.moderation_error_already_decided,
+	'moderation.own_submission': m.moderation_error_own_submission,
+	'moderation.decision_reason_required': m.moderation_error_reason_required,
+	'moderation.decision_text_required': m.moderation_error_text_required,
+	'moderation.note_required': m.moderation_error_note_required,
+	'moderation.approval_has_message': m.moderation_error_approval_has_message,
+	moderator_only: m.moderation_error_moderator_only
 };
 
 /** A refusal of the API in words; a rate limit adds when it will be possible again. */
 export function errorText(code: string, retryAfter: number | undefined, ctx: FormatContext) {
-	const words = errorWords[code] ?? m.error_unknown;
-	const text = words();
+	const words = errorWords[code];
+	// A rule of the archive that approval applied has the editor's words.
+	const text = words ? words() : editorErrorText(code);
 	return retryAfter === undefined
 		? text
 		: `${text} ${m.contribution_error_try_again({ wait: formatWait(retryAfter, ctx) })}`;

@@ -30,7 +30,13 @@ export const load: PageServerLoad = async (event) => {
 		if (response.status === 404) error(404);
 		throw new Error(`the contribution API answered ${response.status}`);
 	}
-	return { source: data.source, candidates: data.items, ...vocabularies(event) };
+	const into = Number(event.url.searchParams.get('into'));
+	return {
+		source: data.source,
+		candidates: data.items,
+		into: Number.isSafeInteger(into) && into > 0 ? into : null,
+		...vocabularies(event)
+	};
 };
 
 export const actions: Actions = {

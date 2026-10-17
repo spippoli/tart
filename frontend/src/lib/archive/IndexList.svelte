@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { signInHref } from '#lib/auth/next.ts';
 	import { m } from '#lib/paraglide/messages.js';
+	import { localizeHref } from '#lib/paraglide/runtime.js';
 	import PageTitle from '../shell/PageTitle.svelte';
 	import { indexQueryString, readIndexQuery } from './index-query';
 	import RecordAnchor from './RecordAnchor.svelte';
@@ -12,7 +14,17 @@
 	 * The "Filter by name" field (Discovery spec, Index name filter) is a plain form
 	 * that works without JavaScript: it reloads the index with `?nome=` (`?name=`).
 	 */
-	let { index, title }: { index: IndexPage; title: string } = $props();
+	let {
+		index,
+		title,
+		propose
+	}: {
+		index: IndexPage;
+		title: string;
+		/** The kind a visitor may propose here: a new Area from the Areas page, an Artist from the Artists page. */
+		propose?: 'area' | 'artist';
+	} = $props();
+	const signedIn = $derived(Boolean(page.data.user));
 	const pages = $derived(Math.max(1, Math.ceil(index.total / index.page_size)));
 	const name = $derived(readIndexQuery(page.url.searchParams).name);
 	const href = (number: number) =>
@@ -22,6 +34,23 @@
 <PageTitle {title} />
 
 <h1>{title}</h1>
+
+{#if propose}
+	{#if signedIn}
+		<form method="post" action="{localizeHref('/contribute')}?/start">
+			<input type="hidden" name="kind" value={propose} />
+			<button type="submit">
+				{propose === 'area' ? m.archive_index_propose_area() : m.archive_index_propose_artist()}
+			</button>
+		</form>
+	{:else}
+		<p>
+			<a href={signInHref(page.url)}>
+				{propose === 'area' ? m.archive_index_propose_area() : m.archive_index_propose_artist()}
+			</a>
+		</p>
+	{/if}
+{/if}
 
 <form method="get" role="search" aria-label={m.archive_index_filter_label()}>
 	<label for="index-filter">{m.archive_index_filter_label()}</label>

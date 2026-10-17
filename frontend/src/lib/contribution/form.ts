@@ -12,7 +12,6 @@
 import type { UncertainDate } from '#lib/archive/uncertain-date.ts';
 import type { Geometry } from '#lib/map/drawing.ts';
 import { emptyDate, fromUncertainDate, toUncertainDate, type DateField } from './date-field';
-
 export const STEPS = [
 	'location',
 	'documentation',
@@ -22,7 +21,31 @@ export const STEPS = [
 	'sources',
 	'review'
 ] as const;
-export type Step = (typeof STEPS)[number];
+export type Step = (typeof STEPS)[number] | 'change' | 'event' | 'evidence';
+
+/**
+ * What the Artwork editor is for. A new Artwork walks the seven steps; the other two
+ * attach to an Artwork that exists (Contribution and moderation spec, Form structure):
+ * *documentation* adds Documentation items and may report that they show a change, and
+ * *event* adds a History event with its evidence (a condition change or a disappearance).
+ */
+export type Flavour = 'new' | 'documentation' | 'event';
+export const FLAVOUR_STEPS: Record<Flavour, readonly Step[]> = {
+	new: STEPS,
+	documentation: ['documentation', 'change', 'sources', 'review'],
+	event: ['event', 'evidence', 'review']
+};
+
+/** The History event types of the form, by group (Submission form, History event type groups). */
+export const EVENT_GROUPS = [
+	{ group: 'observed', types: ['condition_recorded'] },
+	{ group: 'change', types: ['deteriorated', 'damaged', 'modified'] },
+	{ group: 'disappearance', types: ['covered', 'removed', 'destroyed'] },
+	{ group: 'other', types: ['created', 'attribution_changed'] }
+] as const;
+export type EventType = (typeof EVENT_GROUPS)[number]['types'][number];
+/** "Report a condition change" opens the first three groups only; the last is reached from an edit. */
+export const REPORT_GROUPS = ['observed', 'change', 'disappearance'] as const;
 
 /** Conditions grouped as the initial Condition asks them (ADR 0015). */
 export const CONDITION_GROUPS = [
@@ -103,7 +126,37 @@ export interface SourceForm {
 	note: string;
 }
 
+/** The History event of the other two flavours of the editor. */
+export interface EventForm {
+	/** Add documentation: whether the new files show a change; `null`, not answered yet. */
+	shows: boolean | null;
+	type: EventType | '';
+	observed: DateField;
+	/** The Condition a `condition recorded` event states. */
+	condition: Condition | '';
+	note: string;
+	/** The Artwork covering this one, for a `covered` event. */
+	covering: { id: number; title: string } | null;
+	/** Opened by "Report a condition change": the first three groups of types only. */
+	report: boolean;
+}
+
+export function emptyEvent(): EventForm {
+	return {
+		shows: null,
+		type: '',
+		observed: emptyDate(),
+		condition: '',
+		note: '',
+		covering: null,
+		report: false
+	};
+}
+
 export interface ArtworkForm {
+	/** The existing Artwork a documentation or event Submission is about. */
+	target: { id: number; title: string } | null;
+	event: EventForm;
 	location: LocationForm;
 	documentation: DocForm[];
 	initialCondition: Condition | '';
@@ -122,6 +175,8 @@ export interface ArtworkForm {
 
 export function emptyForm(): ArtworkForm {
 	return {
+		target: null,
+		event: emptyEvent(),
 		location: {
 			existing: null,
 			geometry: null,
@@ -180,8 +235,114 @@ function dateJson(field: DateField, today: string): Json {
 	return date as unknown as Json;
 }
 
+function sourceOperations(form: ArtworkForm): Json[] {
+	return form.sources.map((source): Json => ({
+		op: 'create',
+		ref: source.key,
+		kind: 'source',
+		record: {
+			title: text(source.title),
+			author: text(source.author),
+			publication: text(source.publication),
+			url: text(source.url),
+			note: text(source.note)
+		}
+	}));
+}
+
+function documentationOperations(form: ArtworkForm, today: string, about: Json): Json[] {
+	return form.documentation.map((item): Json => {
+		const common = { observed_date: dateJson(item.observed, today), artworks: [about] };
+		return {
+			op: 'create',
+			ref: item.key,
+			kind: 'documentation_item',
+			record:
+				item.medium === 'link'
+					? { medium: 'link', ...common, url: text(item.url) }
+					: {
+							medium: item.medium,
+							...common,
+							file: item.file,
+							licence: text(item.licence),
+							creator_credit: text(item.creatorCredit),
+							rights_basis: item.rightsBasis || null,
+							origin_url: item.rightsBasis === 'third_party' ? text(item.originUrl) : null,
+							...(item.medium === 'image' ? { alt_text: text(item.altText) } : {})
+						}
+		};
+	});
+}
+
+const EVENT = 'event';
+
+/** What the editor keeps beside the operations, to resume where it was left. */
+function filesPart(form: ArtworkForm): Dict {
+	return {
+		counter: form.counter,
+		files: Object.fromEntries(
+			form.documentation.flatMap((each) => (each.file ? [[each.file, each.fileName]] : []))
+		),
+		suggested: form.documentation.filter((each) => each.suggested).map((each) => each.key)
+	};
+}
+
+/**
+ * The working copy for an Artwork that exists: its new Documentation items and Sources, and
+ * a History event that cites them (or, with no event, the Sources as the Artwork's own).
+ */
+function toAttachedCopy(form: ArtworkForm, today: string, flavour: Flavour): Dict {
+	const target = form.target;
+	const about: Json = target?.id ?? null;
+	const operations: Json[] = [
+		...sourceOperations(form),
+		...documentationOperations(form, today, about)
+	];
+	const { event } = form;
+	const cited = [...form.sources, ...form.documentation].map((each) => ref(each.key));
+	if (flavour === 'event' || event.shows === true) {
+		operations.push({
+			op: 'add',
+			target: about,
+			collection: 'history_events',
+			item: {
+				id: ref(EVENT),
+				type: event.type || null,
+				observed_date: dateJson(event.observed, today),
+				condition: event.type === 'condition_recorded' ? event.condition || null : null,
+				note: text(event.note),
+				citations: cited,
+				covering: event.type === 'covered' ? (event.covering?.id ?? null) : null
+			}
+		});
+	} else {
+		for (const source of form.sources) {
+			operations.push({ op: 'add', target: about, collection: 'sources', item: ref(source.key) });
+		}
+	}
+	return {
+		operations,
+		initial_condition: null,
+		editor: {
+			...filesPart(form),
+			flavour,
+			target,
+			event: {
+				shows: event.shows,
+				type: event.type,
+				observed: event.observed as unknown as Json,
+				condition: event.condition,
+				note: event.note,
+				covering: event.covering,
+				report: event.report
+			}
+		}
+	};
+}
+
 /** The working copy of the form, as the API stores it (never validated on save). */
-export function toWorkingCopy(form: ArtworkForm, today: string): Dict {
+export function toWorkingCopy(form: ArtworkForm, today: string, flavour: Flavour = 'new'): Dict {
+	if (flavour !== 'new') return toAttachedCopy(form, today, flavour);
 	const operations: Json[] = [];
 	const { location } = form;
 
@@ -221,41 +382,7 @@ export function toWorkingCopy(form: ArtworkForm, today: string): Dict {
 			record: { name: text(series.name) }
 		});
 	}
-	for (const source of form.sources) {
-		operations.push({
-			op: 'create',
-			ref: source.key,
-			kind: 'source',
-			record: {
-				title: text(source.title),
-				author: text(source.author),
-				publication: text(source.publication),
-				url: text(source.url),
-				note: text(source.note)
-			}
-		});
-	}
-	for (const item of form.documentation) {
-		const common = { observed_date: dateJson(item.observed, today), artworks: [ref(ARTWORK)] };
-		operations.push({
-			op: 'create',
-			ref: item.key,
-			kind: 'documentation_item',
-			record:
-				item.medium === 'link'
-					? { medium: 'link', ...common, url: text(item.url) }
-					: {
-							medium: item.medium,
-							...common,
-							file: item.file,
-							licence: text(item.licence),
-							creator_credit: text(item.creatorCredit),
-							rights_basis: item.rightsBasis || null,
-							origin_url: item.rightsBasis === 'third_party' ? text(item.originUrl) : null,
-							...(item.medium === 'image' ? { alt_text: text(item.altText) } : {})
-						}
-		});
-	}
+	operations.push(...sourceOperations(form), ...documentationOperations(form, today, ref(ARTWORK)));
 
 	const created = dateJson(form.created.date, today);
 	operations.push({
@@ -473,5 +600,64 @@ export function fromWorkingCopy(copy: unknown): ArtworkForm {
 			});
 		}
 	}
+	attachedFrom(copy.operations.filter(isDict), editor, form);
 	return form;
+}
+
+/** The Artwork a copy is about and its History event, for the two flavours that attach. */
+function attachedFrom(operations: Dict[], editor: Dict, form: ArtworkForm): void {
+	const saved = isDict(editor.target) ? editor.target : null;
+	const added = operations.find(
+		(each) => each.op === 'add' && each.collection === 'history_events'
+	);
+	const aboutDocumentation = operations.find((each) => each.kind === 'documentation_item');
+	const about =
+		typeof saved?.id === 'number'
+			? saved.id
+			: typeof operations.find((each) => typeof each.target === 'number')?.target === 'number'
+				? (operations.find((each) => typeof each.target === 'number')!.target as number)
+				: isDict(aboutDocumentation?.record) &&
+					  Array.isArray(aboutDocumentation.record.artworks) &&
+					  typeof aboutDocumentation.record.artworks[0] === 'number'
+					? aboutDocumentation.record.artworks[0]
+					: null;
+	if (about !== null) form.target = { id: about, title: saved ? str(saved.title) : '' };
+
+	const kept = isDict(editor.event) ? editor.event : {};
+	const item = isDict(added?.item) ? added.item : null;
+	form.event = {
+		shows: typeof kept.shows === 'boolean' ? kept.shows : item ? true : null,
+		type: (str(kept.type) || str(item?.type)) as EventForm['type'],
+		observed: isDict(kept.observed)
+			? (kept.observed as unknown as DateField)
+			: dateOf(item?.observed_date),
+		condition: (str(kept.condition) || str(item?.condition)) as EventForm['condition'],
+		note: typeof kept.note === 'string' ? kept.note : str(item?.note),
+		covering:
+			isDict(kept.covering) && typeof kept.covering.id === 'number'
+				? { id: kept.covering.id, title: str(kept.covering.title) }
+				: typeof item?.covering === 'number'
+					? { id: item.covering, title: '' }
+					: null,
+		report: kept.report === true
+	};
+}
+
+/**
+ * Which editor an edit of an Artwork needs, from the copy the Submitter works on or the
+ * last round: the editor names it; a round, which has no editor part, is read from what it
+ * does (new Documentation items: documentation; only a History event: event).
+ */
+export function artworkEditorOf(copy: unknown): 'edit' | 'documentation' | 'event' {
+	if (!isDict(copy) || !Array.isArray(copy.operations)) return 'edit';
+	const named = isDict(copy.editor) ? copy.editor.flavour : null;
+	if (named === 'documentation' || named === 'event' || named === 'edit') return named;
+	const operations = copy.operations.filter(isDict);
+	if (operations.some((each) => each.op === 'create' && each.kind === 'documentation_item')) {
+		return 'documentation';
+	}
+	const edits = operations.filter((each) => each.op !== 'create');
+	return edits.length > 0 && edits.every((each) => each.collection === 'history_events')
+		? 'event'
+		: 'edit';
 }

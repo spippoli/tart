@@ -132,6 +132,8 @@ def check_record(
         case Area():
             if record.geometry.kind is not GeometryKind.POLYGON:
                 raise ArchiveRuleViolation("area.geometry_not_polygon")
+            if not rules.boundary.covers(record.geometry):
+                raise ArchiveRuleViolation("area.outside_boundary")
         case Artist():
             _check_crew_periods(record)
         case Source():

@@ -144,8 +144,10 @@ test('AC 36: the page answers 404 and the menu entry is absent unless registrati
 	const response = await page.goto(PAGES.en.path);
 	expect(response?.status()).toBe(404);
 	await page.goto('/en/moderation');
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moderation');
-	await expect(page.getByRole('navigation', { name: 'Moderation sections' })).toHaveCount(0);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Moderation queue');
+	const sections = page.getByRole('navigation', { name: 'Moderation sections' });
+	await expect(sections.getByRole('link', { name: 'Queue' })).toBeVisible();
+	await expect(sections.getByRole('link', { name: 'Invitations' })).toHaveCount(0);
 });
 
 for (const language of ['it', 'en'] as const) {
