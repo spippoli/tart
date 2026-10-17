@@ -32,7 +32,7 @@ function entriesOf(value: unknown, fallbackName: string): [string, string][] {
 		.map(([name, each]): [string, string] => [name, describeValue(each)]);
 }
 
-function operationOf(raw: unknown): ProposedOperation | null {
+export function operationOf(raw: unknown): ProposedOperation | null {
 	if (typeof raw !== 'object' || raw === null) return null;
 	const operation = raw as Record<string, unknown>;
 	switch (operation.op) {

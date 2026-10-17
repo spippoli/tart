@@ -838,6 +838,9 @@ async function contributions(
 	if (!item) return send(response, 404, { code: 'moderation.unknown_submission' });
 	const action = found[2];
 	const open = item.status === 'submitted' || item.status === 'changes_requested';
+	if (request.method === 'GET' && action === 'comparison') {
+		return send(response, 200, { ...NO_COMPARISON, rounds: [] });
+	}
 	if (request.method === 'GET')
 		return send(response, 200, detail(item, user.number, user.display_name));
 	if (request.method === 'DELETE') {
@@ -1143,9 +1146,507 @@ function locationPanel(id: number, url: URL, emptyArchive: boolean) {
 	};
 }
 
+/**
+ * The Moderation queue and the Submissions a Moderator decides on (`/api/moderation/queue`
+ * and, for a Moderator, `/api/contributions/{id}` with its notes, decisions, and comparison).
+ * The real API has its own tests; this keeps fictional Submissions of other people:
+ *
+ *     401  a new Artwork with an image, near the new Location of 402
+ *     402  the other new Artwork, from the same Submitter as 401's neighbour
+ *     403  a Location moved 30 m north (geometry comparison)
+ *     404  documentation added to Artwork 42 (image comparison), revised in round 2
+ *     405  an Outdated edit
+ *     406  the Moderator's own Submission
+ *     407  an edit with changes requested
+ */
+interface QueueSubmission {
+	id: number;
+	status: string;
+	intent: 'create' | 'edit';
+	target_kind: string;
+	target_id: number | null;
+	labels: string[];
+	outdated: string[];
+	submitter: { number: number; display_name: string };
+	area: number | null;
+	overlapping: number[];
+	nearby_creates: number[];
+	first: string;
+	latest: string;
+	version: number;
+	rounds: { number: number; submitted_at: string; snapshot: unknown }[];
+	log: Record<string, unknown>[];
+	notes: { author: { number: number; display_name: string }; at: string; text: string }[];
+	comparison: Record<string, unknown>;
+}
+
+const IMAGE_SIDE = {
+	observed_date: { precision: 'year', qualifier: 'exact', first: '2025-01-01' },
+	creator_credit: 'Fotografa fittizia',
+	licence: 'CC-BY-SA-4.0',
+	alt_text: 'Uno stencil fittizio di un gatto su un muro grigio.',
+	item_id: null
+};
+const POINT = { type: 'Point', coordinates: [12.4823, 41.8955] };
+const MOVED_POINT = { type: 'Point', coordinates: [12.4823, 41.89577] };
+const NO_COMPARISON = {
+	current_revision: null,
+	operations: [],
+	images: [],
+	geometries: []
+};
+
+function newArtwork(title: string): unknown {
+	return {
+		operations: [
+			{ op: 'create', ref: 'a', kind: 'artwork', record: { title } },
+			{ op: 'create', ref: 'l', kind: 'location', record: { geometry: POINT } }
+		],
+		initial_condition: 'intact'
+	};
+}
+
+/** Each Submission with arrays of its own: the seed shares its defaults. */
+function queueSeed(): QueueSubmission[] {
+	return seedItems().map((item) => ({
+		...item,
+		notes: [...item.notes],
+		outdated: [...item.outdated],
+		overlapping: [...item.overlapping],
+		nearby_creates: [...item.nearby_creates],
+		log: [...item.log]
+	}));
+}
+
+function seedItems(): QueueSubmission[] {
+	const person = (number: number, display_name: string) => ({ number, display_name });
+	const base = {
+		area: null,
+		overlapping: [] as number[],
+		nearby_creates: [] as number[],
+		notes: [],
+		version: 1,
+		outdated: [] as string[],
+		target_id: null,
+		comparison: NO_COMPARISON
+	};
+	const submitted = (days: number, round = 1) =>
+		entry('submitted', days, 'submitter', { round, message: 'Foto di ieri.' });
+	return [
+		{
+			...base,
+			id: 401,
+			status: 'submitted',
+			intent: 'create',
+			target_kind: 'artwork',
+			labels: ['adds_documentation', 'adds_history_event', 'changes_condition'],
+			submitter: person(7, 'Ada di prova'),
+			area: 1,
+			nearby_creates: [402],
+			first: at(-6),
+			latest: at(-6),
+			rounds: [{ number: 1, submitted_at: at(-6), snapshot: newArtwork('Gatto (opera fittizia)') }],
+			log: [submitted(-6)],
+			comparison: {
+				...NO_COMPARISON,
+				images: [
+					{
+						proposed: { ...IMAGE_SIDE, file: '6f1c1e0e-6a4b-4c0c-9a58-0d6a8c3e8b11' },
+						current: null
+					}
+				],
+				geometries: [
+					{
+						record_kind: 'location',
+						target_id: null,
+						current: null,
+						proposed: POINT,
+						summary: {
+							vertices_before: null,
+							vertices_after: 1,
+							largest_shift_metres: null,
+							shift_direction: null,
+							area_change_square_metres: null
+						},
+						near_locations: [{ id: 12, distance_metres: 18.4 }],
+						locations_entering: null,
+						locations_leaving: null
+					}
+				]
+			}
+		},
+		{
+			...base,
+			id: 402,
+			status: 'submitted',
+			intent: 'create',
+			target_kind: 'artwork',
+			labels: ['adds_documentation'],
+			submitter: person(8, 'Bea di prova'),
+			nearby_creates: [401],
+			first: at(-4),
+			latest: at(-4),
+			rounds: [{ number: 1, submitted_at: at(-4), snapshot: newArtwork('Gufo (opera fittizia)') }],
+			log: [submitted(-4)]
+		},
+		{
+			...base,
+			id: 403,
+			status: 'submitted',
+			intent: 'edit',
+			target_kind: 'location',
+			target_id: 12,
+			labels: [],
+			submitter: person(9, 'Cleo di prova'),
+			first: at(-3),
+			latest: at(-3),
+			rounds: [
+				{
+					number: 1,
+					submitted_at: at(-3),
+					snapshot: {
+						operations: [{ op: 'set', target: 12, field: 'geometry', value: MOVED_POINT }]
+					}
+				}
+			],
+			log: [submitted(-3)],
+			comparison: {
+				current_revision: 5,
+				operations: [{ index: 0, current: POINT }],
+				images: [],
+				geometries: [
+					{
+						record_kind: 'location',
+						target_id: 12,
+						current: POINT,
+						proposed: MOVED_POINT,
+						summary: {
+							vertices_before: 1,
+							vertices_after: 1,
+							largest_shift_metres: 30,
+							shift_direction: 'N',
+							area_change_square_metres: null
+						},
+						near_locations: [{ id: 13, distance_metres: 10 }],
+						locations_entering: null,
+						locations_leaving: null
+					}
+				]
+			}
+		},
+		{
+			...base,
+			id: 404,
+			status: 'submitted',
+			intent: 'edit',
+			target_kind: 'artwork',
+			target_id: 42,
+			labels: ['adds_documentation'],
+			submitter: person(7, 'Ada di prova'),
+			overlapping: [405],
+			first: at(-5),
+			latest: at(-1),
+			rounds: [
+				{
+					number: 1,
+					submitted_at: at(-5),
+					snapshot: {
+						operations: [
+							{ op: 'set', target: 42, field: 'title', value: 'Gatto sul portone' },
+							{ op: 'set', target: 42, field: 'description', value: 'Prima bozza.' }
+						]
+					}
+				},
+				{
+					number: 2,
+					submitted_at: at(-1),
+					snapshot: {
+						operations: [
+							{ op: 'set', target: 42, field: 'title', value: 'Gatto sul portone' },
+							{ op: 'set', target: 42, field: 'description', value: 'Un gatto fittizio.' }
+						]
+					}
+				}
+			],
+			log: [submitted(-5), entry('revised', -1, 'submitter', { round: 2 })],
+			comparison: {
+				current_revision: 5,
+				operations: [
+					{ index: 0, current: 'Gatto' },
+					{ index: 1, current: null }
+				],
+				images: [
+					{
+						proposed: { ...IMAGE_SIDE, file: '7a2d0b2e-1111-4c0c-9a58-0d6a8c3e8b12' },
+						current: {
+							...IMAGE_SIDE,
+							file: '8b3e1c3f-2222-4c0c-9a58-0d6a8c3e8b13',
+							item_id: 31,
+							observed_date: { precision: 'year', qualifier: 'exact', first: '2023-01-01' }
+						}
+					}
+				],
+				geometries: []
+			}
+		},
+		{
+			...base,
+			id: 405,
+			status: 'submitted',
+			intent: 'edit',
+			target_kind: 'artwork',
+			target_id: 42,
+			labels: [],
+			outdated: ['overlap'],
+			submitter: person(10, 'Dora di prova'),
+			overlapping: [404],
+			first: at(-7),
+			latest: at(-7),
+			rounds: [
+				{
+					number: 1,
+					submitted_at: at(-7),
+					snapshot: { operations: [{ op: 'set', target: 42, field: 'title', value: 'Micio' }] }
+				}
+			],
+			log: [submitted(-7)],
+			comparison: {
+				...NO_COMPARISON,
+				current_revision: 6,
+				operations: [{ index: 0, current: 'Gatto' }]
+			}
+		},
+		{
+			...base,
+			id: 406,
+			status: 'submitted',
+			intent: 'create',
+			target_kind: 'artwork',
+			submitter: person(1, 'Moderatrice di prova'),
+			labels: ['adds_documentation'],
+			first: at(-2),
+			latest: at(-2),
+			rounds: [{ number: 1, submitted_at: at(-2), snapshot: newArtwork('Volpe (opera fittizia)') }],
+			log: [submitted(-2)]
+		},
+		{
+			...base,
+			id: 407,
+			status: 'changes_requested',
+			intent: 'edit',
+			target_kind: 'artwork',
+			target_id: 42,
+			submitter: person(11, 'Elia di prova'),
+			labels: [],
+			first: at(-9),
+			latest: at(-9),
+			version: 2,
+			rounds: [
+				{
+					number: 1,
+					submitted_at: at(-9),
+					snapshot: { operations: [{ op: 'set', target: 42, field: 'title', value: 'Cane' }] }
+				}
+			],
+			log: [
+				submitted(-9),
+				entry('changes_requested', -8, 'moderator', {
+					reason: 'evidence',
+					message: 'Serve una fonte.',
+					actor: { role: 'moderator', user: person(2, 'Un altro Moderatore') }
+				})
+			]
+		}
+	];
+}
+
+const queues = new Map<string, QueueSubmission[]>();
+
+/** The Submissions of the signed-in Moderator: each one decides on a copy of her own. */
+function queueFor(request: IncomingMessage): QueueSubmission[] {
+	const key = sessionEmail(request) ?? '';
+	if (!queues.has(key)) queues.set(key, queueSeed());
+	return queues.get(key) as QueueSubmission[];
+}
+
+function queueDetail(item: QueueSubmission, viewer: { number: number }) {
+	const own = item.submitter.number === viewer.number;
+	const decisions = own
+		? []
+		: item.status === 'submitted'
+			? ['approve', 'reject', 'request_changes'].filter(
+					(each) => !(each === 'approve' && item.outdated.length > 0)
+				)
+			: item.status === 'changes_requested'
+				? ['reject']
+				: [];
+	return {
+		id: item.id,
+		status: item.status,
+		target_kind: item.target_kind,
+		intent: item.intent,
+		target_id: item.target_id,
+		base_revisions: item.target_id === null ? [] : [4],
+		labels: item.labels,
+		version: item.version,
+		submitter: item.submitter,
+		created_at: item.first,
+		first_submitted_at: item.first,
+		rounds: item.rounds.length,
+		last_round: item.rounds.at(-1)?.snapshot ?? null,
+		working_copy: null,
+		working_copy_discarded: false,
+		last_autosave_at: null,
+		decisions,
+		notes: item.notes,
+		outdated: item.outdated,
+		expires_at: item.status === 'changes_requested' ? at(20) : null,
+		retry_of: null,
+		converts: null,
+		stub: false,
+		log: item.log
+	};
+}
+
+/** The part of `/api/contributions/{id}` that a Moderator reaches; false if `id` is not one. */
+async function moderated(
+	request: IncomingMessage,
+	response: ServerResponse,
+	path: string
+): Promise<boolean> {
+	const found = /^\/api\/contributions\/(\d+)(?:\/([a-z-]+))?$/.exec(
+		new URL(path, 'http://mock').pathname
+	);
+	const item = found && queueFor(request).find((each) => each.id === Number(found[1]));
+	const user = sessionUser(request);
+	if (!item || !user) return false;
+	const refuse = (status: number, body: object) => {
+		send(response, status, body);
+		return true;
+	};
+	if (!user.moderator) {
+		// Someone who is not a Moderator and not the Submitter gets nothing.
+		send(response, found[2] === 'notes' || found[2] === 'decision' ? 403 : 404, {
+			code:
+				found[2] === 'notes' || found[2] === 'decision'
+					? 'moderation.forbidden'
+					: 'moderation.unknown_submission'
+		});
+		return true;
+	}
+	const action = found[2];
+	if (request.method === 'GET' && action === undefined) {
+		send(response, 200, queueDetail(item, user));
+	} else if (request.method === 'GET' && action === 'comparison') {
+		send(response, 200, {
+			...item.comparison,
+			rounds: item.rounds
+		});
+	} else if (request.method === 'POST' && action === 'notes') {
+		const { text } = await readJson(request);
+		if (!String(text ?? '').trim()) return refuse(422, { code: 'moderation.note_required' });
+		item.notes.push({
+			author: { number: user.number, display_name: user.display_name },
+			at: at(0),
+			text: String(text).trim()
+		});
+		send(response, 201, queueDetail(item, user));
+	} else if (request.method === 'POST' && action === 'decision') {
+		const body = await readJson(request);
+		const view = queueDetail(item, user);
+		if (body.version !== item.version) {
+			return refuse(409, { code: 'moderation.already_decided' });
+		}
+		if (!view.decisions.includes(body.verdict)) {
+			return refuse(403, { code: 'moderation.own_submission' });
+		}
+		if (body.verdict === 'approve' && (body.reason || body.text)) {
+			return refuse(422, { code: 'moderation.approval_has_message' });
+		}
+		if (body.verdict !== 'approve' && !body.reason) {
+			return refuse(422, { code: 'moderation.decision_reason_required' });
+		}
+		if (body.verdict !== 'approve' && !String(body.text ?? '').trim()) {
+			return refuse(422, { code: 'moderation.decision_text_required' });
+		}
+		const status = {
+			approve: 'approved',
+			reject: 'rejected',
+			request_changes: 'changes_requested'
+		}[body.verdict as string] as string;
+		item.status = status;
+		item.version += 1;
+		item.log.push(
+			entry(status, 0, 'moderator', {
+				actor: {
+					role: 'moderator',
+					user: { number: user.number, display_name: user.display_name }
+				},
+				reason: body.reason ?? null,
+				message: body.text ?? null
+			})
+		);
+		send(response, 200, queueDetail(item, user));
+	} else {
+		send(response, 404);
+	}
+	return true;
+}
+
+const ORDERS: Record<string, (a: QueueSubmission, b: QueueSubmission) => number> = {
+	oldest: (a, b) => a.first.localeCompare(b.first) || a.id - b.id,
+	newest: (a, b) => b.first.localeCompare(a.first) || b.id - a.id,
+	resubmitted: (a, b) => b.latest.localeCompare(a.latest) || b.id - a.id
+};
+
+function moderationQueue(request: IncomingMessage, response: ServerResponse, path: string) {
+	const user = sessionUser(request);
+	if (!user) return send(response, 401, { code: 'sign_in_required' });
+	if (!user.moderator) return send(response, 403, { code: 'moderator_only' });
+	const query = new URL(path, 'http://mock').searchParams;
+	const sort = query.get('sort') ?? 'oldest';
+	if (!(sort in ORDERS)) return send(response, 422, { code: 'invalid' });
+	const wanted = (name: string) => query.get(name);
+	const items = queueFor(request)
+		.filter((each) => each.status === 'submitted')
+		.filter((each) => !wanted('label') || each.labels.includes(wanted('label') as string))
+		.filter((each) => !wanted('target_kind') || each.target_kind === wanted('target_kind'))
+		.filter((each) => !wanted('submitter') || each.submitter.number === Number(wanted('submitter')))
+		.filter((each) => !wanted('area') || each.area === Number(wanted('area')))
+		.filter(
+			(each) =>
+				wanted('outdated') === null || each.outdated.length > 0 === (wanted('outdated') === 'true')
+		)
+		.sort(ORDERS[sort])
+		.map((each) => ({
+			id: each.id,
+			target_kind: each.target_kind,
+			intent: each.intent,
+			target_id: each.target_id,
+			labels: each.labels,
+			submitter: each.submitter,
+			own: each.submitter.number === user.number,
+			first_submitted_at: each.first,
+			latest_round_at: each.latest,
+			rounds: each.rounds.length,
+			outdated: each.outdated,
+			overlapping: each.overlapping,
+			nearby_creates: each.nearby_creates
+		}));
+	return send(response, 200, { sort, items });
+}
+
 const port = Number(process.argv[2] ?? 8795);
 createServer((request, response) => {
 	const path = (request.url ?? '').replace(/^\/(it-only|invite)/, '');
+	if (path.startsWith('/api/moderation/queue')) {
+		moderationQueue(request, response, path);
+		return;
+	}
+	if (path.startsWith('/api/contributions/') && /^\/api\/contributions\/4\d\d(?:\/|$)/.test(path)) {
+		moderated(request, response, path).catch(() => send(response, 500));
+		return;
+	}
 	if (path.startsWith('/api/moderation/invitations')) {
 		invitations(request, response, path, (request.url ?? '').startsWith('/invite/')).catch(() =>
 			send(response, 500)
