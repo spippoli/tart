@@ -17,6 +17,7 @@ const pages: Record<string, Record<PlatformLanguage, string>> = {
 	'/archive': { it: '/archivio', en: '/archive' },
 	'/artists': { it: '/artisti', en: '/artists' },
 	'/contribute': { it: '/contribuisci', en: '/contribute' },
+	'/contributions/:id/edit': { it: '/contributi/:id/modifica', en: '/contributions/:id/edit' },
 	'/sign-in': { it: '/accedi', en: '/sign-in' },
 	'/account': { it: '/account', en: '/account' },
 	'/moderation': { it: '/moderazione', en: '/moderation' },

@@ -6,6 +6,7 @@
 	import {
 		addVertex,
 		finish,
+		fromGeometry,
 		geometry,
 		startDrawing,
 		type Drawing,
@@ -44,6 +45,11 @@
 		area = null,
 		findLocations,
 		duplicates = [],
+		fieldId,
+		initial = null,
+		suggested = null,
+		radiusProblem = null,
+		problem = null,
 		onchange
 	}: {
 		locale: string;
@@ -59,18 +65,48 @@
 		findLocations: (query: { text?: string; near?: Point }) => Promise<LocationOption[]>;
 		/** Similar Locations the server found, each with where to add documentation. */
 		duplicates?: readonly { title: string; href: string; documentationHref: string }[];
+		/** A prefix for the ids of the fields, so that an error summary can link to them. */
+		fieldId?: string;
+		/** What was chosen before, when the entry opens again on a draft. */
+		initial?: Chosen | null;
+		/**
+		 * A position the file's metadata suggests (longitude, latitude). It only prefills
+		 * the coordinates field with a notice: nothing is placed until the person does.
+		 */
+		suggested?: Point | null;
+		/** Why the radius cannot be used with the rest of the Location, in words. */
+		radiusProblem?: string | null;
+		/** Why nothing has been placed yet, in words, once the person tried to go on. */
+		problem?: string | null;
 		onchange: (chosen: Chosen | null) => void;
 	} = $props();
 
-	const id = $props.id();
+	const generatedId = $props.id();
+	const id = $derived(fieldId ?? generatedId);
 	// The map exists only with JavaScript and WebGL2; a style that fails to load
 	// or a missing tile extract takes it away again (`onunavailable`).
 	let mapAvailable = $state(false);
-	onMount(() => (mapAvailable = useMap && supportsWebGL2()));
+	let mounted = $state(false);
+	onMount(() => {
+		mapAvailable = useMap && supportsWebGL2();
+		mounted = true;
+	});
 
-	let shape = $state<Shape>('point');
-	const effectiveShape = $derived<Shape>(mapAvailable ? shape : 'point');
-	let drawing = $state<Drawing>(startDrawing('point'));
+	// The entry opens on what was chosen before; later changes of `initial` are echoes of its own.
+	// svelte-ignore state_referenced_locally
+	const first = initial?.kind === 'new' ? initial.geometry : null;
+	let shape = $state<Shape>(
+		first
+			? first.type === 'Point'
+				? 'point'
+				: first.type === 'LineString'
+					? 'line'
+					: 'polygon'
+			: 'point'
+	);
+	// Until the page has mounted the shape is the one the draft had; after, without the map, a point.
+	const effectiveShape = $derived<Shape>(!mounted || mapAvailable ? shape : 'point');
+	let drawing = $state<Drawing>(first ? fromGeometry(first) : startDrawing('point'));
 	// A change of shape starts a new drawing.
 	$effect(() => {
 		if (drawing.shape !== effectiveShape) drawing = startDrawing(effectiveShape);
@@ -79,11 +115,26 @@
 	let text = $state('');
 	let coordinatesError = $state<string | null>(null);
 	let confirmed = $state<Point | null>(null);
-	let radiusText = $state('');
+	// svelte-ignore state_referenced_locally
+	let radiusText = $state(
+		initial?.kind === 'new' && initial.radiusMetres !== null ? String(initial.radiusMetres) : ''
+	);
 	let positionError = $state<string | null>(null);
 	let searchText = $state('');
 	let results = $state<LocationOption[] | null>(null);
-	let existing = $state<LocationOption | null>(null);
+	// svelte-ignore state_referenced_locally
+	let existing = $state<LocationOption | null>(
+		initial?.kind === 'existing' ? initial.location : null
+	);
+	let suggestionShown = $state(false);
+
+	// A suggested position only fills the field in; the person places it, or does not.
+	$effect(() => {
+		if (suggested && text === '' && !confirmed && !existing) {
+			text = `${suggested[1].toFixed(6)}, ${suggested[0].toFixed(6)}`;
+			suggestionShown = true;
+		}
+	});
 
 	const radius = $derived(parseRadius(radiusText));
 	const confirmation = $derived.by(() => {
@@ -215,12 +266,15 @@
 					bind:value={text}
 					{onkeydown}
 					aria-describedby="{id}-coordinates-hint {id}-coordinates-message"
-					aria-invalid={coordinatesError ? 'true' : undefined}
+					aria-invalid={coordinatesError || problem ? 'true' : undefined}
 				/>
 				<button type="button" onclick={useCoordinates}>{m.location_entry_coordinates_use()}</button>
 			</div>
+			{#if suggestionShown && !confirmed}
+				<p class="notice">{m.location_entry_suggestion()}</p>
+			{/if}
 			<p id="{id}-coordinates-message" class="message" role="status">
-				{coordinatesError ?? confirmation ?? ''}
+				{coordinatesError ?? problem ?? confirmation ?? ''}
 			</p>
 		</div>
 
@@ -252,10 +306,10 @@
 				autocomplete="off"
 				bind:value={radiusText}
 				aria-describedby="{id}-radius-hint {id}-radius-error"
-				aria-invalid={'error' in radius ? 'true' : undefined}
+				aria-invalid={'error' in radius || radiusProblem ? 'true' : undefined}
 			/>
 			<p id="{id}-radius-error" class="message">
-				{'error' in radius ? m.location_entry_radius_error() : ''}
+				{'error' in radius ? m.location_entry_radius_error() : (radiusProblem ?? '')}
 			</p>
 		</div>
 

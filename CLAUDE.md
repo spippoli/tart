@@ -77,6 +77,7 @@ pnpm api:generate          # regenerate src/lib/api/schema.d.ts from openapi.jso
 pnpm check:licences        # dependency licence allow-list (reviews in licences.json)
 pnpm check:assets          # third-party asset manifest (third-party-assets.json)
 pnpm check:styles          # gl-style-validate on Rome's reference map style
+TART_WRITE_FIXTURES=1 pnpm exec vitest run src/lib/contribution/form.test.ts   # after a change to the editor's working copy: the fixture the backend submits
 ```
 
 The message catalogues are `frontend/messages/{it,en}.json` (Paraglide) and `backend/src/tart/messages/{it,en}.json` (emails). The unit tests of both sides run the missing-key, OpenAPI drift, licence, and asset manifest checks, so CI fails on any of them.

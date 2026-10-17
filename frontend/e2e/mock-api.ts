@@ -27,6 +27,15 @@
  * to each (`/api/discovery/locations` and `/api/discovery/locations/{id}`).
  * A session cookie of `archivio-vuoto` makes the archive empty.
  *
+ * The contribution API keeps drafts of a new Artwork per User (`/api/contributions`):
+ * start, read, autosave, submit, delete. A submit is refused as the real API would for a
+ * missing document or initial Condition, a position outside the boundary, a note that
+ * says `limite` (429), and terms not accepted (`…-accettati` addresses accepted them).
+ * Uploads (`/api/media`) are `processing` for one poll, then `ready`; a file name with
+ * `rifiutato` is refused, one with `gps` suggests the position of Location 200, and
+ * `.pdf` is a PDF. The duplicate warning lists Location 200 for any point near it, and
+ * the name rule finds the Artist `Nebbia Finta` for any name with `nebbia`.
+ *
  *     node e2e/mock-api.ts [port]
  */
 import { createHash, randomBytes } from 'node:crypto';
@@ -325,6 +334,218 @@ async function invitations(
 	};
 	invitationList.unshift(created);
 	send(response, 201, created);
+}
+
+interface Draft {
+	id: number;
+	owner: string;
+	status: 'draft' | 'submitted';
+	workingCopy: unknown;
+	lastAutosave: string | null;
+	round: unknown;
+}
+const drafts = new Map<number, Draft>();
+let nextDraftId = 100;
+/** The Users who accepted the terms (the stand-in has one version); `…-accettati` from the start. */
+const acceptedTerms = new Set<string>();
+interface Upload {
+	owner: string;
+	name: string;
+	polls: number;
+}
+const uploads = new Map<string, Upload>();
+const PIXEL = Buffer.from(
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+	'base64'
+);
+
+function draftOut(draft: Draft) {
+	return {
+		id: draft.id,
+		status: draft.status,
+		target_kind: 'artwork',
+		intent: 'create',
+		target_id: null,
+		base_revisions: [],
+		labels: [],
+		version: 1,
+		submitter: { number: 1, display_name: 'Persona di prova' },
+		created_at: at(0),
+		first_submitted_at: draft.status === 'submitted' ? at(0) : null,
+		rounds: draft.status === 'submitted' ? 1 : 0,
+		last_round: draft.round ?? null,
+		working_copy: draft.workingCopy ?? null,
+		working_copy_discarded: false,
+		last_autosave_at: draft.lastAutosave,
+		outdated: [],
+		expires_at: null,
+		retry_of: null,
+		converts: null,
+		stub: false,
+		log: []
+	};
+}
+
+function termsOf(email: string) {
+	const accepted = email.includes('accettati') || acceptedTerms.has(email);
+	return { version: 1, accepted_version: accepted ? 1 : null, acceptance_required: !accepted };
+}
+
+/** The Location 200 and its three Artworks, as the duplicate warning lists them. */
+function candidateAt(distance: number) {
+	const panel = locationPanel(200, new URL('http://mock/'), false)!;
+	return { location: panel.location, distance, site: null, artworks: panel.entries };
+}
+
+type Operation = {
+	op?: string;
+	kind?: string;
+	record?: { geometry?: { coordinates?: unknown[] } };
+};
+
+/** The few rules of the real API's submit that the editor tests need, in its own codes. */
+function refusalOf(content: { operations?: unknown; initial_condition?: unknown }): string | null {
+	const operations: Operation[] = Array.isArray(content.operations) ? content.operations : [];
+	const created = (kind: string) => operations.filter((o) => o.op === 'create' && o.kind === kind);
+	if (created('documentation_item').length === 0) return 'moderation.documentation_required';
+	if (!content.initial_condition) return 'moderation.initial_condition_required';
+	const [place] = created('location');
+	const coordinates = place?.record?.geometry?.coordinates;
+	if (Array.isArray(coordinates) && Number(coordinates.flat(2)[0]) > 13) {
+		return 'location.outside_boundary';
+	}
+	return null;
+}
+
+/** Drafts: started, read, autosaved, submitted, and deleted by their Submitter alone. */
+async function contributions(request: IncomingMessage, response: ServerResponse, path: string) {
+	const email = sessionUser(request) && sessionEmail(request);
+	if (!email) return send(response, 401, { code: 'sign_in_required' });
+	const writes = request.method !== 'GET';
+	if (writes && (!request.headers['x-tart-request'] || !request.headers['x-tart-client-ip'])) {
+		return send(response, 403, { code: 'csrf_refused' });
+	}
+	if (path === '/api/contributions/terms') return send(response, 200, termsOf(email));
+	if (path === '/api/contributions' && request.method === 'POST') {
+		const draft: Draft = {
+			id: nextDraftId++,
+			owner: email,
+			status: 'draft',
+			workingCopy: null,
+			lastAutosave: null,
+			round: null
+		};
+		drafts.set(draft.id, draft);
+		return send(response, 201, draftOut(draft));
+	}
+	const found = /^\/api\/contributions\/(\d+)(?:\/(working-copy|submit))?$/.exec(path);
+	const draft = found && drafts.get(Number(found[1]));
+	if (!found || !draft || draft.owner !== email) {
+		return send(response, 404, { code: 'moderation.unknown_submission' });
+	}
+	if (request.method === 'GET') return send(response, 200, draftOut(draft));
+	if (request.method === 'DELETE') {
+		drafts.delete(draft.id);
+		return send(response, 204);
+	}
+	const body = await readJson(request);
+	if (found[2] === 'working-copy') {
+		draft.workingCopy = body.content;
+		draft.lastAutosave = at(0);
+		return send(response, 200, { last_autosave_at: draft.lastAutosave });
+	}
+	if (found[2] === 'submit') {
+		if (String(body.note ?? '').includes('limite')) {
+			return send(response, 429, { code: 'moderation.submissions_limited', retry_after: 600 });
+		}
+		const refusal = refusalOf(body.content);
+		if (refusal) return send(response, 422, { code: refusal });
+		if (termsOf(email).acceptance_required && !body.accept_terms) {
+			return send(response, 409, { code: 'moderation.terms_not_accepted' });
+		}
+		acceptedTerms.add(email);
+		draft.status = 'submitted';
+		draft.round = body.content;
+		draft.workingCopy = null;
+		return send(response, 200, draftOut(draft));
+	}
+	send(response, 404);
+}
+
+/** Uploads: the file is `processing` for one poll, then `ready` (or refused if its name says so). */
+async function media(request: IncomingMessage, response: ServerResponse, path: string) {
+	const email = sessionUser(request) && sessionEmail(request);
+	if (!email) return send(response, 401, { code: 'sign_in_required' });
+	if (path === '/api/media' && request.method === 'POST') {
+		if (!request.headers['x-tart-request'] || !request.headers['x-tart-client-ip']) {
+			return send(response, 403, { code: 'csrf_refused' });
+		}
+		const chunks: Buffer[] = [];
+		for await (const chunk of request) chunks.push(chunk as Buffer);
+		const name = /filename="([^"]*)"/.exec(Buffer.concat(chunks).toString('latin1'))?.[1] ?? 'file';
+		const hex = randomBytes(16).toString('hex');
+		const id = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+		uploads.set(id, { owner: email, name, polls: 0 });
+		return send(response, 202, { id, status: 'processing' });
+	}
+	const state = /^\/api\/media\/([0-9a-f-]{36})(?:\/(thumbnail|view|large))?$/.exec(path);
+	const upload = state && uploads.get(state[1]);
+	if (!state || !upload) return send(response, 404, { code: 'upload_not_found' });
+	if (state[2]) {
+		response.writeHead(200, { 'Content-Type': 'image/png' }).end(PIXEL);
+		return;
+	}
+	upload.polls += 1;
+	if (upload.polls < 2) return send(response, 200, { id: state[1], status: 'processing' });
+	if (upload.name.includes('rifiutato')) {
+		return send(response, 200, {
+			id: state[1],
+			status: 'rejected',
+			error: 'file_type_unsupported'
+		});
+	}
+	send(response, 200, {
+		id: state[1],
+		status: 'ready',
+		format: upload.name.endsWith('.pdf') ? 'pdf' : 'jpeg',
+		renditions: { thumbnail: { width: 480, height: 320 } },
+		suggestions: {
+			observed_date: '2024-05-17',
+			// The camera was at Location 200: a suggestion, never a Location.
+			point: upload.name.includes('gps') ? [12.4823, 41.8955] : null
+		}
+	});
+}
+
+/** The duplicate warning's candidates: Location 200 is 12 m from any point near it. */
+async function duplicates(request: IncomingMessage, response: ServerResponse, path: string) {
+	if (!(sessionUser(request) && sessionEmail(request))) {
+		return send(response, 401, { code: 'sign_in_required' });
+	}
+	const body = await readJson(request);
+	if (path === '/api/contribution/duplicates/locations') {
+		const [lon, lat] = body.geometry?.coordinates ?? [];
+		const near = Math.abs(lon - 12.4823) < 0.001 && Math.abs(lat - 41.8955) < 0.001;
+		return send(response, 200, {
+			candidates: near || body.location_id === 200 ? [candidateAt(12)] : []
+		});
+	}
+	const similar = String(body.name ?? '')
+		.toLowerCase()
+		.includes('nebbia');
+	send(response, 200, {
+		candidates:
+			similar && body.kind === 'artist'
+				? [
+						{
+							record: link('artist', 7, '7-nebbia-finta', 'Nebbia Finta'),
+							match: 'name',
+							matched: 'Nebbia Finta',
+							score: 95
+						}
+					]
+				: []
+	});
 }
 
 const challenge = () => randomBytes(32).toString('base64url');
@@ -684,6 +905,18 @@ createServer((request, response) => {
 		invitations(request, response, path, (request.url ?? '').startsWith('/invite/')).catch(() =>
 			send(response, 500)
 		);
+		return;
+	}
+	if (path.startsWith('/api/contributions')) {
+		contributions(request, response, path).catch(() => send(response, 500));
+		return;
+	}
+	if (path.startsWith('/api/media')) {
+		media(request, response, path).catch(() => send(response, 500));
+		return;
+	}
+	if (path.startsWith('/api/contribution/duplicates/')) {
+		duplicates(request, response, path).catch(() => send(response, 500));
 		return;
 	}
 	if (path.startsWith('/api/auth/')) {

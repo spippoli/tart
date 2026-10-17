@@ -31,6 +31,13 @@ from tart.moderation_persistence import limits, retention
 from tart.storage.filesystem import FilesystemStorage
 
 KEY = ENVIRONMENT["SESSION_KEY"].encode()
+EDITOR_COPY = (
+    Path(__file__).parents[3] / "frontend" / "e2e" / "fixtures" / "contribution"
+).joinpath("editor-new-artwork.json")
+"""The working copy of a new Artwork exactly as the frontend's editor writes it (a unit test of
+the frontend keeps the file in step; see Commands in CLAUDE.md to rewrite it)."""
+EDITOR_FILE = "6f1c1e0e-6a4b-4c0c-9a58-0d6a8c3e8b11"
+"""The upload that the file is standing for."""
 LOCATION, ARTWORK = New("location"), New("artwork")
 DAY = timedelta(days=1)
 LABELS = ["adds_documentation", "adds_history_event", "changes_condition"]
@@ -216,6 +223,38 @@ def test_a_submitter_drafts_autosaves_and_submits_and_nobody_else_sees_it(api: A
     assert _submit(api, draft, accept_terms=True).status_code == 404
     assert api.client.delete(f"/api/contributions/{draft}").status_code == 404
     assert api.client.get("/api/contributions").json() == {"items": []}
+
+
+def test_the_working_copy_the_editor_writes_is_submitted_and_approved_as_it_is(api: Api) -> None:
+    """Contribution and moderation spec, Submission form: the editor's own output, with new
+    Location, Artist, Series, and Source created inline, an image with third-party rights, a
+    link, a confirmed Attribution citing the Source, and a Creation date."""
+    _as(api, "ada@example.org")
+    file = _upload(api)
+    content = json.loads(EDITOR_COPY.read_text().replace(EDITOR_FILE, file))
+    draft = _draft(api, content)
+
+    submitted = _submit(api, draft, accept_terms=True, note="Una nota fittizia.")
+
+    assert submitted.status_code == 200, submitted.text
+    assert submitted.json()["labels"] == [
+        "adds_documentation",
+        "adds_history_event",
+        "changes_attribution",
+        "changes_condition",
+    ]
+    _as(api, "gus@example.org", moderator=True)
+    approved = _decide(api, draft, "approve")
+    assert approved.status_code == 200, approved.text
+    created = api.query("SELECT kind, count(*) AS n FROM record GROUP BY kind ORDER BY kind")
+    assert {row["kind"]: row["n"] for row in created} == {
+        "artist": 1,
+        "artwork": 1,
+        "documentation_item": 2,
+        "location": 1,
+        "series": 1,
+        "source": 1,
+    }
 
 
 def test_moderators_decide_and_the_submitter_never_learns_who(api: Api) -> None:
