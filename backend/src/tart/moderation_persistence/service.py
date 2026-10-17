@@ -144,6 +144,15 @@ async def outdated(connection: AsyncConnection, submission_id: int) -> tuple[Rea
     return await _outdated_reasons(connection, submission, content)
 
 
+async def outdated_now(connection: AsyncConnection, submission: Submission) -> tuple[Reason, ...]:
+    """Why a loaded Submission's last round is Outdated, without locking its row (the queue
+    reads many)."""
+    if not submission.rounds or submission.target_id is None:
+        return ()
+    content = moderation.decode_content(submission.rounds[-1].snapshot, submission.target_kind)
+    return await _outdated_reasons(connection, submission, content)
+
+
 async def rebase(
     connection: AsyncConnection, submission_id: int, user_id: int, now: datetime
 ) -> Submission:

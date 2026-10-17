@@ -11,9 +11,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from tart.archive.changeset import AddItem, ChangeItem, Create, RemoveItem
+from tart.archive.errors import ArchiveRuleViolation
 from tart.archive.history import CONDITION_CHANGING
 from tart.archive.records import Artwork, DocumentationItem, HistoryEvent, Kind
-from tart.moderation.content import Content
+from tart.moderation.content import Content, decode_content
+from tart.moderation.errors import ModerationError
 from tart.moderation.model import Submission
 from tart.moderation.validation import materialize
 
@@ -71,3 +73,19 @@ def derive_labels(content: Content) -> tuple[Label, ...]:
     if any(event.type in CONDITION_CHANGING for event in events):
         found.add(Label.CHANGES_CONDITION)
     return tuple(label for label in Label if label in found)
+
+
+def labels_of(submission: Submission) -> tuple[str, ...]:
+    """The labels of what the Submission shows now: its stub, its last round, or its
+    working copy; none when that content cannot be read."""
+    if submission.stub is not None:
+        return tuple(submission.stub["labels"])  # type: ignore[index, call-overload]
+    raw = submission.rounds[-1].snapshot if submission.rounds else submission.working_copy
+    if raw is None:
+        return ()
+    try:
+        return tuple(
+            label.value for label in derive_labels(decode_content(raw, submission.target_kind))
+        )
+    except ModerationError, ArchiveRuleViolation:
+        return ()

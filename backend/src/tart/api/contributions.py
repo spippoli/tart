@@ -12,9 +12,12 @@ and decisions (Contribution and moderation spec, Lifecycle, Rate limits, Terms o
     POST   /api/contributions/{id}/start-again   a new draft from a rejected or retracted one
     POST   /api/contributions/{id}/convert       a draft that adds its documentation to an Artwork
     POST   /api/contributions/{id}/decision      a Moderator approves, rejects, or requests changes
+    POST   /api/contributions/{id}/notes         a Moderator adds a Moderation note
+    GET    /api/contributions/{id}/comparison    the current record against the proposed data
 
 A Submission answers 404 to everyone but its Submitter and the Moderators. The API never
-names a Moderator to the Submitter: the log reads "a Moderator". Refusals carry a stable,
+names a Moderator to the Submitter, and never sends them a Moderation note: the log reads
+"a Moderator". A Submitter's email address is sent to no one. Refusals carry a stable,
 translatable error code `{"code": ...}` (ADR 0008); the per-User limits answer 429 with the
 code and `retry_after`.
 """
@@ -57,7 +60,14 @@ from tart.moderation import (
     Submission,
     Verdict,
 )
-from tart.moderation_persistence import contribution, service, store, terms
+from tart.moderation_persistence import (
+    archive_access,
+    contribution,
+    service,
+    store,
+    terms,
+)
+from tart.moderation_persistence import comparison as compare
 from tart.moderation_persistence.limits import LimitReached
 from tart.storage import Storage
 
@@ -138,6 +148,12 @@ class LogEntryOut(BaseModel):
     """The other Submission of a retry or conversion link."""
 
 
+class NoteOut(BaseModel):
+    author: Person
+    at: datetime
+    text: str
+
+
 class SubmissionOut(BaseModel):
     id: int
     status: Status
@@ -160,6 +176,11 @@ class SubmissionOut(BaseModel):
     working_copy_discarded: bool = False
     """A decision discarded the working copy. Submitter only."""
     last_autosave_at: datetime | None = None
+    decisions: list[Verdict] = []
+    """What the caller may decide on now: a Moderator's options for this status, none on their
+    own Submission under `self_approval = false`, no approval while Outdated."""
+    notes: list[NoteOut] = []
+    """The Moderation notes, immutable and in order. Moderators only: always empty otherwise."""
     outdated: list[str]
     """Why the last round is Outdated, empty when it is not."""
     expires_at: datetime | None
@@ -186,7 +207,7 @@ class SubmissionList(BaseModel):
     items: list[SubmissionSummary]
 
 
-async def _people(connection: AsyncConnection, ids: set[int]) -> dict[int, Person]:
+async def people_of(connection: AsyncConnection, ids: set[int]) -> dict[int, Person]:
     if not ids:
         return {}
     rows = await connection.execute(
@@ -196,19 +217,10 @@ async def _people(connection: AsyncConnection, ids: set[int]) -> dict[int, Perso
 
 
 def _labels(submission: Submission) -> list[str]:
-    if submission.stub is not None:
-        return list(submission.stub["labels"])  # type: ignore[index, call-overload]
-    raw = submission.rounds[-1].snapshot if submission.rounds else submission.working_copy
-    if raw is None:
-        return []
-    try:
-        content = moderation.decode_content(raw, submission.target_kind)
-        return [label.value for label in moderation.derive_labels(content)]
-    except ModerationError, ArchiveRuleViolation:
-        return []
+    return list(moderation.labels_of(submission))
 
 
-def _intent(submission: Submission) -> Literal["create", "edit"]:
+def intent_of(submission: Submission) -> Literal["create", "edit"]:
     return moderation.derive_kind(submission).intent.value  # type: ignore[return-value]
 
 
@@ -222,7 +234,7 @@ def _summary(submission: Submission, expiry_days: int) -> SubmissionSummary:
         id=submission.id,
         status=submission.status,
         target_kind=submission.target_kind,
-        intent=_intent(submission),
+        intent=intent_of(submission),
         target_id=submission.target_id,
         labels=_labels(submission),
         created_at=submission.created_at,
@@ -231,14 +243,36 @@ def _summary(submission: Submission, expiry_days: int) -> SubmissionSummary:
     )
 
 
+def _decisions(
+    submission: Submission, viewer: SessionUser, self_approval: bool, outdated: bool
+) -> list[Verdict]:
+    """The decisions this caller may take now: a Moderator's, by status; none on their own
+    Submission under `self_approval = false`; no approval of an Outdated one."""
+    if not viewer.moderator or (viewer.id == submission.submitter_id and not self_approval):
+        return []
+    return [
+        verdict
+        for verdict in Verdict
+        if (submission.status, moderation.Action(verdict.value)) in moderation.TRANSITIONS
+        and not (verdict is Verdict.APPROVE and outdated)
+        and submission.rounds
+    ]
+
+
 async def _detail(
-    connection: AsyncConnection, submission: Submission, viewer: SessionUser, expiry_days: int
+    connection: AsyncConnection,
+    submission: Submission,
+    viewer: SessionUser,
+    configuration: Configuration,
 ) -> SubmissionOut:
+    settings = configuration.instance.settings
+    expiry_days = settings.community.draft_expiry_days
     own = viewer.id == submission.submitter_id
     ids = {submission.submitter_id}
     if viewer.moderator:
         ids |= {e.actor.user_id for e in submission.log if e.actor.user_id is not None}
-    people = await _people(connection, ids)
+        ids |= {note.author_id for note in submission.notes}
+    people = await people_of(connection, ids)
     pseudonym = Person(number=submission.submitter_id, display_name="")
 
     def actor(entry: moderation.LogEntry) -> ActorOut:
@@ -258,7 +292,7 @@ async def _detail(
         id=submission.id,
         status=submission.status,
         target_kind=submission.target_kind,
-        intent=_intent(submission),
+        intent=intent_of(submission),
         target_id=submission.target_id,
         base_revisions=list(submission.base_revisions),
         labels=_labels(submission),
@@ -271,6 +305,17 @@ async def _detail(
         working_copy=submission.working_copy if own else None,
         working_copy_discarded=submission.working_copy_discarded if own else False,
         last_autosave_at=submission.last_autosave_at if own else None,
+        decisions=_decisions(submission, viewer, settings.community.self_approval, bool(outdated)),
+        notes=[
+            NoteOut(
+                author=people.get(note.author_id, Person(number=note.author_id, display_name="")),
+                at=note.at,
+                text=note.text,
+            )
+            for note in submission.notes
+        ]
+        if viewer.moderator
+        else [],
         outdated=outdated,
         expires_at=_expires_at(submission, expiry_days),
         retry_of=submission.retry_of,
@@ -312,7 +357,7 @@ async def _detail_of(
         submission = await _visible(connection, submission_id, user)
         if submission is None:
             return _refused("moderation.unknown_submission", 404)
-        return await _detail(connection, submission, user, _expiry_days(configuration))
+        return await _detail(connection, submission, user, configuration)
 
 
 async def _hidden(
@@ -401,7 +446,7 @@ async def start_draft(
                 clock(),
                 expiry_days=_expiry_days(configuration),
             )
-            return await _detail(connection, draft, user, _expiry_days(configuration))
+            return await _detail(connection, draft, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -499,7 +544,7 @@ async def submit(
                 key=key,
                 note=body.note,
             )
-            return await _detail(connection, submitted, user, _expiry_days(configuration))
+            return await _detail(connection, submitted, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -520,7 +565,7 @@ async def retract(
     try:
         async with engine.begin() as connection:
             retracted = await service.retract(connection, submission_id, user.id, clock())
-            return await _detail(connection, retracted, user, _expiry_days(configuration))
+            return await _detail(connection, retracted, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -573,7 +618,7 @@ async def start_again(
                 clock(),
                 expiry_days=_expiry_days(configuration),
             )
-            return await _detail(connection, draft, user, _expiry_days(configuration))
+            return await _detail(connection, draft, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -613,7 +658,7 @@ async def convert(
                 clock(),
                 expiry_days=_expiry_days(configuration),
             )
-            return await _detail(connection, draft, user, _expiry_days(configuration))
+            return await _detail(connection, draft, user, configuration)
     except FAILURES as error:
         return _failure(error)
 
@@ -646,6 +691,8 @@ async def decide(
     """
     if user is None:
         return _refused(SIGN_IN_REQUIRED, 401)
+    if not user.moderator:
+        return _refused("moderation.forbidden", 403)
     if (hidden := await _hidden(engine, submission_id, user)) is not None:
         return hidden
     settings = configuration.instance.settings
@@ -679,6 +726,166 @@ async def decide(
                     now,
                     decision=decision,
                 )
-            return await _detail(connection, decided, user, _expiry_days(configuration))
+            return await _detail(connection, decided, user, configuration)
     except FAILURES as error:
         return _failure(error)
+
+
+class NoteBody(BaseModel):
+    text: str
+
+
+@router.post(
+    "/{submission_id}/notes", status_code=201, response_model=SubmissionOut, responses=_ERRORS
+)
+async def add_note(
+    submission_id: int,
+    body: NoteBody,
+    user: Annotated[Caller, Depends(current_user)],
+    configuration: Annotated[Configuration, Depends(get_configuration)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> SubmissionOut | JSONResponse:
+    """A Moderator adds a Moderation note: immutable, with author and date, read by
+    Moderators only. It is not a decision, so a Moderator may add one to their own
+    Submission whatever `self_approval` says."""
+    if user is None:
+        return _refused(SIGN_IN_REQUIRED, 401)
+    if not user.moderator:
+        return _refused("moderation.forbidden", 403)
+    if (hidden := await _hidden(engine, submission_id, user)) is not None:
+        return hidden
+    try:
+        async with engine.begin() as connection:
+            noted = await service.add_note(connection, submission_id, user.id, body.text, clock())
+            return await _detail(connection, noted, user, configuration)
+    except FAILURES as error:
+        return _failure(error)
+
+
+class ImageSideOut(BaseModel):
+    file: str
+    """The upload id: the image is `/api/media/{file}/view`, at full size `/large`."""
+    observed_date: Any
+    creator_credit: str | None
+    licence: str | None
+    alt_text: str | None
+    item_id: int | None
+    """The Documentation item; null for the proposed file."""
+
+
+class ImageComparisonOut(BaseModel):
+    proposed: ImageSideOut
+    current: ImageSideOut | None
+    """The Artwork's most recent image Documentation item, null when it has none."""
+
+
+class NearLocationOut(BaseModel):
+    id: int
+    distance_metres: float
+
+
+class GeometrySummaryOut(BaseModel):
+    vertices_before: int | None
+    vertices_after: int
+    largest_shift_metres: float | None
+    shift_direction: str | None
+    """A compass point: N, NE, E, SE, S, SW, W, or NW."""
+    area_change_square_metres: float | None
+
+
+class GeometryComparisonOut(BaseModel):
+    record_kind: Kind
+    target_id: int | None
+    current: Any | None
+    """GeoJSON; null for a new record."""
+    proposed: Any
+    summary: GeometrySummaryOut
+    near_locations: list[NearLocationOut]
+    """For a Location: the others within the proximity rule."""
+    locations_entering: int | None
+    locations_leaving: int | None
+    """For an Area: the Locations its polygon takes in and lets go."""
+
+
+class OperationCurrent(BaseModel):
+    index: int
+    """The position of the operation in the last round's `operations`."""
+    current: Any | None
+    """The field or item it changes, as it is now; null when it has none."""
+
+
+class RoundOut(BaseModel):
+    number: int
+    submitted_at: datetime
+    snapshot: Any | None
+    """The changeset of the round; null in a stub."""
+
+
+class ComparisonOut(BaseModel):
+    current_revision: int | None
+    """The target's latest Revision; compare with `base_revisions`."""
+    operations: list[OperationCurrent]
+    images: list[ImageComparisonOut]
+    geometries: list[GeometryComparisonOut]
+    rounds: list[RoundOut]
+    """Every submitted round, so that the page can set one beside the previous."""
+
+
+@router.get(
+    "/{submission_id}/comparison",
+    response_model=ComparisonOut,
+    responses={401: {"model": Error}, 404: {"model": Error}},
+)
+async def comparison(
+    submission_id: int,
+    user: Annotated[Caller, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+) -> ComparisonOut | JSONResponse:
+    """What the last submitted round changes, against the archive as it is now: the value
+    each operation replaces, the proposed image beside the Artwork's latest one, and the
+    proposed geometry against the current one with a summary in numbers. For the Submitter
+    and Moderators only."""
+    if user is None:
+        return _refused(SIGN_IN_REQUIRED, 401)
+    async with engine.connect() as connection:
+        submission = await _visible(connection, submission_id, user)
+        if submission is None:
+            return _refused("moderation.unknown_submission", 404)
+        compared = await compare.compare(connection, submission)
+        revision = (
+            (await archive_access.target_state(connection, submission.target_id)).revision_id  # type: ignore[union-attr]
+            if submission.target_id is not None
+            else None
+        )
+    return ComparisonOut(
+        current_revision=revision,
+        operations=[
+            OperationCurrent(index=index, current=value)
+            for index, value in sorted(compared.current_values.items())
+        ],
+        images=[
+            ImageComparisonOut(
+                proposed=ImageSideOut(**vars(each.proposed)),
+                current=ImageSideOut(**vars(each.current)) if each.current else None,
+            )
+            for each in compared.images
+        ],
+        geometries=[
+            GeometryComparisonOut(
+                record_kind=each.record_kind,
+                target_id=each.target_id,
+                current=each.current,
+                proposed=each.proposed,
+                summary=GeometrySummaryOut(**vars(each.summary)),
+                near_locations=[NearLocationOut(**vars(near)) for near in each.near_locations],
+                locations_entering=each.locations_entering,
+                locations_leaving=each.locations_leaving,
+            )
+            for each in compared.geometries
+        ],
+        rounds=[
+            RoundOut(number=each.number, submitted_at=each.submitted_at, snapshot=each.snapshot)
+            for each in submission.rounds
+        ],
+    )

@@ -5,6 +5,7 @@ Pure rules with no framework or persistence imports; `moderation_persistence` st
 the aggregate and, on approval, calls the archive's write operation.
 """
 
+from tart.moderation.comparison import GeometrySummary, summarise
 from tart.moderation.content import (
     MAX_UPLOADED_ITEMS,
     Conflict,
@@ -16,7 +17,14 @@ from tart.moderation.content import (
     uploaded_files,
 )
 from tart.moderation.errors import ModerationError
-from tart.moderation.kind import Intent, Label, SubmissionKind, derive_kind, derive_labels
+from tart.moderation.kind import (
+    Intent,
+    Label,
+    SubmissionKind,
+    derive_kind,
+    derive_labels,
+    labels_of,
+)
 from tart.moderation.lifecycle import (
     TRANSITIONS,
     Action,
@@ -77,6 +85,7 @@ __all__ = [
     "Decision",
     "DecisionRules",
     "Event",
+    "GeometrySummary",
     "Intent",
     "Label",
     "LogEntry",
@@ -106,6 +115,7 @@ __all__ = [
     "encode_content",
     "expire",
     "expiry_deadline",
+    "labels_of",
     "link",
     "materialize",
     "media_deletion_due",
@@ -119,5 +129,6 @@ __all__ = [
     "save_working_copy",
     "stub_due",
     "submit",
+    "summarise",
     "uploaded_files",
 ]

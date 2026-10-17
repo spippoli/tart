@@ -18,6 +18,7 @@ from tart.api import (
     invitations,
     map_style,
     media,
+    moderation,
 )
 from tart.api import health as health_api
 from tart.config import config_dir
@@ -87,6 +88,7 @@ def create_app() -> FastAPI:
     app.include_router(duplicates.router)
     app.include_router(health_api.router)
     app.include_router(invitations.router)
+    app.include_router(moderation.router)
     app.include_router(map_style.router)
     app.include_router(media.router)
     return app

@@ -834,6 +834,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contributions/{submission_id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Note
+         * @description A Moderator adds a Moderation note: immutable, with author and date, read by
+         *     Moderators only. It is not a decision, so a Moderator may add one to their own
+         *     Submission whatever `self_approval` says.
+         */
+        post: operations["add_note_api_contributions__submission_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comparison
+         * @description What the last submitted round changes, against the archive as it is now: the value
+         *     each operation replaces, the proposed image beside the Artwork's latest one, and the
+         *     proposed geometry against the current one with a summary in numbers. For the Submitter
+         *     and Moderators only.
+         */
+        get: operations["comparison_api_contributions__submission_id__comparison_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/discovery/artworks": {
         parameters: {
             query?: never;
@@ -1012,6 +1057,26 @@ export interface paths {
          * @description Revoke a pending Invitation; any Moderator may.
          */
         post: operations["revoke_invitation_api_moderation_invitations__invitation_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Queue
+         * @description The Submissions awaiting a decision, oldest first unless told otherwise.
+         */
+        get: operations["read_queue_api_moderation_queue_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1392,6 +1457,19 @@ export interface components {
              */
             website: string;
         };
+        /** ComparisonOut */
+        ComparisonOut: {
+            /** Current Revision */
+            current_revision: number | null;
+            /** Operations */
+            operations: components["schemas"]["OperationCurrent"][];
+            /** Images */
+            images: components["schemas"]["ImageComparisonOut"][];
+            /** Geometries */
+            geometries: components["schemas"]["GeometryComparisonOut"][];
+            /** Rounds */
+            rounds: components["schemas"]["RoundOut"][];
+        };
         /**
          * Condition
          * @description An Artwork's physical state, always derived from its physical history.
@@ -1600,6 +1678,36 @@ export interface components {
             /** Bounds */
             bounds: number[];
         };
+        /** GeometryComparisonOut */
+        GeometryComparisonOut: {
+            record_kind: components["schemas"]["Kind"];
+            /** Target Id */
+            target_id: number | null;
+            /** Current */
+            current: unknown | null;
+            /** Proposed */
+            proposed: unknown;
+            summary: components["schemas"]["GeometrySummaryOut"];
+            /** Near Locations */
+            near_locations: components["schemas"]["NearLocationOut"][];
+            /** Locations Entering */
+            locations_entering: number | null;
+            /** Locations Leaving */
+            locations_leaving: number | null;
+        };
+        /** GeometrySummaryOut */
+        GeometrySummaryOut: {
+            /** Vertices Before */
+            vertices_before: number | null;
+            /** Vertices After */
+            vertices_after: number;
+            /** Largest Shift Metres */
+            largest_shift_metres: number | null;
+            /** Shift Direction */
+            shift_direction: string | null;
+            /** Area Change Square Metres */
+            area_change_square_metres: number | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1647,6 +1755,26 @@ export interface components {
             /** Favicon */
             favicon: string;
             accent: components["schemas"]["Accent"];
+        };
+        /** ImageComparisonOut */
+        ImageComparisonOut: {
+            proposed: components["schemas"]["ImageSideOut"];
+            current: components["schemas"]["ImageSideOut"] | null;
+        };
+        /** ImageSideOut */
+        ImageSideOut: {
+            /** File */
+            file: string;
+            /** Observed Date */
+            observed_date: unknown;
+            /** Creator Credit */
+            creator_credit: string | null;
+            /** Licence */
+            licence: string | null;
+            /** Alt Text */
+            alt_text: string | null;
+            /** Item Id */
+            item_id: number | null;
         };
         /** IndexPage */
         IndexPage: {
@@ -1734,6 +1862,11 @@ export interface components {
          * @enum {string}
          */
         Kind: "artwork" | "location" | "site" | "area" | "series" | "artist" | "source" | "documentation_item";
+        /**
+         * Label
+         * @enum {string}
+         */
+        Label: "adds_documentation" | "adds_history_event" | "changes_attribution" | "changes_condition";
         /** Languages */
         Languages: {
             /** Content */
@@ -2047,6 +2180,13 @@ export interface components {
             /** Url */
             url?: string | null;
         };
+        /** NearLocationOut */
+        NearLocationOut: {
+            /** Id */
+            id: number;
+            /** Distance Metres */
+            distance_metres: number;
+        };
         /**
          * NearbyLocation
          * @description A public Location near the record's, drawn muted on the mini-map.
@@ -2068,6 +2208,29 @@ export interface components {
             };
             /** Name */
             name: string;
+        };
+        /** NoteBody */
+        NoteBody: {
+            /** Text */
+            text: string;
+        };
+        /** NoteOut */
+        NoteOut: {
+            author: components["schemas"]["Person"];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Text */
+            text: string;
+        };
+        /** OperationCurrent */
+        OperationCurrent: {
+            /** Index */
+            index: number;
+            /** Current */
+            current: unknown | null;
         };
         /**
          * Order
@@ -2223,6 +2386,48 @@ export interface components {
          * @enum {string}
          */
         Qualifier: "exact" | "circa" | "before" | "after";
+        /** QueueItem */
+        QueueItem: {
+            /** Id */
+            id: number;
+            target_kind: components["schemas"]["Kind"];
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "create" | "edit";
+            /** Target Id */
+            target_id: number | null;
+            /** Labels */
+            labels: string[];
+            submitter: components["schemas"]["Person"];
+            /** Own */
+            own: boolean;
+            /**
+             * First Submitted At
+             * Format: date-time
+             */
+            first_submitted_at: string;
+            /**
+             * Latest Round At
+             * Format: date-time
+             */
+            latest_round_at: string;
+            /** Rounds */
+            rounds: number;
+            /** Outdated */
+            outdated: string[];
+            /** Overlapping */
+            overlapping: number[];
+            /** Nearby Creates */
+            nearby_creates: number[];
+        };
+        /** QueueOut */
+        QueueOut: {
+            sort: components["schemas"]["Sort"];
+            /** Items */
+            items: components["schemas"]["QueueItem"][];
+        };
         /** RateLimitedError */
         RateLimitedError: {
             /**
@@ -2321,6 +2526,18 @@ export interface components {
          * @enum {string}
          */
         RightsBasis: "own_work" | "third_party";
+        /** RoundOut */
+        RoundOut: {
+            /** Number */
+            number: number;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Snapshot */
+            snapshot: unknown | null;
+        };
         /** Saved */
         Saved: {
             /**
@@ -2374,6 +2591,12 @@ export interface components {
             /** Height */
             height: number;
         };
+        /**
+         * Sort
+         * @description The only orders of the queue.
+         * @enum {string}
+         */
+        Sort: "oldest" | "newest" | "resubmitted";
         /** SourceView */
         SourceView: {
             /**
@@ -2471,6 +2694,16 @@ export interface components {
             working_copy_discarded: boolean;
             /** Last Autosave At */
             last_autosave_at?: string | null;
+            /**
+             * Decisions
+             * @default []
+             */
+            decisions: components["schemas"]["Verdict"][];
+            /**
+             * Notes
+             * @default []
+             */
+            notes: components["schemas"]["NoteOut"][];
             /** Outdated */
             outdated: string[];
             /** Expires At */
@@ -5155,6 +5388,139 @@ export interface operations {
             };
         };
     };
+    add_note_api_contributions__submission_id__notes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    comparison_api_contributions__submission_id__comparison_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     artworks_api_discovery_artworks_get: {
         parameters: {
             query?: {
@@ -5635,6 +6001,62 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_queue_api_moderation_queue_get: {
+        parameters: {
+            query?: {
+                sort?: components["schemas"]["Sort"];
+                label?: components["schemas"]["Label"] | null;
+                target_kind?: components["schemas"]["Kind"] | null;
+                submitter?: number | null;
+                area?: number | null;
+                outdated?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -3511,6 +3511,198 @@
         }
       }
     },
+    "/api/contributions/{submission_id}/notes": {
+      "post": {
+        "summary": "Add Note",
+        "description": "A Moderator adds a Moderation note: immutable, with author and date, read by\nModerators only. It is not a decision, so a Moderator may add one to their own\nSubmission whatever `self_approval` says.",
+        "operationId": "add_note_api_contributions__submission_id__notes_post",
+        "parameters": [
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Submission Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/contributions/{submission_id}/comparison": {
+      "get": {
+        "summary": "Comparison",
+        "description": "What the last submitted round changes, against the archive as it is now: the value\neach operation replaces, the proposed image beside the Artwork's latest one, and the\nproposed geometry against the current one with a summary in numbers. For the Submitter\nand Moderators only.",
+        "operationId": "comparison_api_contributions__submission_id__comparison_get",
+        "parameters": [
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Submission Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparisonOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/discovery/artworks": {
       "get": {
         "summary": "Artworks",
@@ -4714,6 +4906,162 @@
         }
       }
     },
+    "/api/moderation/queue": {
+      "get": {
+        "summary": "Read Queue",
+        "description": "The Submissions awaiting a decision, oldest first unless told otherwise.",
+        "operationId": "read_queue_api_moderation_queue_get",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Sort",
+              "default": "oldest"
+            }
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Label"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Label"
+            }
+          },
+          {
+            "name": "target_kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Kind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Kind"
+            }
+          },
+          {
+            "name": "submitter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Submitter"
+            }
+          },
+          {
+            "name": "area",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "name": "outdated",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outdated"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/map/style/{theme}.json": {
       "get": {
         "summary": "Map Style",
@@ -5869,6 +6217,58 @@
         ],
         "title": "CodeRequestBody"
       },
+      "ComparisonOut": {
+        "properties": {
+          "current_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Revision"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/OperationCurrent"
+            },
+            "type": "array",
+            "title": "Operations"
+          },
+          "images": {
+            "items": {
+              "$ref": "#/components/schemas/ImageComparisonOut"
+            },
+            "type": "array",
+            "title": "Images"
+          },
+          "geometries": {
+            "items": {
+              "$ref": "#/components/schemas/GeometryComparisonOut"
+            },
+            "type": "array",
+            "title": "Geometries"
+          },
+          "rounds": {
+            "items": {
+              "$ref": "#/components/schemas/RoundOut"
+            },
+            "type": "array",
+            "title": "Rounds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_revision",
+          "operations",
+          "images",
+          "geometries",
+          "rounds"
+        ],
+        "title": "ComparisonOut"
+      },
       "Condition": {
         "type": "string",
         "enum": [
@@ -6563,6 +6963,141 @@
         ],
         "title": "Geography"
       },
+      "GeometryComparisonOut": {
+        "properties": {
+          "record_kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "current": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "proposed": {
+            "title": "Proposed"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/GeometrySummaryOut"
+          },
+          "near_locations": {
+            "items": {
+              "$ref": "#/components/schemas/NearLocationOut"
+            },
+            "type": "array",
+            "title": "Near Locations"
+          },
+          "locations_entering": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locations Entering"
+          },
+          "locations_leaving": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locations Leaving"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_kind",
+          "target_id",
+          "current",
+          "proposed",
+          "summary",
+          "near_locations",
+          "locations_entering",
+          "locations_leaving"
+        ],
+        "title": "GeometryComparisonOut"
+      },
+      "GeometrySummaryOut": {
+        "properties": {
+          "vertices_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vertices Before"
+          },
+          "vertices_after": {
+            "type": "integer",
+            "title": "Vertices After"
+          },
+          "largest_shift_metres": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Largest Shift Metres"
+          },
+          "shift_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Direction"
+          },
+          "area_change_square_metres": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Change Square Metres"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vertices_before",
+          "vertices_after",
+          "largest_shift_metres",
+          "shift_direction",
+          "area_change_square_metres"
+        ],
+        "title": "GeometrySummaryOut"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -6715,6 +7250,94 @@
           "accent"
         ],
         "title": "Identity"
+      },
+      "ImageComparisonOut": {
+        "properties": {
+          "proposed": {
+            "$ref": "#/components/schemas/ImageSideOut"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageSideOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "proposed",
+          "current"
+        ],
+        "title": "ImageComparisonOut"
+      },
+      "ImageSideOut": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "observed_date": {
+            "title": "Observed Date"
+          },
+          "creator_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Credit"
+          },
+          "licence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Licence"
+          },
+          "alt_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt Text"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "observed_date",
+          "creator_credit",
+          "licence",
+          "alt_text",
+          "item_id"
+        ],
+        "title": "ImageSideOut"
       },
       "IndexPage": {
         "properties": {
@@ -6975,6 +7598,16 @@
           "documentation_item"
         ],
         "title": "Kind"
+      },
+      "Label": {
+        "type": "string",
+        "enum": [
+          "adds_documentation",
+          "adds_history_event",
+          "changes_attribution",
+          "changes_condition"
+        ],
+        "title": "Label"
       },
       "Languages": {
         "properties": {
@@ -7977,6 +8610,24 @@
         ],
         "title": "NameQuery"
       },
+      "NearLocationOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "distance_metres": {
+            "type": "number",
+            "title": "Distance Metres"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "distance_metres"
+        ],
+        "title": "NearLocationOut"
+      },
       "NearbyLocation": {
         "properties": {
           "id": {
@@ -8024,6 +8675,65 @@
           "name"
         ],
         "title": "NewPasskey"
+      },
+      "NoteBody": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NoteBody"
+      },
+      "NoteOut": {
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "author",
+          "at",
+          "text"
+        ],
+        "title": "NoteOut"
+      },
+      "OperationCurrent": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "current": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "current"
+        ],
+        "title": "OperationCurrent"
       },
       "Order": {
         "type": "string",
@@ -8427,6 +9137,122 @@
         ],
         "title": "Qualifier"
       },
+      "QueueItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "target_kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit"
+            ],
+            "title": "Intent"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Labels"
+          },
+          "submitter": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "own": {
+            "type": "boolean",
+            "title": "Own"
+          },
+          "first_submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Submitted At"
+          },
+          "latest_round_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Latest Round At"
+          },
+          "rounds": {
+            "type": "integer",
+            "title": "Rounds"
+          },
+          "outdated": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Outdated"
+          },
+          "overlapping": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Overlapping"
+          },
+          "nearby_creates": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Nearby Creates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "target_kind",
+          "intent",
+          "target_id",
+          "labels",
+          "submitter",
+          "own",
+          "first_submitted_at",
+          "latest_round_at",
+          "rounds",
+          "outdated",
+          "overlapping",
+          "nearby_creates"
+        ],
+        "title": "QueueItem"
+      },
+      "QueueOut": {
+        "properties": {
+          "sort": {
+            "$ref": "#/components/schemas/Sort"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sort",
+          "items"
+        ],
+        "title": "QueueOut"
+      },
       "RateLimitedError": {
         "properties": {
           "code": {
@@ -8677,6 +9503,35 @@
         ],
         "title": "RightsBasis"
       },
+      "RoundOut": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "snapshot": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "submitted_at",
+          "snapshot"
+        ],
+        "title": "RoundOut"
+      },
       "Saved": {
         "properties": {
           "last_autosave_at": {
@@ -8838,6 +9693,16 @@
           "height"
         ],
         "title": "Size"
+      },
+      "Sort": {
+        "type": "string",
+        "enum": [
+          "oldest",
+          "newest",
+          "resubmitted"
+        ],
+        "title": "Sort",
+        "description": "The only orders of the queue."
       },
       "SourceView": {
         "properties": {
@@ -9145,6 +10010,22 @@
               }
             ],
             "title": "Last Autosave At"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/Verdict"
+            },
+            "type": "array",
+            "title": "Decisions",
+            "default": []
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/NoteOut"
+            },
+            "type": "array",
+            "title": "Notes",
+            "default": []
           },
           "outdated": {
             "items": {
