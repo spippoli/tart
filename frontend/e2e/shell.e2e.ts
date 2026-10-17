@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 // The second server's Instance enables Italian only (playwright.config.ts).
 const ITALIAN_ONLY = 'http://localhost:4274';

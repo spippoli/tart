@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 import { serveStyles } from './map-style';
 
 // The Moderation queue and the Submission page as a Moderator reads it (Contribution and
@@ -45,6 +46,7 @@ async function signIn(page: Page, email: string, next: string, language: Languag
 	await page.getByLabel(labels.code, { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
 	await expect(page).toHaveURL(next);
+	await hydrated(page);
 }
 
 /** Signed in as a Moderator, with the map styles and the images of the pages served. */
@@ -251,24 +253,23 @@ test('AC 33: a Moderator adds a Moderation note with author and date, and cannot
 }, info) => {
 	await moderator(page, info, PATHS.en.submission(SUBMISSIONS.newArtwork));
 	const notes = page.getByRole('region', { name: 'Moderation notes' });
-	// The stand-in API keeps state across projects, so each project's note is its own.
-	const text = `Controllare la liberatoria dei file (${info.project.name}).`;
 
 	await expect(notes).toContainText('Only Moderators read these notes.');
-	await notes.getByLabel('New note').fill(text);
+	await expect(notes).toContainText('No note yet.');
+	await notes.getByLabel('New note').fill('Controllare la liberatoria dei file.');
 	await notes.getByRole('button', { name: 'Add the note' }).click();
 
 	await expect(notes.getByRole('status')).toHaveText('The note was added.');
-	const note = notes.getByRole('listitem').filter({ hasText: text });
+	const note = notes.getByRole('listitem');
 	await expect(note).toContainText('Moderatrice di prova (User #1)');
-	await expect(note.locator('blockquote')).toHaveText(text);
+	await expect(note.locator('blockquote')).toHaveText('Controllare la liberatoria dei file.');
 	await expect(note.locator('blockquote')).toHaveAttribute('lang', 'it');
 	// A note is immutable: there is nothing to edit or delete.
 	await expect(note.getByRole('button')).toHaveCount(0);
 	await expect(notes.getByRole('textbox')).toHaveValue('');
 	// It is still there after a reload.
 	await page.reload();
-	await expect(note.locator('blockquote')).toHaveText(text);
+	await expect(notes.locator('blockquote')).toHaveText('Controllare la liberatoria dei file.');
 });
 
 test('AC 33: a blank note is refused in words', async ({ page }, info) => {
