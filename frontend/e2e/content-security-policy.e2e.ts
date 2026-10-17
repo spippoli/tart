@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 // Discovery criterion 48: the stand-in API's map styles load tiles from an external
 // https origin, which every page's Content-Security-Policy allows.

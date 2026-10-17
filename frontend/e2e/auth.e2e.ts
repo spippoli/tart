@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 
 // The stand-in API's rules (e2e/mock-api.ts): every code is 123456; `persona…` and
 // `moderatrice…` (a Moderator) are Users; any other address registers.
