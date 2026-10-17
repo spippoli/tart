@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "geometry",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -35,6 +36,7 @@
     {
      "op": "set",
      "field": "surface_type",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "building_wall",
@@ -46,6 +48,7 @@
     {
      "op": "set",
      "field": "approximate",
+     "record": null,
      "collection": null,
      "old": null,
      "new": true,
@@ -57,6 +60,7 @@
     {
      "op": "set",
      "field": "uncertainty_radius",
+     "record": null,
      "collection": null,
      "old": null,
      "new": 150,
@@ -68,6 +72,7 @@
     {
      "op": "set",
      "field": "place_description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Muro fittizio vicino a un sottopasso, posizione approssimativa",

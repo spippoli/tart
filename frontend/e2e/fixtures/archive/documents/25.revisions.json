@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "medium",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "image",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "observed_date",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -45,6 +47,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "artworks",
      "old": null,
      "new": null,
@@ -56,6 +59,7 @@
     {
      "op": "set",
      "field": "file",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "00000000-0000-4000-8000-000000000001",
@@ -67,6 +71,7 @@
     {
      "op": "set",
      "field": "licence",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "CC-BY-SA-4.0",
@@ -78,6 +83,7 @@
     {
      "op": "set",
      "field": "creator_credit",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Fotografa fittizia",
@@ -89,6 +95,7 @@
     {
      "op": "set",
      "field": "rights_basis",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "own_work",
@@ -100,6 +107,7 @@
     {
      "op": "set",
      "field": "alt_text",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Immagine fittizia: un quadrato nero su una saracinesca grigia.",

@@ -26,6 +26,7 @@ from tart.archive import (
     GeometryKind,
     LocationTitle,
     Medium,
+    Merge,
     Operation,
     Precision,
     Qualifier,
@@ -37,6 +38,7 @@ from tart.archive import (
     Site,
     Source,
     UncertainDate,
+    Unmerge,
     location_title,
 )
 from tart.archive.records import RECORD_TYPES
@@ -65,9 +67,11 @@ def test_criterion_4_the_changeset_has_no_operation_that_deletes_a_record() -> N
         AddItem,
         ChangeItem,
         RemoveItem,
+        Merge,
+        Unmerge,
     }
     # RemoveItem removes an item of a collection, never a record.
-    assert [field.name for field in fields(RemoveItem)] == ["target", "collection", "key"]
+    assert [field.name for field in fields(RemoveItem)] == ["target", "collection", "key", "kind"]
 
 
 def test_criterion_4_the_archive_port_cannot_delete() -> None:
@@ -75,6 +79,10 @@ def test_criterion_4_the_archive_port_cannot_delete() -> None:
 
     assert methods == {
         "allocate_id",
+        "redirect_of",
+        "referrers_of",
+        "merge",
+        "unmerge",
         "allocate_history_event_id",
         "get",
         "save",

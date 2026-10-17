@@ -21,6 +21,11 @@
 	const contributeHref = $derived(
 		page.data.user ? localizeHref('/contribute') : signInHref(page.url)
 	);
+	// A Merge folds this record into another of its kind; for a Documentation item it is a
+	// Duplicate retirement. The first step is choosing the record that survives.
+	const mergeHref = $derived(
+		page.data.user ? `${localizeHref('/contribute/merge')}?source=${id}` : signInHref(page.url)
+	);
 </script>
 
 <section class="actions" aria-labelledby="record-actions">
@@ -31,6 +36,11 @@
 			<li><a href={contributeHref}>{m.archive_action_add_documentation()}</a></li>
 			<li><a href={contributeHref}>{m.archive_action_report_condition()}</a></li>
 		{/if}
+		<li>
+			<a href={mergeHref}>
+				{kind === 'documentation_item' ? m.merge_action_retirement() : m.merge_action_merge()}
+			</a>
+		</li>
 		<li><a href={reportHref(context.locale, kind, id)}>{m.archive_action_report()}</a></li>
 		<li><a href={revisionsHref(kind, path)}>{m.archive_revisions_link()}</a></li>
 	</ul>

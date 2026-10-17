@@ -11,13 +11,14 @@ Approval is the only use case that changes an Archive record: it records the dec
 calls the archive's write operation in one transaction (ADR 0002).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from tart import moderation
+from tart.archive.changeset import Merge, Unmerge
 from tart.archive.codec import Json
 from tart.archive.revisions import Provenance, Revision
 from tart.archive.rules import InstanceRules
@@ -68,6 +69,8 @@ async def _outdated_reasons(
     """Why the content, written against the Submission's Base revision, is Outdated now."""
     if submission.target_id is None:
         return ()
+    if (merging := moderation.merge_of(content)) is not None:
+        return await _merge_outdated(connection, submission, merging)
     state = await archive_access.target_state(connection, submission.target_id)
     if state is None:
         raise ModerationError("moderation.unknown_target")
@@ -75,6 +78,34 @@ async def _outdated_reasons(
         connection, submission.target_id, submission.target_kind, submission.base_revisions[0]
     )
     return moderation.outdated_reasons(submission, content, state, changes)
+
+
+async def _merge_states(
+    connection: AsyncConnection, merging: Merge | Unmerge
+) -> tuple[moderation.TargetState, moderation.TargetState]:
+    """The state of the folded record and of the survivor. An Unmerge expects the folded one
+    to be merged into the survivor, so that is not what makes it not public."""
+    source = await archive_access.target_state(connection, merging.source)
+    into = await archive_access.target_state(connection, merging.into)
+    if source is None or into is None:
+        raise ModerationError("moderation.unknown_target")
+    if isinstance(merging, Unmerge) and source.merged_into == merging.into:
+        source = replace(source, merged_into=None)
+    return source, into
+
+
+async def _merge_outdated(
+    connection: AsyncConnection, submission: Submission, merging: Merge | Unmerge
+) -> tuple[Reason, ...]:
+    """Outdated for a Merge, Duplicate retirement, or Unmerge (ADR 0018): either record has
+    a Revision newer than its Base revision, is not public, or has an open Notice."""
+    states = await _merge_states(connection, merging)
+    reasons = list(moderation.merge_outdated_reasons(submission.base_revisions, states))
+    if isinstance(merging, Unmerge):
+        merged_into = (await archive_access.target_state(connection, merging.source)).merged_into  # type: ignore[union-attr]
+        if merged_into != merging.into:
+            reasons.append(Reason.NOT_MERGED)
+    return tuple(reasons)
 
 
 async def _validate(
@@ -161,6 +192,8 @@ async def rebase(
     if submission.target_id is None or raw is None:
         raise ModerationError("moderation.cannot_rebase")
     content = moderation.decode_content(raw, submission.target_kind)
+    if (merging := moderation.merge_of(content)) is not None:
+        return await _rebase_merge(connection, submission, actor, now, content, merging)
     state = await archive_access.target_state(connection, submission.target_id)
     if state is not None and state.merged_into is not None:
         state = await archive_access.target_state(connection, state.merged_into)
@@ -176,6 +209,33 @@ async def rebase(
         now,
         target_id=rebased.target_id,
         base_revision=rebased.base_revision,
+        content=moderation.encode_content(rebased.content),
+    )
+    await store.save(connection, updated)
+    return updated
+
+
+async def _rebase_merge(
+    connection: AsyncConnection,
+    submission: Submission,
+    actor: Actor,
+    now: datetime,
+    content: Content,
+    merging: Merge | Unmerge,
+) -> Submission:
+    """Rebase a Merge, Duplicate retirement, or Unmerge onto the current Revisions of both
+    records; the references to rewrite are recomputed whenever they are listed."""
+    states = await _merge_states(connection, merging)
+    changes = await archive_access.changes_since(
+        connection, merging.into, submission.target_kind, submission.base_revisions[1]
+    )
+    rebased = moderation.rebase_merge(content, merging.into, states, changes)
+    updated = moderation.rebase_working_copy(
+        submission,
+        actor,
+        now,
+        target_id=merging.source,
+        base_revisions=rebased.base_revisions,
         content=moderation.encode_content(rebased.content),
     )
     await store.save(connection, updated)

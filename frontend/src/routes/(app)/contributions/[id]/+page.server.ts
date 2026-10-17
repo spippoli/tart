@@ -3,6 +3,8 @@ import { signInHref } from '#lib/auth/next.ts';
 import { localizeHref } from '#lib/paraglide/runtime.js';
 import { api, onBehalfOf } from '#lib/server/api.ts';
 import { refusal, signInAgain } from '#lib/server/contribution.ts';
+import { isMergeIntent } from '#lib/server/merge-editor.ts';
+import { vocabularies } from '#lib/server/records.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -28,8 +30,21 @@ export const load: PageServerLoad = async (event) => {
 	if (response.status === 401) signInAgain(event);
 	if (response.status === 404) error(404);
 	if (!data) throw new Error(`contribution: ${response.status}`);
+	// A Merge, Duplicate retirement, or Unmerge also shows its two records and the records its
+	// approval rewrites, listed afresh for whoever reads the Submission.
+	const merge =
+		isMergeIntent(data.intent) && !data.stub
+			? ((
+					await api().GET('/api/contributions/{submission_id}/merge', {
+						params: { path: { submission_id: id } },
+						headers: onBehalfOf(event)
+					})
+				).data ?? null)
+			: null;
 	return {
 		submission: data,
+		merge,
+		...vocabularies(event),
 		// A Moderator reading someone else's Submission is offered none of the Submitter's actions.
 		own: data.submitter.number === event.locals.user.number,
 		decisionReasons: event.locals.config.vocabularies.decision_reasons

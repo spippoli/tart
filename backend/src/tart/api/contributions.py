@@ -114,6 +114,7 @@ FAILURES = (ModerationError, ArchiveRuleViolation, LimitReached)
 
 
 type Caller = SessionUser | None
+Intent = Literal["create", "edit", "merge", "retirement", "unmerge"]
 
 
 class Person(BaseModel):
@@ -142,7 +143,7 @@ class SubmissionOut(BaseModel):
     id: int
     status: Status
     target_kind: Kind
-    intent: Literal["create", "edit"]
+    intent: Intent
     target_id: int | None
     base_revisions: list[int]
     labels: list[str]
@@ -174,7 +175,7 @@ class SubmissionSummary(BaseModel):
     id: int
     status: Status
     target_kind: Kind
-    intent: Literal["create", "edit"]
+    intent: Intent
     target_id: int | None
     labels: list[str]
     created_at: datetime
@@ -208,8 +209,19 @@ def _labels(submission: Submission) -> list[str]:
         return []
 
 
-def _intent(submission: Submission) -> Literal["create", "edit"]:
-    return moderation.derive_kind(submission).intent.value  # type: ignore[return-value]
+def _content_of(submission: Submission) -> moderation.Content | None:
+    """The content a Submission shows: its last round, else the draft."""
+    raw = submission.rounds[-1].snapshot if submission.rounds else submission.working_copy
+    if raw is None or submission.stub is not None:
+        return None
+    try:
+        return moderation.decode_content(raw, submission.target_kind)
+    except ModerationError, ArchiveRuleViolation:
+        return None
+
+
+def _intent(submission: Submission) -> Intent:
+    return moderation.derive_kind(submission, _content_of(submission)).intent.value  # type: ignore[return-value]
 
 
 def _expires_at(submission: Submission, expiry_days: int) -> datetime | None:
@@ -407,7 +419,7 @@ async def start_draft(
 
 
 @router.get(
-    "/{submission_id}",
+    "/{submission_id:int}",
     response_model=SubmissionOut,
     responses={401: {"model": Error}, 404: {"model": Error}},
 )

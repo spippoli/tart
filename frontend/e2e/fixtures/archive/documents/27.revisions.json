@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "medium",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "text",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "observed_date",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -45,6 +47,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "artworks",
      "old": null,
      "new": null,
@@ -56,6 +59,7 @@
     {
      "op": "set",
      "field": "text",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Testimonianza fittizia: la scritta era ancora leggibile.",
@@ -67,6 +71,7 @@
     {
      "op": "set",
      "field": "language",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "it",

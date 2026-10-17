@@ -1,7 +1,8 @@
 """A Submission's derived kind and labels (contribution-and-moderation spec, Submission model).
 
 Both are computed from the target and the changeset, never stored and never entered by the
-Submitter. Merge, Duplicate retirement, and Unmerge have their own tickets and add their kinds.
+Submitter. A Merge, a Duplicate retirement, and an Unmerge are told by the operation their
+content holds.
 
     kind = derive_kind(submission)             # an Artwork, created
     labels = derive_labels(content)            # {Label.ADDS_DOCUMENTATION, ...}
@@ -10,7 +11,7 @@ Submitter. Merge, Duplicate retirement, and Unmerge have their own tickets and a
 from dataclasses import dataclass
 from enum import StrEnum
 
-from tart.archive.changeset import AddItem, ChangeItem, Create, RemoveItem
+from tart.archive.changeset import AddItem, ChangeItem, Create, Merge, RemoveItem, Unmerge
 from tart.archive.history import CONDITION_CHANGING
 from tart.archive.records import Artwork, DocumentationItem, HistoryEvent, Kind
 from tart.moderation.content import Content
@@ -21,6 +22,10 @@ from tart.moderation.validation import materialize
 class Intent(StrEnum):
     CREATE = "create"
     EDIT = "edit"
+    MERGE = "merge"
+    RETIREMENT = "retirement"
+    """A Duplicate retirement: a Merge of Documentation items, which are never merged."""
+    UNMERGE = "unmerge"
 
 
 @dataclass(frozen=True)
@@ -36,8 +41,21 @@ class Label(StrEnum):
     CHANGES_CONDITION = "changes_condition"
 
 
-def derive_kind(submission: Submission) -> SubmissionKind:
-    """The primary target's kind, created when the Submission has no target record yet."""
+def derive_kind(submission: Submission, content: Content | None = None) -> SubmissionKind:
+    """The primary target's kind, created when the Submission has no target record yet.
+
+    A Merge or an Unmerge is an edit of its content that holds the operation; the kind of the
+    folded record tells a Duplicate retirement (a Documentation item) from a Merge.
+    """
+    if content is not None:
+        for operation in content.operations:
+            if isinstance(operation, Unmerge):
+                return SubmissionKind(submission.target_kind, Intent.UNMERGE)
+            if isinstance(operation, Merge):
+                retired = submission.target_kind is Kind.DOCUMENTATION_ITEM
+                return SubmissionKind(
+                    submission.target_kind, Intent.RETIREMENT if retired else Intent.MERGE
+                )
     intent = Intent.CREATE if submission.target_id is None else Intent.EDIT
     return SubmissionKind(submission.target_kind, intent)
 

@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "geometry",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -41,6 +42,7 @@
     {
      "op": "set",
      "field": "surface_type",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "building_wall",
@@ -52,6 +54,7 @@
     {
      "op": "set",
      "field": "approximate",
+     "record": null,
      "collection": null,
      "old": null,
      "new": false,
@@ -63,6 +66,7 @@
     {
      "op": "set",
      "field": "place_description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Muro di cinta fittizio lungo via Immaginaria",

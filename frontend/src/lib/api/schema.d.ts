@@ -1038,6 +1038,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contributions/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Merge
+         * @description Start a Merge of a record into another of the same kind (a Duplicate retirement for
+         *     Documentation items) as a draft pre-filled with the default Merge. Both records must be
+         *     public; the draft stores both current Revisions as its Base revisions. A retirement of
+         *     items whose Artworks sit on different Locations is refused at once.
+         */
+        post: operations["start_merge_api_contributions_merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/unmerge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Unmerge
+         * @description Start an Unmerge as a draft pre-filled from the Revisions of the Merge it undoes: the
+         *     items it added to the survivor are removed, and the records that referenced the folded one
+         *     are pointed back to it. The same call undoes a Duplicate retirement.
+         */
+        post: operations["start_unmerge_api_contributions_unmerge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/merge-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Merge Candidates
+         * @description The public records that may be the survivor of a Merge of this one, likeliest first:
+         *     nearby Locations (and the Artworks on them), records with an alike name, or the other
+         *     items of the same Artworks. Any signed-in User may ask.
+         */
+        get: operations["merge_candidates_api_contributions_merge_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contributions/{submission_id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Merge
+         * @description The two records of a Merge, Duplicate retirement, or Unmerge Submission, the records
+         *     its approval rewrites (listed afresh whenever you ask, so a Moderator always sees the
+         *     current list), and the choices the proposer has: for the Submitter and Moderators only.
+         */
+        get: operations["read_merge_api_contributions__submission_id__merge_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/media": {
         parameters: {
             query?: never;
@@ -1318,6 +1407,12 @@ export interface components {
             /** Disputed */
             disputed: components["schemas"]["ShownAttribution"][];
         };
+        /** Candidates */
+        Candidates: {
+            source: components["schemas"]["RecordLink"];
+            /** Items */
+            items: components["schemas"]["RecordLink"][];
+        };
         /**
          * Certainty
          * @enum {string}
@@ -1332,9 +1427,10 @@ export interface components {
              * Op
              * @enum {string}
              */
-            op: "set" | "add" | "change" | "remove";
+            op: "set" | "add" | "change" | "remove" | "merge" | "unmerge";
             /** Field */
             field?: string | null;
+            record?: components["schemas"]["RecordLink"] | null;
             /** Collection */
             collection?: string | null;
             /** Old */
@@ -1423,6 +1519,18 @@ export interface components {
             dsa_languages: string[];
             /** Privacy */
             privacy: string;
+        };
+        /** ContradictionOut */
+        ContradictionOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "two_creation_events" | "competing_attributions" | "different_disappearance_locations";
+            /** Key */
+            key?: unknown;
+            /** Item */
+            item?: unknown;
         };
         /** ConvertBody */
         ConvertBody: {
@@ -1588,6 +1696,15 @@ export interface components {
          * @enum {string}
          */
         EvidenceLevel: "documented" | "reported";
+        /** FieldDifferenceOut */
+        FieldDifferenceOut: {
+            /** Name */
+            name: string;
+            /** Source */
+            source: unknown;
+            /** Into */
+            into: unknown;
+        };
         /** Geography */
         Geography: {
             /** Country */
@@ -1728,6 +1845,20 @@ export interface components {
             incipit?: string | null;
             /** Language */
             language?: string | null;
+        };
+        /** ItemEntryOut */
+        ItemEntryOut: {
+            /** Collection */
+            collection: string;
+            /** Key */
+            key: unknown;
+            /** Item */
+            item: unknown;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "source" | "into";
         };
         /**
          * Kind
@@ -2020,6 +2151,47 @@ export interface components {
         Membership: {
             artist: components["schemas"]["RecordLink"];
             period: components["schemas"]["Period"] | null;
+        };
+        /** MergeBody */
+        MergeBody: {
+            /** Source Id */
+            source_id: number;
+            /** Into Id */
+            into_id: number;
+        };
+        /**
+         * MergeReview
+         * @description What a Merge, Duplicate retirement, or Unmerge Submission shows beside its changeset:
+         *     the two records, the records the approval rewrites, and what the proposer decides.
+         */
+        MergeReview: {
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "merge" | "retirement" | "unmerge";
+            source: components["schemas"]["RecordLink"];
+            into: components["schemas"]["RecordLink"];
+            /** References */
+            references: components["schemas"]["RecordLink"][];
+            /** References Hidden */
+            references_hidden: number;
+            /** Items */
+            items: components["schemas"]["ItemEntryOut"][];
+            /** Fields */
+            fields: components["schemas"]["FieldDifferenceOut"][];
+            /** Contradictions */
+            contradictions: components["schemas"]["ContradictionOut"][];
+            /** From Source */
+            from_source: components["schemas"]["ItemEntryOut"][];
+            /** Added Since */
+            added_since: components["schemas"]["ItemEntryOut"][];
+            /** Skipped */
+            skipped: components["schemas"]["RecordLink"][];
+            /** Records */
+            records: {
+                [key: string]: components["schemas"]["RecordLink"];
+            };
         };
         /** NameCandidate */
         NameCandidate: {
@@ -2441,7 +2613,7 @@ export interface components {
              * Intent
              * @enum {string}
              */
-            intent: "create" | "edit";
+            intent: "create" | "edit" | "merge" | "retirement" | "unmerge";
             /** Target Id */
             target_id: number | null;
             /** Base Revisions */
@@ -2494,7 +2666,7 @@ export interface components {
              * Intent
              * @enum {string}
              */
-            intent: "create" | "edit";
+            intent: "create" | "edit" | "merge" | "retirement" | "unmerge";
             /** Target Id */
             target_id: number | null;
             /** Labels */
@@ -2582,6 +2754,11 @@ export interface components {
             first?: string | null;
             /** Second */
             second?: string | null;
+        };
+        /** UnmergeBody */
+        UnmergeBody: {
+            /** Source Id */
+            source_id: number;
         };
         /** UploadState */
         UploadState: {
@@ -5699,6 +5876,304 @@ export interface operations {
                         /** @constant */
                         code: "tiles_missing";
                     };
+                };
+            };
+        };
+    };
+    start_merge_api_contributions_merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    start_unmerge_api_contributions_unmerge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnmergeBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    merge_candidates_api_contributions_merge_candidates_get: {
+        parameters: {
+            query: {
+                source_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Candidates"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
+    read_merge_api_contributions__submission_id__merge_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeReview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

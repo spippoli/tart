@@ -20,9 +20,11 @@ from tart.archive.changeset import (
     ChangeItem,
     Changeset,
     Create,
+    Merge,
     Operation,
     RemoveItem,
     SetField,
+    Unmerge,
 )
 from tart.archive.codec import Json, decode_period, decode_uncertain_date, encode
 from tart.archive.errors import ArchiveRuleViolation
@@ -48,6 +50,14 @@ def encode_value(value: Any) -> Json:
 
 
 def encode_operation(operation: Operation) -> Json:
+    encoded = _encode_operation(operation)
+    kind = getattr(operation, "kind", None)
+    if kind is not None and isinstance(encoded, dict):
+        encoded["kind"] = kind.value
+    return encoded
+
+
+def _encode_operation(operation: Operation) -> Json:
     match operation:
         case Create(ref=ref, record=record):
             return {
@@ -76,6 +86,12 @@ def encode_operation(operation: Operation) -> Json:
                 "target": encode_value(operation.target),
                 "collection": operation.collection,
                 "key": encode_value(operation.key),
+            }
+        case Merge() | Unmerge():
+            return {
+                "op": "merge" if isinstance(operation, Merge) else "unmerge",
+                "source": operation.source,
+                "into": operation.into,
             }
     raise TypeError(f"cannot encode {operation!r}")
 
@@ -193,8 +209,12 @@ def decode_operation(
         kind = Kind(obj["kind"])
         record = _decode_dataclass(RECORD_TYPES[kind], _object(obj["record"]), lenient=True)
         return Create(New(obj["ref"]), record)
+    if op in ("merge", "unmerge"):
+        source, into = decode_value(int, obj["source"]), decode_value(int, obj["into"])
+        return Merge(source, into) if op == "merge" else Unmerge(source, into)
     target = decode_value(int | New, obj["target"])
-    kind = target_kinds.get(target.key) if isinstance(target, New) else target_kind
+    stated = Kind(obj["kind"]) if obj.get("kind") else None
+    kind = target_kinds.get(target.key) if isinstance(target, New) else stated or target_kind
     if kind is None:
         raise ValueError("the target has no kind")
     record_type = RECORD_TYPES[kind]
@@ -202,15 +222,16 @@ def decode_operation(
         if obj["field"] not in record_type.field_names() or obj["field"] in record_type.COLLECTIONS:
             raise ArchiveRuleViolation("changeset.unknown_field")
         hints = get_type_hints(record_type)
-        return SetField(target, obj["field"], decode_value(hints[obj["field"]], obj["value"]))
+        value = decode_value(hints[obj["field"]], obj["value"])
+        return SetField(target, obj["field"], value, stated)
     collection = obj["collection"]
     items = item_type(record_type, collection)
     if op == "add":
-        return AddItem(target, collection, decode_value(items, obj["item"]))
+        return AddItem(target, collection, decode_value(items, obj["item"]), stated)
     if op == "change":
-        return ChangeItem(target, collection, decode_value(items, obj["item"]))
+        return ChangeItem(target, collection, decode_value(items, obj["item"]), stated)
     if op == "remove":
-        return RemoveItem(target, collection, decode_value(_key_type(items), obj["key"]))
+        return RemoveItem(target, collection, decode_value(_key_type(items), obj["key"]), stated)
     raise ValueError("unknown operation")
 
 

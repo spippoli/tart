@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "name",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Ex deposito dei tram fittizio",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Sito fittizio: un deposito dismesso che non esiste.",

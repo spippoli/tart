@@ -2,6 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { signInHref } from '#lib/auth/next.ts';
 import { localizeHref } from '#lib/paraglide/runtime.js';
 import { api, onBehalfOf } from '#lib/server/api.ts';
+import { isMergeIntent, loadMergeEditor } from '#lib/server/merge-editor.ts';
 import { mapSettings } from '#lib/server/map-settings.ts';
 import type { PageServerLoad } from './$types';
 
@@ -10,7 +11,8 @@ import type { PageServerLoad } from './$types';
  * Routes). Only the Submitter reaches it (the API answers 404 to anyone else), and only
  * while the Submission can still be worked on: a draft, a `submitted` one being revised,
  * or one with changes requested. Any other state goes to the Submission page. The other
- * kinds of Submission have editors of their own.
+ * kinds of Submission have editors of their own: a Merge, a Duplicate retirement, and an
+ * Unmerge share the Merge editor.
  */
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) redirect(303, signInHref(event.url));
@@ -33,13 +35,29 @@ export const load: PageServerLoad = async (event) => {
 		throw new Error(`the contribution API answered ${found.response.status}`);
 	}
 	const submission = found.data;
-	if (submission.target_kind !== 'artwork' || submission.intent !== 'create') error(404);
+	const merge = isMergeIntent(submission.intent) ? submission.intent : null;
+	if (!merge && (submission.target_kind !== 'artwork' || submission.intent !== 'create'))
+		error(404);
 	if (!['draft', 'submitted', 'changes_requested'].includes(submission.status)) {
 		redirect(303, localizeHref(`/contributions/${id}`));
+	}
+	if (merge) {
+		const { vocabularies } = event.locals.config;
+		const context = {
+			locale: event.locals.locale,
+			timeZone: event.locals.config.geography.time_zone
+		};
+		return {
+			kind: 'merge' as const,
+			mergeEditor: await loadMergeEditor(event, submission, merge, terms.data, context),
+			expressionTypes: vocabularies.expression_types,
+			surfaceTypes: vocabularies.surface_types
+		};
 	}
 
 	const { vocabularies, licenses } = event.locals.config;
 	return {
+		kind: 'artwork' as const,
 		submission: {
 			id,
 			status: submission.status,

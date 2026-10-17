@@ -387,8 +387,11 @@ class DocumentationItemView(Visibility):
 class Change(BaseModel):
     """One operation of a Revision's change list, values as stored."""
 
-    op: Literal["set", "add", "change", "remove"]
+    op: Literal["set", "add", "change", "remove", "merge", "unmerge"]
     field: str | None = None
+    record: RecordLink | None = None
+    """For a Merge, Duplicate retirement, or Unmerge: the record folded in or brought back;
+    its `/revisions` subpage lists its own Revisions."""
     collection: str | None = None
     old: Any = None
     new: Any = None

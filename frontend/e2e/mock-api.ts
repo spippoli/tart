@@ -474,6 +474,143 @@ async function editorDrafts(request: IncomingMessage, response: ServerResponse, 
 	send(response, 404);
 }
 
+// Merge, Duplicate retirement, and Unmerge: the real API has its own tests; this keeps three
+// drafts (ids 701 to 703, one of each kind, started by anyone) and starts copies of them.
+const recordLink = (kind: string, id: number, name: string) => ({
+	kind,
+	id,
+	path: `${id}-${name}`,
+	name,
+	location_title: null
+});
+const FOLDED = recordLink('artist', 2000, 'artista-doppio');
+const SURVIVOR = recordLink('artist', 2001, 'artista-principale');
+const MERGE_OPS = [
+	{ op: 'add', target: 2001, collection: 'aliases', item: 'Artista Doppio' },
+	{ op: 'merge', source: 2000, into: 2001 }
+];
+const UNMERGE_OPS = [
+	{ op: 'remove', target: 2001, collection: 'aliases', key: 'Artista Doppio' },
+	{ op: 'unmerge', source: 2000, into: 2001 }
+];
+const mergeDrafts = new Map<number, { intent: string; ops: unknown[]; status: string }>([
+	[701, { intent: 'merge', ops: MERGE_OPS, status: 'draft' }],
+	[
+		702,
+		{ intent: 'retirement', ops: [{ op: 'merge', source: 2100, into: 2101 }], status: 'draft' }
+	],
+	[703, { intent: 'unmerge', ops: UNMERGE_OPS, status: 'draft' }]
+]);
+let nextMergeId = 710;
+
+function mergeReview(intent: string) {
+	const retirement = intent === 'retirement';
+	const source = retirement ? recordLink('documentation_item', 2100, 'foto-doppia') : FOLDED;
+	const into = retirement ? recordLink('documentation_item', 2101, 'foto') : SURVIVOR;
+	const alias = (item: string, origin: string) => ({
+		collection: 'aliases',
+		key: item,
+		item,
+		origin
+	});
+	return {
+		intent,
+		source,
+		into,
+		references: intent === 'merge' ? [recordLink('artwork', 2200, 'gatto')] : [],
+		references_hidden: 0,
+		items:
+			intent === 'merge'
+				? [alias('Artista Doppio', 'source'), alias('Artista Principale', 'into')]
+				: [],
+		fields:
+			intent === 'merge'
+				? [{ name: 'biography', source: 'Biografia di prova.', into: 'Altra biografia.' }]
+				: [],
+		contradictions: [],
+		from_source: intent === 'unmerge' ? [alias('Artista Doppio', 'into')] : [],
+		added_since: [],
+		skipped: [],
+		records: {}
+	};
+}
+
+function mergeOut(id: number, draft: { intent: string; ops: unknown[]; status: string }) {
+	const base = draftOut({
+		id,
+		owner: '',
+		status: 'draft',
+		workingCopy: { operations: draft.ops, initial_condition: null, conflicts: [] },
+		lastAutosave: null,
+		round: null
+	});
+	return {
+		...base,
+		status: draft.status,
+		intent: draft.intent,
+		target_kind: draft.intent === 'retirement' ? 'documentation_item' : 'artist',
+		target_id: draft.intent === 'retirement' ? 2100 : 2000,
+		base_revisions: [1, 1],
+		last_round: draft.status === 'draft' ? null : { operations: draft.ops }
+	};
+}
+
+async function merges(request: IncomingMessage, response: ServerResponse, path: string) {
+	if (!sessionUser(request)) return send(response, 401, { code: 'sign_in_required' });
+	if (request.method !== 'GET' && !request.headers['x-tart-request']) {
+		return send(response, 403, { code: 'csrf_refused' });
+	}
+	const url = new URL(path, 'http://mock');
+	if (url.pathname === '/api/contributions/merge-candidates') {
+		const retirement = url.searchParams.get('source_id') === '2100';
+		return send(response, 200, {
+			source: retirement ? recordLink('documentation_item', 2100, 'foto-doppia') : FOLDED,
+			items: retirement ? [] : [SURVIVOR]
+		});
+	}
+	if (url.pathname === '/api/contributions/merge' && request.method === 'POST') {
+		const body = await readJson(request);
+		if (body.into_id === 9999)
+			return send(response, 422, { code: 'moderation.merge_kind_mismatch' });
+		const retirement = body.source_id === 2100;
+		const id = nextMergeId++;
+		mergeDrafts.set(id, {
+			intent: retirement ? 'retirement' : 'merge',
+			ops: retirement ? [{ op: 'merge', source: 2100, into: 2101 }] : MERGE_OPS,
+			status: 'draft'
+		});
+		return send(response, 201, mergeOut(id, mergeDrafts.get(id)!));
+	}
+	const found = /^\/api\/contributions\/(\d+)(?:\/(merge|working-copy|submit))?$/.exec(
+		url.pathname
+	);
+	const draft = found && mergeDrafts.get(Number(found[1]));
+	if (!found || !draft) return send(response, 404, { code: 'moderation.unknown_submission' });
+	const id = Number(found[1]);
+	if (found[2] === 'merge') return send(response, 200, mergeReview(draft.intent));
+	if (request.method === 'DELETE') {
+		mergeDrafts.delete(id);
+		return send(response, 204);
+	}
+	if (found[2] === 'working-copy') {
+		const body = await readJson(request);
+		draft.ops = body.content.operations;
+		return send(response, 200, { last_autosave_at: at(0) });
+	}
+	if (found[2] === 'submit') {
+		const body = await readJson(request);
+		const twice =
+			draft.intent === 'merge' &&
+			JSON.stringify(body.content).includes('"collection":"aliases"') &&
+			String(body.note ?? '').includes('rifiuta');
+		if (twice) return send(response, 422, { code: 'artwork.creation_event_duplicated' });
+		draft.status = 'submitted';
+		draft.ops = body.content.operations;
+		return send(response, 200, mergeOut(id, draft));
+	}
+	send(response, 200, mergeOut(id, draft));
+}
+
 /** Uploads: the file is `processing` for one poll, then `ready` (or refused if its name says so). */
 async function media(request: IncomingMessage, response: ServerResponse, path: string) {
 	const email = sessionUser(request) && sessionEmail(request);
@@ -1150,6 +1287,13 @@ createServer((request, response) => {
 		invitations(request, response, path, (request.url ?? '').startsWith('/invite/')).catch(() =>
 			send(response, 500)
 		);
+		return;
+	}
+	if (
+		/^\/api\/contributions\/(merge|unmerge|merge-candidates)/.test(path) ||
+		/^\/api\/contributions\/(7\d\d|7\d\d\/.*)$/.test(path)
+	) {
+		merges(request, response, path).catch(() => send(response, 500));
 		return;
 	}
 	if (path.startsWith('/api/contributions')) {
