@@ -361,8 +361,7 @@ test.describe('map and list in sync', () => {
 		// Closing the panel clears the label.
 		await showView(page, 'map', mobile);
 		const panel = panelOf(page, 'Parete di prova 1');
-		await expect(panel).toBeVisible();
-		await page.keyboard.press('Escape');
+		await panel.getByRole('button', { name: 'Close' }).click();
 		await expect(panel).toHaveCount(0);
 		await showView(page, 'list', mobile);
 		await expect(page.getByText('Selected', { exact: true })).toHaveCount(0);
