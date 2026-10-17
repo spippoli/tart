@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { m } from '#lib/paraglide/messages.js';
 	import { deLocalizeHref, isLocale, localizeHref } from '#lib/paraglide/runtime.js';
@@ -9,6 +10,12 @@
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
+
+	// Set once the browser has hydrated the page: the end-to-end tests wait for it before they
+	// interact, because a server-rendered form or button does nothing useful before then.
+	onMount(() => {
+		document.documentElement.dataset.hydrated = 'true';
+	});
 
 	// Alternates for the same page in every enabled UI language; `x-default` is the
 	// root, which chooses the language (ADR 0008).
