@@ -1,0 +1,117 @@
+{
+	"operations": [
+		{
+			"op": "create",
+			"ref": "location",
+			"kind": "location",
+			"record": {
+				"geometry": { "type": "Point", "coordinates": [12.49, 41.9] },
+				"surface_type": "building_wall",
+				"approximate": true,
+				"uncertainty_radius": 30,
+				"place_description": "Muro di prova"
+			}
+		},
+		{
+			"op": "create",
+			"ref": "artist-6",
+			"kind": "artist",
+			"record": { "name": "Nome Finto", "kind": "collective" }
+		},
+		{ "op": "create", "ref": "series-3", "kind": "series", "record": { "name": "Serie di prova" } },
+		{
+			"op": "create",
+			"ref": "source-4",
+			"kind": "source",
+			"record": {
+				"title": "Libro fittizio",
+				"author": null,
+				"publication": null,
+				"url": null,
+				"note": null
+			}
+		},
+		{
+			"op": "create",
+			"ref": "doc-1",
+			"kind": "documentation_item",
+			"record": {
+				"medium": "image",
+				"observed_date": {
+					"precision": "day",
+					"qualifier": "exact",
+					"first": "2024-05-17",
+					"second": null
+				},
+				"artworks": [{ "new": "artwork" }],
+				"file": "6f1c1e0e-6a4b-4c0c-9a58-0d6a8c3e8b11",
+				"licence": "CC-BY-4.0",
+				"creator_credit": "Fotografa di prova",
+				"rights_basis": "third_party",
+				"origin_url": "https://example.org/origine",
+				"alt_text": "Un muro dipinto, fittizio."
+			}
+		},
+		{
+			"op": "create",
+			"ref": "doc-2",
+			"kind": "documentation_item",
+			"record": {
+				"medium": "link",
+				"observed_date": {
+					"precision": "year",
+					"qualifier": "circa",
+					"first": "2021-01-01",
+					"second": null
+				},
+				"artworks": [{ "new": "artwork" }],
+				"url": "https://example.org/pagina"
+			}
+		},
+		{
+			"op": "create",
+			"ref": "artwork",
+			"kind": "artwork",
+			"record": {
+				"location": { "new": "location" },
+				"expression_types": ["mural"],
+				"title": "Il gatto di prova",
+				"description": null,
+				"attributions": [
+					{
+						"artist": { "new": "artist-6" },
+						"certainty": "probable",
+						"alias": null,
+						"note": null,
+						"citations": [{ "new": "source-4" }]
+					}
+				],
+				"history_events": [
+					{
+						"id": { "new": "created" },
+						"type": "created",
+						"observed_date": {
+							"precision": "year",
+							"qualifier": "circa",
+							"first": "2019-01-01",
+							"second": null
+						},
+						"citations": []
+					}
+				],
+				"series": [{ "new": "series-3" }],
+				"sources": [{ "new": "source-4" }]
+			}
+		}
+	],
+	"initial_condition": "intact",
+	"editor": {
+		"untitled": false,
+		"attributed": true,
+		"confirmed_key": null,
+		"counter": 7,
+		"labels": {},
+		"files": { "6f1c1e0e-6a4b-4c0c-9a58-0d6a8c3e8b11": "foto-fittizia.jpg" },
+		"suggested": ["doc-1"]
+	}
+}
