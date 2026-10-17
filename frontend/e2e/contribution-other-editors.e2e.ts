@@ -71,9 +71,8 @@ async function startDraft(
 async function open(page: Page, id: number, language: Language = 'en') {
 	await page.goto(path(language, id));
 	await expect(page.locator('.editor')).toBeVisible();
-	await expect(
-		page.getByText(/^(Changes are saved|Saved automatically|Le modifiche|Salvato)/)
-	).toBeVisible();
+	// The status text is server-rendered; the steps and buttons work once the page has hydrated.
+	await expect(page.locator('.editor[data-hydrated="true"]')).toBeVisible();
 }
 
 async function axe(page: Page, label: string) {

@@ -35,6 +35,12 @@
 	if (lastAutosave) editor.save = { kind: 'saved', at: new Date(lastAutosave) };
 	const id = config.submissionId;
 	const format = { locale: config.locale, timeZone: config.timeZone };
+	// False in the server-rendered page, true once the browser has hydrated it: the steps and
+	// buttons only work from then on, and the end-to-end tests wait for it.
+	let hydrated = $state(false);
+	onMount(() => {
+		hydrated = true;
+	});
 
 	// ---- steps ----
 
@@ -189,7 +195,7 @@
 	}
 </script>
 
-<div class="editor">
+<div class="editor" data-hydrated={hydrated}>
 	<p class="status" role="status">{saveStatus}</p>
 	<p class="visually-hidden" role="status">{editor.announcement}</p>
 
