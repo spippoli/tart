@@ -45,6 +45,14 @@ from tart.archive.errors import ArchiveRuleViolation
 from tart.archive.records import Kind
 from tart.archive.rules import InstanceRules
 from tart.archive_persistence import rules_from_instance
+from tart.archive_read import (
+    Reader,
+    RecordMergedError,
+    RecordNotFoundError,
+    RecordWithdrawnError,
+    Viewer,
+)
+from tart.archive_read import views as archive_views
 from tart.auth.sessions import SessionUser
 from tart.auth.tables import user_account
 from tart.config import Configuration
@@ -421,6 +429,35 @@ async def read_submission(
     if user is None:
         return _refused(SIGN_IN_REQUIRED, 401)
     return await _detail_of(engine, submission_id, user, configuration)
+
+
+@router.get(
+    "/{submission_id}/target",
+    response_model=archive_views.EditSource,
+    responses=_ERRORS,
+)
+async def edit_source(
+    submission_id: int,
+    user: Annotated[Caller, Depends(current_user)],
+    engine: Annotated[AsyncEngine, Depends(get_engine)],
+) -> archive_views.EditSource | JSONResponse:
+    """The record an edit Submission changes, as its editor starts from it: stored fields
+    with Redactions applied, the words of the records it links to, and, for a Location, how
+    many Artworks it carries. A Submission that creates a record has none (404)."""
+    if user is None:
+        return _refused(SIGN_IN_REQUIRED, 401)
+    async with engine.connect() as connection:
+        submission = await _visible(connection, submission_id, user)
+        if submission is None:
+            return _refused("moderation.unknown_submission", 404)
+        if submission.target_id is None:
+            return _refused("moderation.unknown_target", 404)
+        try:
+            return await Reader(connection, Viewer(moderator=False)).editable(
+                submission.target_kind, submission.target_id
+            )
+        except RecordNotFoundError, RecordWithdrawnError, RecordMergedError:
+            return _refused("moderation.unknown_target", 404)
 
 
 class WorkingCopyBody(BaseModel):

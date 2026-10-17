@@ -20,6 +20,7 @@ type Value<F extends (...args: never[]) => Promise<Outcome<unknown>>> = Extract<
 export type UploadState = Value<typeof uploadState>;
 export type LocationCandidate = Value<typeof locationCandidates>['candidates'][number];
 export type NameCandidate = Value<typeof nameCandidates>['candidates'][number];
+export type AreaReadout = Value<typeof areaReadout>;
 export type RecordLink = Value<typeof searchRecords>['items'][number];
 
 /** A refusal: the stable error code, the status, and the wait of a rate limit. */
@@ -146,11 +147,22 @@ export function nameCandidates(
 	);
 }
 
-/** The public Artists or Series whose name matches, by name. */
-export function searchRecords(kind: 'artists' | 'series', name: string) {
+/** The public Artists, Series, Sites, or Areas whose name matches, by name. */
+export function searchRecords(kind: 'artists' | 'series' | 'sites' | 'areas', name: string) {
+	const path = {
+		artists: '/api/archive/artists',
+		series: '/api/archive/series',
+		sites: '/api/archive/sites',
+		areas: '/api/archive/areas'
+	} as const;
+	return attempt(() => client.GET(path[kind], { params: { query: { name } } }));
+}
+
+/** What a drawn Area covers: the Locations within it and the Areas it overlaps. */
+export function areaReadout(geometry: Geometry) {
 	return attempt(() =>
-		client.GET(kind === 'artists' ? '/api/archive/artists' : '/api/archive/series', {
-			params: { query: { name } }
+		client.POST('/api/contribution/duplicates/area', {
+			body: { geometry: geometry as unknown as { [key: string]: unknown } }
 		})
 	);
 }

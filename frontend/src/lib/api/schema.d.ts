@@ -702,6 +702,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contributions/{submission_id}/target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Edit Source
+         * @description The record an edit Submission changes, as its editor starts from it: stored fields
+         *     with Redactions applied, the words of the records it links to, and, for a Location, how
+         *     many Artworks it carries. A Submission that creates a record has none (404).
+         */
+        get: operations["edit_source_api_contributions__submission_id__target_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contributions/{submission_id}/working-copy": {
         parameters: {
             query?: never;
@@ -910,6 +932,26 @@ export interface paths {
         put?: never;
         /** Location Candidates */
         post: operations["location_candidates_api_contribution_duplicates_locations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contribution/duplicates/area": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Area Readout
+         * @description How many Locations a polygon would contain and which Areas it overlaps. Read-only.
+         */
+        post: operations["area_readout_api_contribution_duplicates_area_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1165,6 +1207,23 @@ export interface components {
             name: string;
             /** Point */
             point: number[];
+        };
+        /** AreaQuery */
+        AreaQuery: {
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * AreaReadout
+         * @description What a drawn Area covers, for the text readout of the Polygon step.
+         */
+        AreaReadout: {
+            /** Locations */
+            locations: number;
+            /** Overlapping */
+            overlapping: components["schemas"]["RecordLink"][];
         };
         /**
          * ArtistKind
@@ -1536,6 +1595,32 @@ export interface components {
             url?: string | null;
             /** Language */
             language?: string | null;
+        };
+        /**
+         * EditSource
+         * @description A record as the editor starts an edit from it: its stored fields, not a display
+         *     view. A value hidden by a Redaction is absent and named in `redacted_fields`, whoever
+         *     asks; an item hidden by one is left out of its collection.
+         */
+        EditSource: {
+            kind: components["schemas"]["Kind"];
+            /** Id */
+            id: number;
+            /** Record */
+            record: {
+                [key: string]: unknown;
+            };
+            /**
+             * Redacted Fields
+             * @default []
+             */
+            redacted_fields: string[];
+            /** Links */
+            links: {
+                [key: string]: components["schemas"]["RecordLink"];
+            };
+            /** Artwork Count */
+            artwork_count?: number | null;
         };
         /** EmailChangeBody */
         EmailChangeBody: {
@@ -4671,6 +4756,84 @@ export interface operations {
             };
         };
     };
+    edit_source_api_contributions__submission_id__target_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditSource"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitedError"];
+                };
+            };
+        };
+    };
     autosave_api_contributions__submission_id__working_copy_put: {
         parameters: {
             query?: never;
@@ -5340,6 +5503,50 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    area_readout_api_contribution_duplicates_area_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AreaQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaReadout"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

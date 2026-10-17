@@ -3,6 +3,7 @@
 
     POST /api/contribution/duplicates/locations   Locations within 25 m of a geometry
     POST /api/contribution/duplicates/names       records whose name or Alias is alike
+    POST /api/contribution/duplicates/area        what a drawn Area covers and overlaps
 
 Neither endpoint ever blocks anything: they answer with candidates, possibly none, and the
 editor lets the contributor go on. The requests are read-only; they are POSTs because a
@@ -128,6 +129,37 @@ async def location_candidates(
                 )
             )
         return LocationCandidates(candidates=candidates)
+
+
+class AreaQuery(BaseModel):
+    geometry: dict
+    """A GeoJSON Polygon, as drawn."""
+
+
+class AreaReadout(BaseModel):
+    """What a drawn Area covers, for the text readout of the Polygon step."""
+
+    locations: int
+    """The public Locations that fall within it."""
+    overlapping: list[v.RecordLink]
+    """The existing Areas it overlaps; overlaps are allowed."""
+
+
+@router.post("/area", response_model=AreaReadout, responses={401: {"model": Error}})
+async def area_readout(
+    query: AreaQuery, user: Caller, engine: Engine
+) -> AreaReadout | JSONResponse:
+    """How many Locations a polygon would contain and which Areas it overlaps. Read-only."""
+    if user is None:
+        return JSONResponse({"code": SIGN_IN_REQUIRED}, status_code=401)
+    try:
+        area = Geometry.from_geojson(query.geometry)
+    except ArchiveRuleViolation:
+        return JSONResponse({"code": GEOMETRY_INVALID}, status_code=422)
+    async with engine.connect() as connection:
+        reader = Reader(connection, Viewer(moderator=False))
+        count, overlapping = await PostgresDuplicateQuery(connection).within_area(area)
+        return AreaReadout(locations=count, overlapping=await reader.links(overlapping))
 
 
 @router.post("/names", response_model=NameCandidates, responses={401: {"model": Error}})

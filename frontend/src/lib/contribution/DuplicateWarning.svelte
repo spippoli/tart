@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { locationTitleText, recordHref, vocabularyLabels } from '#lib/archive/records.ts';
+	import { locationTitleText, vocabularyLabels } from '#lib/archive/records.ts';
 	import type { ComponentProps } from 'svelte';
 	import ListEntry from '#lib/discovery/ListEntry.svelte';
 	import { m } from '#lib/paraglide/messages.js';
+	import { localizeHref } from '#lib/paraglide/runtime.js';
 	import type { LocationCandidate } from './api';
 	import { errorText } from './errors';
 	import { placementKey } from './form';
@@ -79,11 +80,16 @@
 					{#each candidate.artworks as entry (entry.id)}
 						<li>
 							<ListEntry entry={entry as unknown as ListEntryProps['entry']} where={false} />
-							<a href={recordHref('artwork', entry.path, config.locale)}>
-								{m.editor_duplicates_add_documentation({
-									title: entry.title ?? m.archive_untitled()
-								})}
-							</a>
+							<form method="post" action="{localizeHref('/contribute')}?/edit">
+								<input type="hidden" name="kind" value="artwork" />
+								<input type="hidden" name="id" value={entry.id} />
+								<input type="hidden" name="flavour" value="documentation" />
+								<button type="submit">
+									{m.editor_duplicates_add_documentation({
+										title: entry.title ?? m.archive_untitled()
+									})}
+								</button>
+							</form>
 						</li>
 					{/each}
 				</ul>

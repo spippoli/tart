@@ -51,7 +51,11 @@ def decode_content(snapshot: Json, target_kind: Kind) -> Content:
             Condition(condition) if condition is not None else None,  # type: ignore[arg-type]
             tuple(conflicts),
         )
-    except ArchiveRuleViolation, KeyError, TypeError, ValueError:
+    except ArchiveRuleViolation as violation:
+        if violation.code.startswith("geometry."):
+            raise  # a geometry the editor can word: self-intersecting, too few vertices, ...
+        raise ModerationError("moderation.malformed_content") from None
+    except KeyError, TypeError, ValueError:
         raise ModerationError("moderation.malformed_content") from None
 
 

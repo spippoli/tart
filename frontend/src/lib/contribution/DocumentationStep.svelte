@@ -288,27 +288,29 @@
 		<p class="hint">{m.editor_documentation_count({ uploaded, max: MAX_UPLOADED })}</p>
 	{/if}
 
-	<Field
-		id={ids.condition}
-		label={m.editor_condition_label()}
-		hint={m.editor_condition_hint()}
-		error={conditionError}
-	>
-		{#snippet children(props)}
-			<select {...props} bind:value={form.initialCondition}>
-				<option value="">{m.editor_choose()}</option>
-				{#each CONDITION_GROUPS as group (group.group)}
-					<optgroup label={groupWords[group.group]()}>
-						{#each group.conditions as condition (condition)}
-							<option value={condition}
-								>{conditionWord(condition as Condition, config.locale)}</option
-							>
-						{/each}
-					</optgroup>
-				{/each}
-			</select>
-		{/snippet}
-	</Field>
+	{#if editor.flavour === 'new'}
+		<Field
+			id={ids.condition}
+			label={m.editor_condition_label()}
+			hint={m.editor_condition_hint()}
+			error={conditionError}
+		>
+			{#snippet children(props)}
+				<select {...props} bind:value={form.initialCondition}>
+					<option value="">{m.editor_choose()}</option>
+					{#each CONDITION_GROUPS as group (group.group)}
+						<optgroup label={groupWords[group.group]()}>
+							{#each group.conditions as condition (condition)}
+								<option value={condition}
+									>{conditionWord(condition as Condition, config.locale)}</option
+								>
+							{/each}
+						</optgroup>
+					{/each}
+				</select>
+			{/snippet}
+		</Field>
+	{/if}
 </div>
 
 <style>

@@ -566,7 +566,7 @@ test.describe('AC 39: the warning, the autosave status, and the results are anno
 		await expect(warning.locator('ul.artworks > li')).toHaveCount(3);
 		await expect(warning).toContainText('Covered');
 		await expect(
-			warning.getByRole('link', { name: /Add documentation to this Artwork/ })
+			warning.getByRole('button', { name: /Add documentation to this Artwork/ })
 		).toHaveCount(3);
 	});
 

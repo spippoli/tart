@@ -10,6 +10,7 @@ import type { Locale } from '#lib/paraglide/runtime.js';
 import { emptyDate, fromUncertainDate, todayIn } from './date-field';
 import {
 	emptyForm,
+	FLAVOUR_STEPS,
 	fromWorkingCopy,
 	nextKey,
 	placementKey,
@@ -17,17 +18,25 @@ import {
 	type ArtworkForm,
 	type Citable,
 	type DocForm,
+	type Flavour,
 	type Step
 } from './form';
 import * as api from './api';
+import type { SaveStatus, Session, StepError, TermsState } from './session';
+import { stepNames } from './steps';
 import {
 	firstIncomplete,
 	isBlank,
+	isBlankAttached,
+	serverError,
 	stepStates,
 	validate,
+	validateAttached,
 	type Context,
 	type FieldError
 } from './validate';
+
+export type { SaveStatus };
 
 export interface Vocabulary {
 	key: string;
@@ -46,7 +55,11 @@ export interface EditorConfig {
 	expressionTypes: Vocabulary[];
 	surfaceTypes: Vocabulary[];
 	licences: string[];
-	terms: { version: number; acceptedVersion: number | null; acceptanceRequired: boolean };
+	terms: TermsState;
+	/** What the editor is for; a new Artwork unless it attaches to one that exists. */
+	flavour: Flavour;
+	/** The Artwork a documentation or event Submission is about, until the copy names it. */
+	target?: { id: number; title: string };
 }
 
 export type UploadStatus = 'uploading' | 'processing' | 'ready' | 'rejected' | 'deleted';
@@ -59,16 +72,10 @@ export interface UploadView {
 	point?: [number, number];
 }
 
-export type SaveStatus =
-	| { kind: 'idle' }
-	| { kind: 'saving' }
-	| { kind: 'saved'; at: Date }
-	| { kind: 'failed'; failure: api.Failure };
-
 const POLL_MILLISECONDS = 1000;
 const POLL_LIMIT = 120;
 
-export class EditorState {
+export class EditorState implements Session {
 	readonly config: EditorConfig;
 	readonly today: string;
 	form: ArtworkForm = $state(emptyForm());
@@ -78,8 +85,8 @@ export class EditorState {
 	/** A submit was tried: step states say "to fix" instead of "to complete". */
 	attempted = $state(false);
 	/** What the last submit listed, and what the server refused. */
-	submitted: FieldError[] = $state([]);
-	refused: FieldError[] = $state([]);
+	submitted: StepError[] = $state([]);
+	refused: StepError[] = $state([]);
 	submitting = $state(false);
 	uploads: Record<string, UploadView> = $state({});
 	save: SaveStatus = $state({ kind: 'idle' });
@@ -94,16 +101,36 @@ export class EditorState {
 
 	constructor(config: EditorConfig, workingCopy: unknown, hadAutosave: boolean) {
 		this.config = config;
+		this.step = this.steps[0];
 		this.today = todayIn(config.timeZone);
 		this.form = fromWorkingCopy(workingCopy);
+		if (config.flavour !== 'new') this.form.target ??= config.target ?? null;
 		this.termsAccepted = false;
 		// Uploads the draft names are fetched again for their state: they were processed meanwhile.
 		for (const item of this.form.documentation) if (item.file) void this.refreshUpload(item);
-		if (hadAutosave && !isBlank(this.form)) {
-			const first = firstIncomplete(this.live);
+		const blank = config.flavour === 'new' ? isBlank(this.form) : isBlankAttached(this.form);
+		if (hadAutosave && !blank) {
+			const first = firstIncomplete(this.live, this.steps) as Step;
 			this.step = first;
 			this.resumed = first;
 		}
+	}
+
+	/** What the editor is for: a new Artwork, or documentation or an event added to one. */
+	get flavour(): Flavour {
+		return this.config.flavour;
+	}
+
+	get steps(): readonly Step[] {
+		return FLAVOUR_STEPS[this.config.flavour];
+	}
+
+	stepName(step: string): string {
+		return stepNames[step as Step]();
+	}
+
+	serverError(code: string): StepError {
+		return serverError(code, this.flavour);
 	}
 
 	/** The state of each upload by Documentation item, as the rules read them. */
@@ -135,26 +162,30 @@ export class EditorState {
 	}
 
 	/** Every rule broken now. Computed on demand, shown only after a submit. */
-	live = $derived(validate(this.form, this.context));
+	live: FieldError[] = $derived(
+		this.flavour === 'new'
+			? validate(this.form, this.context)
+			: validateAttached(this.form, this.context, this.flavour)
+	);
 
 	/** The errors of the last submit that still hold, and the server's. */
-	shown = $derived([
+	shown: StepError[] = $derived([
 		...this.submitted.filter((each) =>
 			this.live.some((now) => now.id === each.id && now.code === each.code)
 		),
 		...this.refused
 	]);
 
-	states = $derived(stepStates(this.live, this.attempted));
+	states = $derived(stepStates(this.live, this.attempted, this.steps));
 
 	/** The error of a field, if the last submit listed one. */
-	errorAt(id: string): FieldError | undefined {
+	errorAt(id: string): StepError | undefined {
 		return this.shown.find((each) => each.id === id);
 	}
 
 	/** The working copy as the API stores it. */
 	get workingCopy(): Record<string, unknown> {
-		return toWorkingCopy(this.form, this.today);
+		return toWorkingCopy(this.form, this.today, this.flavour);
 	}
 
 	/** The Sources and Documentation items that a Claim can cite. */

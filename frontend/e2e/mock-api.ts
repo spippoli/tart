@@ -342,6 +342,8 @@ interface Draft {
 	id: number;
 	owner: string;
 	status: 'draft' | 'submitted';
+	targetKind: string;
+	targetId: number | null;
 	workingCopy: unknown;
 	lastAutosave: string | null;
 	round: unknown;
@@ -365,9 +367,9 @@ function draftOut(draft: Draft) {
 	return {
 		id: draft.id,
 		status: draft.status,
-		target_kind: 'artwork',
-		intent: 'create',
-		target_id: null,
+		target_kind: draft.targetKind,
+		intent: draft.targetId === null ? 'create' : 'edit',
+		target_id: draft.targetId,
 		base_revisions: [],
 		labels: [],
 		version: 1,
@@ -419,6 +421,45 @@ function refusalOf(content: { operations?: unknown; initial_condition?: unknown 
 	return null;
 }
 
+/** The record an edit starts from: Location 200, with three Artworks on it, or a fictional Artwork. */
+function editSource(draft: Draft) {
+	const links: Record<string, unknown> = { '12': link('series', 12, '12-gatti', 'Gatti') };
+	if (draft.targetKind === 'location') {
+		return {
+			kind: 'location',
+			id: draft.targetId,
+			record: {
+				geometry: { type: 'Point', coordinates: [12.4823, 41.8955] },
+				surface_type: 'wall',
+				approximate: false,
+				uncertainty_radius: null,
+				site: null,
+				place_description: 'Parete di prova'
+			},
+			redacted_fields: [],
+			links,
+			artwork_count: 3
+		};
+	}
+	return {
+		kind: draft.targetKind,
+		id: draft.targetId,
+		record: {
+			title: 'Gatto di prova',
+			expression_types: ['stencil'],
+			description: null,
+			location: 200,
+			attributions: [],
+			history_events: [],
+			series: [12],
+			sources: []
+		},
+		redacted_fields: [],
+		links,
+		artwork_count: null
+	};
+}
+
 /** Drafts: started, read, autosaved, submitted, and deleted by their Submitter alone. */
 async function editorDrafts(request: IncomingMessage, response: ServerResponse, path: string) {
 	const email = sessionUser(request) && sessionEmail(request);
@@ -429,10 +470,13 @@ async function editorDrafts(request: IncomingMessage, response: ServerResponse, 
 	}
 	if (path === '/api/contributions/terms') return send(response, 200, termsOf(email));
 	if (path === '/api/contributions' && request.method === 'POST') {
+		const started = await readJson(request);
 		const draft: Draft = {
 			id: nextDraftId++,
 			owner: email,
 			status: 'draft',
+			targetKind: String(started.target_kind ?? 'artwork'),
+			targetId: typeof started.target_id === 'number' ? started.target_id : null,
 			workingCopy: null,
 			lastAutosave: null,
 			round: null
@@ -440,11 +484,12 @@ async function editorDrafts(request: IncomingMessage, response: ServerResponse, 
 		drafts.set(draft.id, draft);
 		return send(response, 201, draftOut(draft));
 	}
-	const found = /^\/api\/contributions\/(\d+)(?:\/(working-copy|submit))?$/.exec(path);
+	const found = /^\/api\/contributions\/(\d+)(?:\/(working-copy|submit|target))?$/.exec(path);
 	const draft = found && drafts.get(Number(found[1]));
 	if (!found || !draft || draft.owner !== email) {
 		return send(response, 404, { code: 'moderation.unknown_submission' });
 	}
+	if (found[2] === 'target') return send(response, 200, editSource(draft));
 	if (request.method === 'GET') return send(response, 200, draftOut(draft));
 	if (request.method === 'DELETE') {
 		drafts.delete(draft.id);
@@ -530,6 +575,12 @@ async function duplicates(request: IncomingMessage, response: ServerResponse, pa
 		const near = Math.abs(lon - 12.4823) < 0.001 && Math.abs(lat - 41.8955) < 0.001;
 		return send(response, 200, {
 			candidates: near || body.location_id === 200 ? [candidateAt(12)] : []
+		});
+	}
+	if (path === '/api/contribution/duplicates/area') {
+		return send(response, 200, {
+			locations: 2,
+			overlapping: [link('area', 31, '31-rione-finto', 'Rione Finto')]
 		});
 	}
 	const similar = String(body.name ?? '')

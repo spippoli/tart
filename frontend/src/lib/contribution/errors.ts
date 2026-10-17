@@ -63,6 +63,31 @@ const messages: Record<string, Message> = {
 	'source.title_required': word(m.editor_error_source_title_required),
 	'source.url_invalid': word(m.editor_error_url_invalid),
 	'terms.required': word(m.editor_error_terms_required),
+	'field.required': word(m.editor_error_field_required),
+	'geometry.required': word(m.editor_error_geometry_required),
+	'edit.empty': word(m.editor_error_edit_empty),
+	'event.shows_required': word(m.editor_error_event_shows_required),
+	'event.type_required': word(m.editor_error_event_type_required),
+	'event.observed_required': word(m.editor_error_event_observed_required),
+	'site.name_required': word(m.editor_error_site_name_required),
+	'area.outside_boundary': word(m.editor_error_area_outside_boundary),
+	'documentation_item.artworks_required': word(m.editor_error_artworks_required),
+	'documentation_item.url_required': word(m.editor_error_item_url_required),
+	'documentation_item.alt_text_too_long': word(m.editor_error_documentation_alt_too_long),
+	'documentation_item.medium_immutable': word(m.editor_error_item_immutable),
+	'documentation_item.file_immutable': word(m.editor_error_item_immutable),
+	'documentation_item.licence_immutable': word(m.editor_error_item_immutable),
+	'documentation_item.creator_credit_immutable': word(m.editor_error_item_immutable),
+	'documentation_item.rights_basis_immutable': word(m.editor_error_item_immutable),
+	'documentation_item.origin_url_immutable': word(m.editor_error_item_immutable),
+	'artist.alias_in_use': word(m.editor_error_alias_in_use),
+	'crew_membership.cycle': word(m.editor_error_crew_cycle),
+	'crew_membership.not_a_collective': word(m.editor_error_crew_not_collective),
+	'crew_membership.periods_overlap': word(m.editor_error_crew_periods_overlap),
+	'crew_membership.collective_required': word(m.editor_error_crew_collective_required),
+	'period.start_after_end': word(m.editor_error_period_start_after_end),
+	'attribution.alias_not_of_artist': word(m.editor_error_attribution_alias_not_of_artist),
+	'moderation.empty_changeset': word(m.editor_error_empty_changeset),
 	'moderation.documentation_required': word(m.editor_error_documentation_required),
 	'moderation.initial_condition_required': word(m.editor_error_condition_required),
 	'moderation.terms_not_accepted': word(m.editor_error_terms_required),
@@ -82,6 +107,8 @@ const messages: Record<string, Message> = {
 
 /** The error in words. `wait` is the time to wait of a rate limit, already worded. */
 export function errorText(code: string, params: Params = {}): string {
-	const message = messages[code];
+	// The archive's `{kind}.{field}_required` and `_blank` say one thing: the field is empty.
+	const message =
+		messages[code] ?? (/_(required|blank)$/.test(code) ? messages['field.required'] : null);
 	return message ? message(params) : m.editor_error_unknown({ code });
 }
