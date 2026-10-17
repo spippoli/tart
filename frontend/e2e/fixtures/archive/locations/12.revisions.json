@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "geometry",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -35,6 +36,7 @@
     {
      "op": "set",
      "field": "surface_type",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "shutter",
@@ -46,6 +48,7 @@
     {
      "op": "set",
      "field": "approximate",
+     "record": null,
      "collection": null,
      "old": null,
      "new": false,
@@ -57,6 +60,7 @@
     {
      "op": "set",
      "field": "place_description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Saracinesca fittizia di via Inventata 7",

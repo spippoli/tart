@@ -48,6 +48,7 @@ from tart.moderation.lifecycle import (
     stub_due,
     submit,
 )
+from tart.moderation.merge import merge_of
 from tart.moderation.model import (
     DUPLICATE_REASON,
     FINAL,
@@ -62,6 +63,7 @@ from tart.moderation.model import (
     Submission,
 )
 from tart.moderation.outdated import (
+    MergeRebase,
     Reason,
     Rebase,
     RecordChange,
@@ -69,6 +71,7 @@ from tart.moderation.outdated import (
     merge_outdated_reasons,
     outdated_reasons,
     rebase,
+    rebase_merge,
 )
 from tart.moderation.validation import check_content, materialize
 
@@ -89,6 +92,7 @@ __all__ = [
     "Intent",
     "Label",
     "LogEntry",
+    "MergeRebase",
     "ModerationError",
     "ModerationNote",
     "Reason",
@@ -119,9 +123,11 @@ __all__ = [
     "link",
     "materialize",
     "media_deletion_due",
+    "merge_of",
     "merge_outdated_reasons",
     "outdated_reasons",
     "rebase",
+    "rebase_merge",
     "rebase_working_copy",
     "reduce_to_stub",
     "resolve_conflict",

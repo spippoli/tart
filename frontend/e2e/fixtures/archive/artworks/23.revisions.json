@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "location",
+     "record": null,
      "collection": null,
      "old": null,
      "new": 15,
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "expression_types",
+     "record": null,
      "collection": null,
      "old": null,
      "new": [
@@ -42,6 +44,7 @@
     {
      "op": "set",
      "field": "title",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Scritta fittizia",
@@ -53,6 +56,7 @@
     {
      "op": "set",
      "field": "description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Opera fittizia documentata solo da un collegamento e da un testo.",
@@ -64,6 +68,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "history_events",
      "old": null,
      "new": null,

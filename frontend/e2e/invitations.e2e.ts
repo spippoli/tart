@@ -32,6 +32,8 @@ async function signIn(page: Page, email: string, language: 'it' | 'en' = 'en') {
 	await page.getByRole('button', { name: labels.send }).click();
 	await page.getByLabel(labels.code, { exact: true }).fill(CODE);
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
+	await expect(page).toHaveURL(`${INVITE}${next}`);
+	await expect(page.locator('html[data-hydrated="true"]')).toBeAttached();
 }
 
 test('AC 36: the Moderator sees every Invitation with its status and issuer', async ({

@@ -5,6 +5,7 @@ import { artworkEditorOf } from '#lib/contribution/form.ts';
 import type { RecordEditorConfig } from '#lib/contribution/record/state.svelte.ts';
 import { localizeHref } from '#lib/paraglide/runtime.js';
 import { api, onBehalfOf } from '#lib/server/api.ts';
+import { isMergeIntent, loadMergeEditor } from '#lib/server/merge-editor.ts';
 import { mapSettings } from '#lib/server/map-settings.ts';
 import type { PageServerLoad } from './$types';
 
@@ -43,6 +44,20 @@ export const load: PageServerLoad = async (event) => {
 	const submission = found.data;
 	if (!['draft', 'submitted', 'changes_requested'].includes(submission.status)) {
 		redirect(303, localizeHref(`/contributions/${id}`));
+	}
+	const merge = isMergeIntent(submission.intent) ? submission.intent : null;
+	if (merge) {
+		const { vocabularies } = event.locals.config;
+		const context = {
+			locale: event.locals.locale,
+			timeZone: event.locals.config.geography.time_zone
+		};
+		return {
+			editor: 'merge' as const,
+			mergeEditor: await loadMergeEditor(event, submission, merge, terms.data, context),
+			expressionTypes: vocabularies.expression_types,
+			surfaceTypes: vocabularies.surface_types
+		};
 	}
 
 	const { vocabularies, licenses } = event.locals.config;

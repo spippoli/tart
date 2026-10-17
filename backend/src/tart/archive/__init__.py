@@ -9,9 +9,11 @@ from tart.archive.changeset import (
     ChangeItem,
     Changeset,
     Create,
+    Merge,
     Operation,
     RemoveItem,
     SetField,
+    Unmerge,
 )
 from tart.archive.changeset_codec import decode_changeset, encode_changeset
 from tart.archive.errors import ArchiveRuleViolation
@@ -110,6 +112,7 @@ __all__ = [
     "Location",
     "LocationTitle",
     "Medium",
+    "Merge",
     "New",
     "Operation",
     "Period",
@@ -130,6 +133,7 @@ __all__ = [
     "Stratum",
     "Timeline",
     "UncertainDate",
+    "Unmerge",
     "apply_changeset",
     "attribution_readout",
     "condition_group",

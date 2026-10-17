@@ -16,6 +16,11 @@
 	const signedIn = $derived(Boolean(page.data.user));
 	const signIn = $derived(signInHref(page.url));
 	const start = $derived(`${localizeHref('/contribute')}?/edit`);
+	// A Merge folds this record into another of its kind; for a Documentation item it is a
+	// Duplicate retirement. The first step is choosing the record that survives.
+	const mergeHref = $derived(
+		page.data.user ? `${localizeHref('/contribute/merge')}?source=${id}` : signInHref(page.url)
+	);
 </script>
 
 {#snippet action(flavour: string, label: string)}
@@ -42,6 +47,11 @@
 			{@render action('event', m.archive_action_report_condition())}
 			{@render action('facts', m.archive_action_other_facts())}
 		{/if}
+		<li>
+			<a href={mergeHref}>
+				{kind === 'documentation_item' ? m.merge_action_retirement() : m.merge_action_merge()}
+			</a>
+		</li>
 		<li><a href={reportHref(context.locale, kind, id)}>{m.archive_action_report()}</a></li>
 		<li><a href={revisionsHref(kind, path)}>{m.archive_revisions_link()}</a></li>
 	</ul>

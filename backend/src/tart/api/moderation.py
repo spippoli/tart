@@ -10,7 +10,7 @@ never by email address. The decisions and the Moderation notes are on the Submis
 """
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from tart import moderation
 from tart.api.auth import SIGN_IN_REQUIRED, Error, current_user, get_engine
-from tart.api.contributions import Person, intent_of, people_of
+from tart.api.contributions import Intent, Person, intent_of, people_of
 from tart.archive.records import Kind
 from tart.auth.sessions import SessionUser
 from tart.moderation import Label
@@ -34,7 +34,7 @@ MODERATOR_ONLY = "moderator_only"
 class QueueItem(BaseModel):
     id: int
     target_kind: Kind
-    intent: Literal["create", "edit"]
+    intent: Intent
     target_id: int | None
     labels: list[str]
     """Derived from the changeset, never entered."""

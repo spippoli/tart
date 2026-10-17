@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "name",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Nebbia Finta",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "kind",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "individual",
@@ -40,6 +42,7 @@
     {
      "op": "set",
      "field": "biography",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Artista fittizia, inventata per i dati di prova.",
@@ -51,6 +54,7 @@
     {
      "op": "set",
      "field": "period",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -70,6 +74,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "aliases",
      "old": null,
      "new": null,
@@ -81,6 +86,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "areas",
      "old": null,
      "new": null,
@@ -92,6 +98,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "sources",
      "old": null,
      "new": null,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { kindWord } from '#lib/archive/records.ts';
+	import MergeEditor from '#lib/contribution/merge/MergeEditor.svelte';
 	import ArtworkEditor from '#lib/contribution/ArtworkEditor.svelte';
 	import RecordEditor from '#lib/contribution/record/RecordEditor.svelte';
 	import { m } from '#lib/paraglide/messages.js';
@@ -8,7 +9,13 @@
 
 	let { data }: PageProps = $props();
 
+	const mergeTitles = {
+		merge: m.merge_title_merge,
+		retirement: m.merge_title_retirement,
+		unmerge: m.merge_title_unmerge
+	};
 	const title = $derived.by(() => {
+		if (data.editor === 'merge') return mergeTitles[data.mergeEditor.intent]();
 		if (data.editor === 'artwork') {
 			return data.flavour === 'documentation'
 				? m.editor_title_documentation()
@@ -25,9 +32,15 @@
 
 <PageTitle {title} />
 
-<h1>{title}</h1>
+{#if data.editor === 'merge'}
+	<MergeEditor config={data.mergeEditor} />
+{:else}
+	<h1>{title}</h1>
+{/if}
 
-{#if data.editor === 'artwork'}
+{#if data.editor === 'merge'}
+	<!-- the Merge editor has its own heading -->
+{:else if data.editor === 'artwork'}
 	<ArtworkEditor
 		config={{
 			submissionId: data.submission.id,

@@ -52,8 +52,24 @@ const kindWords: Record<'create' | 'edit', Partial<Record<SubmissionKind, () => 
 	}
 };
 
-/** "New Artwork", "Edit of an Artist": the derived kind, never chosen. */
-export function kindText(intent: 'create' | 'edit', kind: SubmissionKind): string {
+export type Intent = components['schemas']['SubmissionSummary']['intent'];
+
+const kindNouns: Record<SubmissionKind, () => string> = {
+	artwork: m.archive_kind_artwork,
+	location: m.archive_kind_location,
+	site: m.archive_kind_site,
+	area: m.archive_kind_area,
+	series: m.archive_kind_series,
+	source: m.archive_kind_source,
+	documentation_item: m.archive_kind_documentation_item,
+	artist: m.archive_kind_artist
+};
+
+/** "New Artwork", "Edit of an Artist", "Merge (Artist)": the derived kind, never chosen. */
+export function kindText(intent: Intent, kind: SubmissionKind): string {
+	if (intent === 'merge') return m.contribution_kind_merge({ kind: kindNouns[kind]() });
+	if (intent === 'unmerge') return m.contribution_kind_unmerge({ kind: kindNouns[kind]() });
+	if (intent === 'retirement') return m.contribution_kind_retirement();
 	return (kindWords[intent][kind] ?? m.contribution_kind_other)();
 }
 
