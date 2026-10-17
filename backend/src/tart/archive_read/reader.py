@@ -56,6 +56,7 @@ from tart.archive import (
     stratigraphy,
     timeline,
 )
+from tart.archive.changeset_codec import encode_value
 from tart.archive.codec import encode, encode_period, encode_uncertain_date
 from tart.archive_persistence import PostgresArchiveStore
 from tart.archive_persistence import tables as t
@@ -1098,6 +1099,29 @@ class Reader:
             artworks=await self.cards(item.artworks),  # type: ignore[arg-type]
             location=await self._location_summary(location) if location else None,  # type: ignore[arg-type]
             **visibility,
+        )
+
+    async def editable(self, kind: Kind, record_id: RecordId) -> v.EditSource:
+        """The record as an edit starts from it, for the editor (Contribution and
+        moderation spec, Other editors). Redactions apply to everyone: the editor never
+        pre-fills a redacted value."""
+        await self.resolve(kind, record_id)
+        shown = await self.shown(record_id)
+        record = encode_value(shown.record)
+        assert isinstance(record, dict)
+        count = None
+        if kind is Kind.LOCATION:
+            count = len(await self.listed(await self.store.artworks_on_location(record_id)))
+        return v.EditSource(
+            kind=kind,
+            id=record_id,
+            record=record,
+            redacted_fields=shown.redacted_fields,
+            links={
+                str(link.id): link
+                for link in await self.links(sorted(_references(None, {"record": record})))
+            },
+            artwork_count=count,
         )
 
     # Revisions and indexes.

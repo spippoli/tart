@@ -2835,6 +2835,112 @@
         }
       }
     },
+    "/api/contributions/{submission_id}/target": {
+      "get": {
+        "summary": "Edit Source",
+        "description": "The record an edit Submission changes, as its editor starts from it: stored fields\nwith Redactions applied, the words of the records it links to, and, for a Location, how\nmany Artworks it carries. A Submission that creates a record has none (404).",
+        "operationId": "edit_source_api_contributions__submission_id__target_get",
+        "parameters": [
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Submission Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditSource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/contributions/{submission_id}/working-copy": {
       "put": {
         "summary": "Autosave",
@@ -6388,6 +6494,57 @@
         ],
         "title": "DocumentationSummary",
         "description": "A Documentation item in a gallery or a list."
+      },
+      "EditSource": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "record": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Record"
+          },
+          "redacted_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redacted Fields",
+            "default": []
+          },
+          "links": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "object",
+            "title": "Links"
+          },
+          "artwork_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artwork Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "record",
+          "links"
+        ],
+        "title": "EditSource",
+        "description": "A record as the editor starts an edit from it: its stored fields, not a display\nview. A value hidden by a Redaction is absent and named in `redacted_fields`, whoever\nasks; an item hidden by one is left out of its collection."
       },
       "EmailChangeBody": {
         "properties": {
