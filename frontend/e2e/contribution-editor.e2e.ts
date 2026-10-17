@@ -13,7 +13,7 @@ import { serveStyles } from './map-style';
 const MOCK = 'http://localhost:8795';
 const BASE = 'http://localhost:4273';
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const HEADERS = { 'x-tart-request': '1', 'x-tart-client-ip': '127.0.0.1' };
+const HEADERS = { 'x-tart-request': '1', 'x-tart-client-ip': '127.0.0.1', 'x-mock-editor': '1' };
 
 type Language = 'en' | 'it';
 const WORDS = {
