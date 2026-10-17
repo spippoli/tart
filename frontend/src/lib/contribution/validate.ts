@@ -16,16 +16,14 @@ import {
 	STEPS,
 	type ArtworkForm,
 	type DocForm,
+	type Flavour,
 	type Step
 } from './form';
+import type { StepError, StepState } from './session';
 
-export interface FieldError {
-	/** The DOM id of the field the error is about, which also names its message. */
-	id: string;
-	step: Step;
-	code: string;
-	params?: Record<string, string | number>;
-}
+export type { StepState };
+
+export type FieldError = StepError & { step: Step };
 
 export interface Context {
 	/** The date of the Submission, ISO, in the Instance time zone. */
@@ -61,6 +59,11 @@ export const ids = {
 	attributionAdd: 'editor-attribution-add',
 	creationDate: 'editor-created',
 	terms: 'editor-terms',
+	eventShows: 'editor-event-shows',
+	eventType: 'editor-event-type',
+	eventObserved: 'editor-event-observed',
+	eventCondition: 'editor-event-condition',
+	eventCovering: 'editor-event-covering',
 	doc: (key: string, field: string) => `editor-doc-${key}-${field}`,
 	attribution: (key: string, field: string) => `editor-attribution-${key}-${field}`,
 	source: (key: string, field: string) => `editor-source-${key}-${field}`,
@@ -322,23 +325,22 @@ export function validate(form: ArtworkForm, context: Context): FieldError[] {
 	return errors;
 }
 
-export type StepState = 'complete' | 'to_complete' | 'to_fix';
-
 /**
  * The state of each step, a word and never a colour alone: *complete* with no error,
  * *to fix* once a submit has listed errors in it, *to complete* before that. The Review
  * step is complete when everything before it is.
  */
 export function stepStates(
-	errors: readonly FieldError[],
-	attempted: boolean
-): Record<Step, StepState> {
-	const states = {} as Record<Step, StepState>;
-	for (const step of STEPS) {
+	errors: readonly StepError[],
+	attempted: boolean,
+	steps: readonly string[] = STEPS
+): Record<string, StepState> {
+	const states: Record<string, StepState> = {};
+	for (const step of steps) {
 		const own = errors.filter((each) => each.step === step);
 		states[step] = own.length === 0 ? 'complete' : attempted ? 'to_fix' : 'to_complete';
 	}
-	const others = STEPS.filter((step) => step !== 'review');
+	const others = steps.filter((step) => step !== 'review');
 	if (states.review === 'complete' && others.some((step) => states[step] !== 'complete')) {
 		states.review = 'to_complete';
 	}
@@ -346,8 +348,96 @@ export function stepStates(
 }
 
 /** The first step that is not complete: where a resumed draft opens. */
-export function firstIncomplete(errors: readonly FieldError[]): Step {
-	return STEPS.find((step) => errors.some((each) => each.step === step)) ?? 'review';
+export function firstIncomplete(
+	errors: readonly StepError[],
+	steps: readonly string[] = STEPS
+): string {
+	return steps.find((step) => errors.some((each) => each.step === step)) ?? 'review';
+}
+
+/**
+ * What documentation added to an Artwork, or a History event reported on it, must satisfy.
+ * The files and the Sources follow the rules of a new Artwork's; the event is asked in the
+ * `change` step (add documentation) or the `event` step, with its evidence on the next.
+ */
+export function validateAttached(
+	form: ArtworkForm,
+	context: Context,
+	flavour: Exclude<Flavour, 'new'>
+): FieldError[] {
+	const errors: FieldError[] = [];
+	const files: Step = flavour === 'event' ? 'evidence' : 'documentation';
+	const sources: Step = flavour === 'event' ? 'evidence' : 'sources';
+	const { event } = form;
+
+	if (flavour === 'documentation') {
+		if (form.documentation.length === 0) {
+			errors.push({
+				id: ids.documentationAdd,
+				step: 'documentation',
+				code: 'documentation.required'
+			});
+		}
+		if (event.shows === null) {
+			errors.push({ id: ids.eventShows, step: 'change', code: 'event.shows_required' });
+		}
+	}
+	const uploaded = form.documentation.filter((each) => each.medium !== 'link').length;
+	if (uploaded > MAX_UPLOADED) {
+		errors.push({
+			id: ids.documentationAdd,
+			step: files,
+			code: 'documentation.too_many_files',
+			params: { max: MAX_UPLOADED }
+		});
+	}
+	for (const item of form.documentation) {
+		errors.push(...documentErrors(item, context).map((each) => ({ ...each, step: files })));
+	}
+
+	if (flavour === 'event' || event.shows === true) {
+		const step: Step = flavour === 'event' ? 'event' : 'change';
+		if (!event.type) errors.push({ id: ids.eventType, step, code: 'event.type_required' });
+		errors.push(
+			...dateErrors(
+				event.observed,
+				ids.eventObserved,
+				step,
+				context.today,
+				true,
+				'event.observed_required'
+			)
+		);
+		if (event.type === 'condition_recorded' && !event.condition) {
+			errors.push({ id: ids.eventCondition, step, code: 'condition.required' });
+		}
+	}
+
+	for (const source of form.sources) {
+		const id = (field: string) => ids.source(source.key, field);
+		if (!source.title.trim())
+			errors.push({ id: id('title'), step: sources, code: 'source.title_required' });
+		if (source.url.trim() && !URL_PATTERN.test(source.url.trim())) {
+			errors.push({ id: id('url'), step: sources, code: 'source.url_invalid' });
+		}
+	}
+
+	if (context.acceptanceRequired && !context.termsAccepted) {
+		errors.push({ id: ids.terms, step: 'review', code: 'terms.required' });
+	}
+	return errors;
+}
+
+/** Whether nothing the person entered is in the form of an Artwork that exists. */
+export function isBlankAttached(form: ArtworkForm): boolean {
+	return (
+		form.documentation.length === 0 &&
+		form.sources.length === 0 &&
+		form.event.shows === null &&
+		form.event.type === '' &&
+		isEmptyDate(form.event.observed) &&
+		form.event.note === ''
+	);
 }
 
 /** Whether nothing the person entered is in the form: a draft just started. */
@@ -374,7 +464,8 @@ export function isBlank(form: ArtworkForm): boolean {
  * already listed everything it can; a code it did not foresee points at the step that
  * owns its record kind, and otherwise at the Review step.
  */
-export function serverError(code: string): FieldError {
+export function serverError(code: string, flavour: Flavour = 'new'): FieldError {
+	if (flavour !== 'new') return attachedServerError(code, flavour);
 	const prefix = code.split('.')[0];
 	const byPrefix: Record<string, [Step, string]> = {
 		location: ['location', ids.coordinates],
@@ -395,5 +486,25 @@ export function serverError(code: string): FieldError {
 		'moderation.terms_not_accepted': ['review', ids.terms]
 	};
 	const [step, id] = special[code] ?? byPrefix[prefix] ?? ['review', 'editor-submit'];
+	return { id, step, code };
+}
+
+/** The same for the two editors of an Artwork that exists. */
+function attachedServerError(code: string, flavour: Exclude<Flavour, 'new'>): FieldError {
+	const event: Step = flavour === 'event' ? 'event' : 'change';
+	const files: Step = flavour === 'event' ? 'evidence' : 'documentation';
+	const sources: Step = flavour === 'event' ? 'evidence' : 'sources';
+	const byPrefix: Record<string, [Step, string]> = {
+		documentation_item: [files, ids.documentationAdd],
+		history_event: [event, ids.eventType],
+		source: [sources, 'editor-sources-add'],
+		uncertain_date: [event, ids.eventObserved]
+	};
+	const special: Record<string, [Step, string]> = {
+		'moderation.empty_changeset': [files, ids.documentationAdd],
+		'moderation.too_many_files': [files, ids.documentationAdd],
+		'moderation.terms_not_accepted': ['review', ids.terms]
+	};
+	const [step, id] = special[code] ?? byPrefix[code.split('.')[0]] ?? ['review', 'editor-submit'];
 	return { id, step, code };
 }

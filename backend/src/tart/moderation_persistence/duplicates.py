@@ -54,6 +54,24 @@ class PostgresDuplicateQuery:
         )
         return [NearLocation(row.id, row.distance) for row in rows]
 
+    async def within_area(self, area: Geometry) -> tuple[int, list[int]]:
+        """What a proposed Area would cover: the public Locations that fall within it, and the
+        ids of the public Areas it overlaps (overlaps are allowed)."""
+        shape = func.ST_SetSRID(func.ST_GeomFromGeoJSON(json.dumps(area.to_geojson())), 4326)
+        locations = await self.connection.scalar(
+            select(func.count())
+            .select_from(t.location)
+            .join(t.record, t.record.c.id == t.location.c.id)
+            .where(*_PUBLIC, func.ST_Intersects(shape, t.location.c.geometry))
+        )
+        areas = await self.connection.scalars(
+            select(t.area.c.id)
+            .join(t.record, t.record.c.id == t.area.c.id)
+            .where(*_PUBLIC, func.ST_Intersects(shape, t.area.c.geometry))
+            .order_by(t.area.c.id)
+        )
+        return locations or 0, list(areas)
+
     async def named_records(self, kind: Kind) -> list[NamedRecord]:
         table = {
             Kind.ARTIST: t.artist,

@@ -14,7 +14,7 @@
 		type Drawing,
 		type Event
 	} from './drawing';
-	import type { Camera, ClickEvent, View } from './engine';
+	import type { Camera, ClickEvent, ReferenceShape, View } from './engine';
 	import Map from './Map.svelte';
 	import type { Unavailable } from './style';
 
@@ -33,7 +33,8 @@
 		boundary,
 		inside,
 		attribution,
-		onunavailable
+		onunavailable,
+		reference = null
 	}: {
 		drawing: Drawing;
 		ondrawing: (drawing: Drawing) => void;
@@ -44,6 +45,8 @@
 		inside: Bounds;
 		attribution: readonly { text: string; url: string }[];
 		onunavailable: (reason: Unavailable) => void;
+		/** The current geometry of a record being corrected, drawn grey under the drawing. */
+		reference?: ReferenceShape | null;
 	} = $props();
 
 	let mode = $state<'click' | 'crosshair'>('click');
@@ -57,7 +60,8 @@
 		vertices,
 		ring: drawing.shape === 'polygon',
 		selected,
-		midpoints: drawing.shape !== 'point'
+		midpoints: drawing.shape !== 'point',
+		reference
 	});
 	const canEdit = $derived(drawing.shape !== 'point');
 	const hasSelection = $derived(selected !== null);

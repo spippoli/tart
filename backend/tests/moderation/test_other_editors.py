@@ -268,6 +268,41 @@ def test_criterion_47_an_area_that_is_not_a_polygon_or_leaves_the_boundary_is_re
         assert refusal(migrated_database, submitting) == code
 
 
+@pytest.fixture
+def api(migrated_database: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Api]:
+    monkeypatch.setenv("STORAGE_PATH", str(tmp_path / "storage"))
+    with open_api(migrated_database) as started:
+        yield started
+
+
+# Acceptance criterion 47 (the readout of the Polygon step comes from the API).
+def test_criterion_47_the_area_readout_counts_the_locations_within_and_the_areas_overlapped(
+    api: Api, migrated_database: str
+) -> None:
+    async def setup(connection: AsyncConnection) -> None:
+        await write(
+            connection,
+            Create(New("inside"), location(geometry=point(12.48, 41.89))),
+            Create(New("outside"), location(geometry=point(12.55, 41.94))),
+            Create(New("old"), Area("Fictional rione", square(12.485, 41.885, 12.50, 41.91))),
+        )
+
+    run(migrated_database, setup)
+    drawn = square(12.47, 41.88, 12.49, 41.90).to_geojson()
+    assert (
+        api.client.post("/api/contribution/duplicates/area", json={"geometry": drawn}).status_code
+        == 401
+    )
+    api.sign_in("ada@example.org")
+
+    readout = api.client.post("/api/contribution/duplicates/area", json={"geometry": drawn})
+
+    assert readout.status_code == 200, readout.text
+    body = readout.json()
+    assert body["locations"] == 1
+    assert [each["name"] for each in body["overlapping"]] == ["Fictional rione"]
+
+
 # Acceptance criterion 47.
 def test_criterion_47_an_overlapping_area_is_accepted(migrated_database: str) -> None:
     async def work(connection: AsyncConnection) -> None:
@@ -322,13 +357,6 @@ def test_criterion_48_a_geometry_edit_creates_no_history_event_on_approval(
         ]
 
     run(migrated_database, work)
-
-
-@pytest.fixture
-def api(migrated_database: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Api]:
-    monkeypatch.setenv("STORAGE_PATH", str(tmp_path / "storage"))
-    with open_api(migrated_database) as started:
-        yield started
 
 
 # Acceptance criterion 48 (the number of Artworks the edit shows comes from the API).

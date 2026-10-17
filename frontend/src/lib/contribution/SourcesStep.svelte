@@ -4,7 +4,7 @@
 	import * as api from './api';
 	import { errorText } from './errors';
 	import Field from './Field.svelte';
-	import type { EditorState } from './state.svelte';
+	import type { SourcesHost } from './session';
 	import { ids } from './validate';
 
 	/**
@@ -13,7 +13,7 @@
 	 * cite. A Source is created here with the Artwork, never alone. A Source whose title
 	 * is alike, or whose address is the same as an existing one, is shown without blocking.
 	 */
-	let { editor }: { editor: EditorState } = $props();
+	let { editor, intro }: { editor: SourcesHost; intro?: string } = $props();
 	const config = $derived(editor.config);
 	const form = $derived(editor.form);
 	let alike = $state<Record<string, api.NameCandidate[]>>({});
@@ -49,7 +49,7 @@
 </script>
 
 <div class="step">
-	<p>{m.editor_sources_intro()}</p>
+	<p>{intro ?? m.editor_sources_intro()}</p>
 
 	{#if form.sources.length > 0}
 		<ol class="items" aria-label={m.editor_sources_list()}>

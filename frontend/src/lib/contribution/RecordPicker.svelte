@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
 	import * as api from './api';
-	import type { EditorState } from './state.svelte';
+	import type { Session } from './session';
 
 	/**
 	 * A link picker for an Artist or a Series: search the public records by name, use one,
@@ -17,13 +17,22 @@
 		onpick,
 		oncreate
 	}: {
-		editor: EditorState;
-		kind: 'artist' | 'series';
+		editor: Pick<Session, 'announce'>;
+		kind: 'artist' | 'series' | 'site' | 'area';
 		id: string;
 		label: string;
 		onpick: (record: { id: number; name: string }) => void;
-		oncreate: (name: string) => void;
+		/** Absent: only records that exist can be picked (an Area of activity). */
+		oncreate?: (name: string) => void;
 	} = $props();
+
+	const SEARCH = { artist: 'artists', series: 'series', site: 'sites', area: 'areas' } as const;
+	const CREATE = {
+		artist: m.editor_picker_create_artist,
+		series: m.editor_picker_create_series,
+		site: m.editor_picker_create_site,
+		area: m.editor_picker_create_series
+	} as const;
 
 	let query = $state('');
 	let results = $state<api.RecordLink[] | null>(null);
@@ -34,7 +43,7 @@
 		const name = query.trim();
 		if (!name) return;
 		alike = null;
-		const found = await api.searchRecords(kind === 'artist' ? 'artists' : 'series', name);
+		const found = await api.searchRecords(SEARCH[kind], name);
 		failed = !found.ok;
 		results = found.ok ? found.value.items : null;
 	}
@@ -55,7 +64,7 @@
 	function finish(name: string) {
 		alike = null;
 		query = '';
-		oncreate(name);
+		oncreate?.(name);
 	}
 
 	function use(record: { id: number; name: string }) {
@@ -82,9 +91,11 @@
 			}}
 		/>
 		<button type="button" onclick={search}>{m.editor_picker_search()}</button>
-		<button type="button" onclick={create} disabled={!query.trim()}>
-			{kind === 'artist' ? m.editor_picker_create_artist() : m.editor_picker_create_series()}
-		</button>
+		{#if oncreate}
+			<button type="button" onclick={create} disabled={!query.trim()}>
+				{CREATE[kind]()}
+			</button>
+		{/if}
 	</div>
 
 	{#if failed}

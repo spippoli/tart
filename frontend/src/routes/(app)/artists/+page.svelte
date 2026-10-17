@@ -6,4 +6,4 @@
 	let { data }: PageProps = $props();
 </script>
 
-<IndexList index={data.index} title={m.archive_index_artists()} />
+<IndexList index={data.index} title={m.archive_index_artists()} propose="artist" />

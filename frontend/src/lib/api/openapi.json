@@ -4443,6 +4443,73 @@
         }
       }
     },
+    "/api/contribution/duplicates/area": {
+      "post": {
+        "summary": "Area Readout",
+        "description": "How many Locations a polygon would contain and which Areas it overlaps. Read-only.",
+        "operationId": "area_readout_api_contribution_duplicates_area_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaReadout"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/contribution/duplicates/names": {
       "post": {
         "summary": "Name Candidates For",
@@ -5303,6 +5370,42 @@
           "point"
         ],
         "title": "AreaLabel"
+      },
+      "AreaQuery": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Geometry"
+          }
+        },
+        "type": "object",
+        "required": [
+          "geometry"
+        ],
+        "title": "AreaQuery"
+      },
+      "AreaReadout": {
+        "properties": {
+          "locations": {
+            "type": "integer",
+            "title": "Locations"
+          },
+          "overlapping": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Overlapping"
+          }
+        },
+        "type": "object",
+        "required": [
+          "locations",
+          "overlapping"
+        ],
+        "title": "AreaReadout",
+        "description": "What a drawn Area covers, for the text readout of the Polygon step."
       },
       "ArtistKind": {
         "type": "string",

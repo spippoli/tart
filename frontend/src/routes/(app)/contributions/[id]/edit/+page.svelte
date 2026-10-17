@@ -1,30 +1,76 @@
 <script lang="ts">
-	import Editor from '#lib/contribution/Editor.svelte';
+	import { kindWord } from '#lib/archive/records.ts';
+	import ArtworkEditor from '#lib/contribution/ArtworkEditor.svelte';
+	import RecordEditor from '#lib/contribution/record/RecordEditor.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import PageTitle from '#lib/shell/PageTitle.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const title = $derived.by(() => {
+		if (data.editor === 'artwork') {
+			return data.flavour === 'documentation'
+				? m.editor_title_documentation()
+				: data.flavour === 'event'
+					? m.editor_title_event()
+					: m.editor_title_new_artwork();
+		}
+		if (data.creating) {
+			return data.kind === 'area' ? m.editor_title_new_area() : m.editor_title_new_artist();
+		}
+		return m.editor_title_edit({ kind: kindWord(data.kind, data.locale) });
+	});
 </script>
 
-<PageTitle title={m.editor_title_new_artwork()} />
+<PageTitle {title} />
 
-<h1>{m.editor_title_new_artwork()}</h1>
+<h1>{title}</h1>
 
-<Editor
-	config={{
-		submissionId: data.submission.id,
-		locale: data.locale,
-		timeZone: data.timeZone,
-		contentLanguage: data.contentLanguage,
-		boundary: data.map.boundary,
-		view: data.map.view,
-		attribution: data.map.attribution,
-		expressionTypes: data.expressionTypes,
-		surfaceTypes: data.surfaceTypes,
-		licences: data.licences,
-		terms: data.terms
-	}}
-	workingCopy={data.workingCopy}
-	lastAutosave={data.submission.lastAutosave}
-/>
+{#if data.editor === 'artwork'}
+	<ArtworkEditor
+		config={{
+			submissionId: data.submission.id,
+			locale: data.locale,
+			timeZone: data.timeZone,
+			contentLanguage: data.contentLanguage,
+			boundary: data.map.boundary,
+			view: data.map.view,
+			attribution: data.map.attribution,
+			expressionTypes: data.expressionTypes,
+			surfaceTypes: data.surfaceTypes,
+			licences: data.licences,
+			terms: data.terms,
+			flavour: data.flavour,
+			target: 'target' in data ? data.target : undefined
+		}}
+		workingCopy={data.workingCopy}
+		lastAutosave={data.submission.lastAutosave}
+	/>
+{:else}
+	<RecordEditor
+		config={{
+			submissionId: data.submission.id,
+			locale: data.locale,
+			timeZone: data.timeZone,
+			contentLanguage: data.contentLanguage,
+			terms: data.terms,
+			kind: data.kind,
+			creating: data.creating,
+			targetId: data.targetId,
+			current: data.current as Record<string, never>,
+			links: data.links,
+			redactedFields: data.redactedFields,
+			artworkCount: data.artworkCount,
+			related: data.related,
+			surfaceTypes: data.surfaceTypes,
+			expressionTypes: data.expressionTypes,
+			licences: data.licences,
+			boundary: data.map.boundary,
+			view: data.map.view,
+			attribution: data.map.attribution
+		}}
+		workingCopy={data.workingCopy}
+		lastAutosave={data.submission.lastAutosave}
+	/>
+{/if}

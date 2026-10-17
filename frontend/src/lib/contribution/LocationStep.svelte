@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { locationTitleText, vocabularyLabels } from '#lib/archive/records.ts';
+	import { vocabularyLabels } from '#lib/archive/records.ts';
 	import type { Point } from '#lib/map/coordinates.ts';
 	import LocationEntry, { type Chosen, type LocationOption } from '#lib/map/LocationEntry.svelte';
 	import { m } from '#lib/paraglide/messages.js';
-	import * as api from './api';
 	import { errorText } from './errors';
 	import Field from './Field.svelte';
+	import { findLocations as find } from './find-locations';
 	import Group from './Group.svelte';
 	import DuplicateWarning from './DuplicateWarning.svelte';
 	import { PLACE_DESCRIPTION_MAX } from './form';
@@ -57,42 +57,8 @@
 		}
 	}
 
-	async function findLocations(query: { text?: string; near?: Point }): Promise<LocationOption[]> {
-		if (query.near) {
-			const found = await api.locationCandidates({
-				geometry: { type: 'Point', coordinates: query.near },
-				radius: null
-			});
-			if (!found.ok) return [];
-			return found.value.candidates.map((candidate) => ({
-				id: String(candidate.location.id),
-				title: locationTitleText(
-					candidate.location.id,
-					candidate.location.title,
-					surfaceLabel,
-					config.locale
-				)
-			}));
-		}
-		const text = (query.text ?? '').trim();
-		if (text.length < 2) return [];
-		const found = await api.searchArtworks(text);
-		if (!found.ok) return [];
-		const byLocation: Record<number, { title: string; artworks: string[] }> = {};
-		for (const entry of found.value.entries) {
-			const place = entry.site?.name ?? entry.area?.name ?? null;
-			byLocation[entry.location] ??= {
-				title: place ?? m.archive_location_fallback({ id: String(entry.location) }),
-				artworks: []
-			};
-			byLocation[entry.location].artworks.push(entry.title ?? m.archive_untitled());
-		}
-		return Object.entries(byLocation).map(([id, found]) => ({
-			id,
-			title: found.title,
-			description: found.artworks.join(', ')
-		}));
-	}
+	const findLocations = (query: { text?: string; near?: Point }): Promise<LocationOption[]> =>
+		find(query, surfaceLabel, config.locale);
 
 	const radiusProblem = $derived(
 		editor.errorAt(ids.radius) ? errorText(editor.errorAt(ids.radius)!.code) : null

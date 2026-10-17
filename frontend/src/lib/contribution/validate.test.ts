@@ -82,7 +82,7 @@ describe('validating a new Artwork on submit', () => {
 			'artwork.expression_types_required',
 			'attribution.choice_required'
 		]);
-		const order = errors.map((each) => STEPS.indexOf(each.step));
+		const order = errors.map((each) => (STEPS as readonly string[]).indexOf(each.step));
 		expect(order).toEqual([...order].sort((a, b) => a - b));
 	});
 

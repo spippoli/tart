@@ -938,6 +938,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contribution/duplicates/area": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Area Readout
+         * @description How many Locations a polygon would contain and which Areas it overlaps. Read-only.
+         */
+        post: operations["area_readout_api_contribution_duplicates_area_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contribution/duplicates/names": {
         parameters: {
             query?: never;
@@ -1187,6 +1207,23 @@ export interface components {
             name: string;
             /** Point */
             point: number[];
+        };
+        /** AreaQuery */
+        AreaQuery: {
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * AreaReadout
+         * @description What a drawn Area covers, for the text readout of the Polygon step.
+         */
+        AreaReadout: {
+            /** Locations */
+            locations: number;
+            /** Overlapping */
+            overlapping: components["schemas"]["RecordLink"][];
         };
         /**
          * ArtistKind
@@ -5466,6 +5503,50 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    area_readout_api_contribution_duplicates_area_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                tart_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AreaQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaReadout"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,77 +1,55 @@
 <script lang="ts">
-	import { onMount, tick, untrack } from 'svelte';
+	import { onMount, tick, untrack, type Snippet } from 'svelte';
 	import { signInHref } from '#lib/auth/next.ts';
 	import { formatWait } from '#lib/i18n/format.ts';
 	import { m } from '#lib/paraglide/messages.js';
 	import { localizeHref } from '#lib/paraglide/runtime.js';
 	import * as api from './api';
-	import ArtworkStep from './ArtworkStep.svelte';
-	import AttributionStep from './AttributionStep.svelte';
-	import CreationStep from './CreationStep.svelte';
-	import DocumentationStep from './DocumentationStep.svelte';
 	import { errorText } from './errors';
-	import { placementKey, STEPS, type Step } from './form';
-	import LocationStep from './LocationStep.svelte';
-	import ReviewStep from './ReviewStep.svelte';
-	import SourcesStep from './SourcesStep.svelte';
-	import { EditorState, type EditorConfig } from './state.svelte';
-	import { serverError } from './validate';
+	import type { Session } from './session';
+	import { stateWords } from './steps';
 
 	/**
-	 * The editor of a new Artwork (Contribution and moderation spec, Submission form):
-	 * a stepper that can be walked in any order, never gating, with autosave to the server
-	 * draft, validation on submit only, and an error summary that takes focus. This is the
-	 * shell; each step is its own component.
+	 * The shell of every editor (Contribution and moderation spec, Submission form and
+	 * Common rules): a stepper that can be walked in any order, never gating, with autosave
+	 * to the server draft, validation on submit only, and an error summary that takes focus.
+	 * What the steps hold is the editor's: its state is a `Session`, and `panel` draws the
+	 * step that is open.
 	 */
 	let {
-		config,
-		workingCopy,
-		lastAutosave
+		editor,
+		lastAutosave,
+		panel
 	}: {
-		config: EditorConfig;
-		workingCopy: unknown;
+		editor: Session;
 		/** When the draft was last saved by its Submitter, if it ever was. */
 		lastAutosave: string | null;
+		/** The open step, with the function that submits the Submission (for the Review step). */
+		panel: Snippet<[string, () => void]>;
 	} = $props();
 
 	// The editor is made once, from what the page loaded; a draft does not change under it.
 	// svelte-ignore state_referenced_locally
-	const editor = new EditorState(config, workingCopy, lastAutosave !== null);
+	const config = editor.config;
 	// svelte-ignore state_referenced_locally
 	if (lastAutosave) editor.save = { kind: 'saved', at: new Date(lastAutosave) };
-	// svelte-ignore state_referenced_locally
 	const id = config.submissionId;
-	// svelte-ignore state_referenced_locally
 	const format = { locale: config.locale, timeZone: config.timeZone };
 
 	// ---- steps ----
 
-	const names: Record<Step, () => string> = {
-		location: m.editor_step_location,
-		documentation: m.editor_step_documentation,
-		artwork: m.editor_step_artwork,
-		attribution: m.editor_step_attribution,
-		creation: m.editor_step_creation,
-		sources: m.editor_step_sources,
-		review: m.editor_step_review
-	};
-	const stateWords = {
-		complete: m.editor_state_complete,
-		to_complete: m.editor_state_to_complete,
-		to_fix: m.editor_state_to_fix
-	};
 	let heading = $state<HTMLElement>();
 	let summary = $state<HTMLElement>();
 
-	async function go(step: Step) {
+	async function go(step: string) {
 		editor.step = step;
 		await tick();
 		heading?.focus();
 	}
 
-	const position = $derived(STEPS.indexOf(editor.step));
+	const position = $derived(editor.steps.indexOf(editor.step));
 
-	async function follow(event: MouseEvent, error: { id: string; step: Step }) {
+	async function follow(event: MouseEvent, error: { id: string; step: string }) {
 		event.preventDefault();
 		editor.step = error.step;
 		await tick();
@@ -143,33 +121,6 @@
 		return () => window.removeEventListener('beforeunload', warn);
 	});
 
-	// ---- the duplicate warning: candidates for the placement, wherever the person is ----
-
-	let token = 0;
-	$effect(() => {
-		const location = editor.form.location;
-		const key = placementKey(location);
-		const place = location.existing
-			? { locationId: location.existing.id }
-			: location.geometry
-				? { geometry: location.geometry, radius: location.radius }
-				: null;
-		untrack(() => {
-			if (!place || !key) {
-				editor.candidates = [];
-				editor.candidatesFor = null;
-				return;
-			}
-			if (editor.candidatesFor === key) return;
-			const mine = ++token;
-			void api.locationCandidates(place).then((out) => {
-				if (mine !== token) return;
-				editor.candidates = out.ok ? out.value.candidates : [];
-				editor.candidatesFor = key;
-			});
-		});
-	});
-
 	/**
 	 * Leaves the editor for a page of this app. A full page load, not a client navigation:
 	 * the next page then reads the Submissions afresh, and nothing of the editor stays.
@@ -207,7 +158,7 @@
 			window.location.href = signInHref(window.location);
 			return;
 		}
-		const refusal = serverError(out.failure.code);
+		const refusal = editor.serverError(out.failure.code);
 		refusal.params = { wait: waitWords(out.failure) };
 		editor.refused = [refusal];
 		editor.announce(m.editor_summary_announcement({ count: 1 }));
@@ -244,7 +195,7 @@
 
 	{#if editor.resumed}
 		<aside class="resumed" aria-label={m.editor_resumed_label()}>
-			<p>{m.editor_resumed({ step: names[editor.resumed]() })}</p>
+			<p>{m.editor_resumed({ step: editor.stepName(editor.resumed) })}</p>
 			<button type="button" onclick={() => (editor.resumed = null)}>{m.editor_dismiss()}</button>
 		</aside>
 	{/if}
@@ -263,7 +214,7 @@
 				{#each editor.shown as error (error.id + error.code)}
 					<li>
 						<a href="#{error.id}" onclick={(event) => follow(event, error)}>
-							<span class="where">{names[error.step]()}:</span>
+							<span class="where">{editor.stepName(error.step)}:</span>
 							{errorText(error.code, error.params)}
 						</a>
 					</li>
@@ -274,7 +225,7 @@
 
 	<nav aria-label={m.editor_steps()}>
 		<ol class="steps">
-			{#each STEPS as step, index (step)}
+			{#each editor.steps as step, index (step)}
 				<li>
 					<button
 						type="button"
@@ -283,7 +234,7 @@
 						onclick={() => go(step)}
 					>
 						<span class="number">{index + 1}.</span>
-						<span class="name">{names[step]()}</span>
+						<span class="name">{editor.stepName(step)}</span>
 						<span class="state">{stateWords[editor.states[step]]()}</span>
 					</button>
 				</li>
@@ -295,35 +246,21 @@
 		<h2 id="editor-step-heading" tabindex="-1" bind:this={heading}>
 			{m.editor_step_heading({
 				number: position + 1,
-				count: STEPS.length,
-				name: names[editor.step]()
+				count: editor.steps.length,
+				name: editor.stepName(editor.step)
 			})}
 		</h2>
-		{#if editor.step === 'location'}
-			<LocationStep {editor} />
-		{:else if editor.step === 'documentation'}
-			<DocumentationStep {editor} />
-		{:else if editor.step === 'artwork'}
-			<ArtworkStep {editor} />
-		{:else if editor.step === 'attribution'}
-			<AttributionStep {editor} />
-		{:else if editor.step === 'creation'}
-			<CreationStep {editor} />
-		{:else if editor.step === 'sources'}
-			<SourcesStep {editor} />
-		{:else}
-			<ReviewStep {editor} onsubmit={submit} />
-		{/if}
+		{@render panel(editor.step, submit)}
 	</section>
 
 	<div class="movement">
-		<button type="button" disabled={position === 0} onclick={() => go(STEPS[position - 1])}>
+		<button type="button" disabled={position === 0} onclick={() => go(editor.steps[position - 1])}>
 			{m.editor_previous()}
 		</button>
 		<button
 			type="button"
-			disabled={position === STEPS.length - 1}
-			onclick={() => go(STEPS[position + 1])}
+			disabled={position === editor.steps.length - 1}
+			onclick={() => go(editor.steps[position + 1])}
 		>
 			{m.editor_next()}
 		</button>

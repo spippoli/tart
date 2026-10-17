@@ -11,25 +11,36 @@
 	 * for now), "Report", and the link to `/revisions`. Contribution goes through
 	 * sign-in for an anonymous visitor, who comes back here.
 	 */
-	let {
-		kind,
-		id,
-		path,
-		contribute = false
-	}: { kind: Kind; id: number; path: string; contribute?: boolean } = $props();
+	let { kind, id, path }: { kind: Kind; id: number; path: string } = $props();
 	const context = archiveContext();
-	const contributeHref = $derived(
-		page.data.user ? localizeHref('/contribute') : signInHref(page.url)
-	);
+	const signedIn = $derived(Boolean(page.data.user));
+	const signIn = $derived(signInHref(page.url));
+	const start = $derived(`${localizeHref('/contribute')}?/edit`);
 </script>
+
+{#snippet action(flavour: string, label: string)}
+	<li>
+		{#if signedIn}
+			<form method="post" action={start}>
+				<input type="hidden" name="kind" value={kind} />
+				<input type="hidden" name="id" value={id} />
+				<input type="hidden" name="flavour" value={flavour} />
+				<button type="submit" class="link">{label}</button>
+			</form>
+		{:else}
+			<a href={signIn}>{label}</a>
+		{/if}
+	</li>
+{/snippet}
 
 <section class="actions" aria-labelledby="record-actions">
 	<h2 id="record-actions">{m.archive_actions_heading()}</h2>
 	<ul>
-		{#if contribute}
-			<li><a href={contributeHref}>{m.archive_action_propose_edit()}</a></li>
-			<li><a href={contributeHref}>{m.archive_action_add_documentation()}</a></li>
-			<li><a href={contributeHref}>{m.archive_action_report_condition()}</a></li>
+		{@render action('edit', m.archive_action_propose_edit())}
+		{#if kind === 'artwork'}
+			{@render action('documentation', m.archive_action_add_documentation())}
+			{@render action('event', m.archive_action_report_condition())}
+			{@render action('facts', m.archive_action_other_facts())}
 		{/if}
 		<li><a href={reportHref(context.locale, kind, id)}>{m.archive_action_report()}</a></li>
 		<li><a href={revisionsHref(kind, path)}>{m.archive_revisions_link()}</a></li>
@@ -43,5 +54,15 @@
 		gap: 0.5rem 1.5rem;
 		padding: 0;
 		list-style: none;
+	}
+
+	.link {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		padding: 0;
+		text-decoration: underline;
+		cursor: pointer;
 	}
 </style>
