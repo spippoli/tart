@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 
 // The Contribute hub, My contributions, and the Submission page as the Submitter sees it
 // (Contribution and moderation spec, acceptance criteria 38, 40, and 41). The stand-in API
@@ -41,6 +42,7 @@ async function signIn(page: Page, email: string, next: string, language: Languag
 	await page.getByLabel(labels.code, { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
 	await expect(page).toHaveURL(next);
+	await hydrated(page);
 }
 
 async function expectNoViolations(page: Page) {

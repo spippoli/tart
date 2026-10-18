@@ -6,7 +6,8 @@
  * state of criterion 37 comes with them.
  */
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 import { readFileSync } from 'node:fs';
 
 const ids: Record<string, number> = JSON.parse(
@@ -50,6 +51,7 @@ async function signInAs(page: Page, email: string) {
 	await page.getByLabel('Code', { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: 'Sign in' }).click();
 	await page.waitForURL((url) => !url.pathname.includes('sign-in'));
+	await hydrated(page);
 }
 
 for (const [language, paths] of Object.entries(prefixes)) {

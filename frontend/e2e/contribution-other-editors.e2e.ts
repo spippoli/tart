@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 import { createHash } from 'node:crypto';
 import { serveStyles } from './map-style';
 
@@ -71,8 +72,6 @@ async function startDraft(
 async function open(page: Page, id: number, language: Language = 'en') {
 	await page.goto(path(language, id));
 	await expect(page.locator('.editor')).toBeVisible();
-	// The status text is server-rendered; the steps and buttons work once the page has hydrated.
-	await expect(page.locator('.editor[data-hydrated="true"]')).toBeVisible();
 }
 
 async function axe(page: Page, label: string) {

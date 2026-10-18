@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 
 // The Invitations page (Contribution and moderation spec, Invitations). The third server of
 // the Playwright configuration is an Instance with `registration = invite`; the stand-in API
@@ -33,7 +34,7 @@ async function signIn(page: Page, email: string, language: 'it' | 'en' = 'en') {
 	await page.getByLabel(labels.code, { exact: true }).fill(CODE);
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
 	await expect(page).toHaveURL(`${INVITE}${next}`);
-	await expect(page.locator('html[data-hydrated="true"]')).toBeAttached();
+	await hydrated(page);
 }
 
 test('AC 36: the Moderator sees every Invitation with its status and issuer', async ({

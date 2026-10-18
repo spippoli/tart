@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 import { createHash } from 'node:crypto';
 import { serveStyles } from './map-style';
 
@@ -214,8 +215,6 @@ const heading = (page: Page, language: Language, index: number) =>
 async function open(page: Page, id: number, language: Language = 'en') {
 	await page.goto(WORDS[language].path(id));
 	await expect(page.locator('.editor')).toBeVisible();
-	// The stepper works once the page has hydrated; the saved-status text is server-rendered.
-	await expect(page.locator('.editor[data-hydrated="true"]')).toBeVisible();
 }
 
 async function axe(page: Page, label: string) {
