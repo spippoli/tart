@@ -140,6 +140,8 @@ class _History:
             for index, change in enumerate(revision.changes):
                 position = (revision.id, index)
                 match change["op"]:
+                    case "merge" | "unmerge":
+                        continue
                     case "set":
                         key: tuple[str, Any] = (str(change["field"]), None)
                     case "add":
@@ -401,6 +403,16 @@ class Reader:
             name=await self._name(record_id),
             location_title=title,
         )
+
+    async def known_links(self, ids: Iterable[RecordId]) -> dict[RecordId, v.RecordLink]:
+        """Links to the records that exist and are not withdrawn, merged ones included."""
+        wanted = list(dict.fromkeys(ids))
+        await self._load_states(wanted)
+        return {
+            id_: await self.link(id_)
+            for id_ in wanted
+            if (state := self._states[id_]) is not None and state.withdrawn_at is None
+        }
 
     async def links(self, ids: Iterable[RecordId | None]) -> list[v.RecordLink]:
         return [await self.link(id_) for id_ in await self.listed(ids)]
@@ -1119,7 +1131,7 @@ class Reader:
             redacted_fields=shown.redacted_fields,
             links={
                 str(link.id): link
-                for link in await self.links(sorted(_references(None, {"record": record})))
+                for link in await self.links(sorted(referenced_ids(None, {"record": record})))
             },
             artwork_count=count,
         )
@@ -1146,6 +1158,20 @@ class Reader:
             changes = []
             for index, change in enumerate(revision.changes):
                 position = (revision.id, index)
+                if change["op"] in ("merge", "unmerge"):
+                    # The record folded into this one, or brought back from it.
+                    folded = int(change["record"])  # type: ignore[arg-type]
+                    await self._load_states([folded])
+                    state_of_folded = self._states[folded]
+                    changes.append(
+                        v.Change(
+                            op=change["op"],  # type: ignore[arg-type]
+                            record=await self.link(folded)
+                            if state_of_folded is not None and state_of_folded.withdrawn_at is None
+                            else None,
+                        )
+                    )
+                    continue
                 redacted_at = history.redacted.get(position)
                 public = not self.viewer.moderator
                 values = {name: change.get(name) for name in ("old", "new", "item")}
@@ -1154,7 +1180,9 @@ class Reader:
                 old_redacted = position in history.old_hidden
                 if old_redacted and public:
                     values["old"] = None
-                referenced |= _references(change.get("field") or change.get("collection"), values)
+                referenced |= referenced_ids(
+                    change.get("field") or change.get("collection"), values
+                )
                 changes.append(
                     v.Change(
                         op=change["op"],
@@ -1262,7 +1290,7 @@ _REFERENCE_KEYS = frozenset(
 )
 
 
-def _references(name: Any, values: dict[str, Any]) -> set[int]:
+def referenced_ids(name: Any, values: dict[str, Any]) -> set[int]:
     """The record ids a change refers to: the links of fields and items."""
     found: set[int] = set()
 

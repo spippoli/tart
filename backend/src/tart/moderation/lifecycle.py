@@ -230,15 +230,19 @@ def rebase_working_copy(
     now: datetime,
     *,
     target_id: int,
-    base_revision: int,
     content: Json,
+    base_revision: int | None = None,
+    base_revisions: tuple[int, ...] | None = None,
 ) -> Submission:
     """The Submitter opens the editor on an Outdated edit: its Base revision (and, for a
     merged target, its target) moves to the current Revision and the rebased content is
     the working copy. The round the Moderators see does not change."""
     if submission.target_id is None:
         raise ModerationError("moderation.cannot_rebase")
-    moved = replace(submission, target_id=target_id, base_revisions=(base_revision,))
+    if base_revisions is None:
+        assert base_revision is not None
+        base_revisions = (base_revision,)
+    moved = replace(submission, target_id=target_id, base_revisions=base_revisions)
     return save_working_copy(moved, actor, now, content)
 
 

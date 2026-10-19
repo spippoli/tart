@@ -16,7 +16,16 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from typing import Any
 
-from tart.archive.changeset import AddItem, ChangeItem, Changeset, Create, Operation, RemoveItem
+from tart.archive.changeset import (
+    AddItem,
+    ChangeItem,
+    Changeset,
+    Create,
+    Merge,
+    Operation,
+    RemoveItem,
+    Unmerge,
+)
 from tart.archive.changeset_codec import decode_item
 from tart.archive.codec import Json
 from tart.archive.records import RECORD_TYPES, Kind, RecordId, item_key
@@ -37,6 +46,8 @@ class Reason(StrEnum):
     """A Merge's record has a Revision newer than its Base revision."""
     NOT_PUBLIC = "not_public"
     OPEN_NOTICE = "open_notice"
+    NOT_MERGED = "not_merged"
+    """An Unmerge's record is no longer merged into the survivor."""
 
 
 @dataclass(frozen=True)
@@ -63,7 +74,7 @@ class RecordChange:
 
 def slot_of(operation: Operation) -> Slot | None:
     match operation:
-        case Create():
+        case Create() | Merge() | Unmerge():
             return None
         case AddItem() | ChangeItem():
             return ("item", operation.collection, item_key(operation.item))
@@ -147,7 +158,7 @@ class Rebase:
 
 
 def _retarget(operation: Operation, old: RecordId, new: RecordId) -> Operation:
-    if isinstance(operation, Create) or operation.target != old:
+    if isinstance(operation, Create | Merge | Unmerge) or operation.target != old:
         return operation
     return replace(operation, target=new)
 
@@ -183,3 +194,41 @@ def rebase(
     )
     rebased = replace(content, operations=kept, conflicts=(*conflicts, *raised))
     return Rebase(state.record_id, state.revision_id, rebased)
+
+
+@dataclass(frozen=True)
+class MergeRebase:
+    base_revisions: tuple[int, int]
+    content: Content
+
+
+def rebase_merge(
+    content: Content,
+    into_id: RecordId,
+    states: tuple[TargetState, TargetState],
+    into_changes: Sequence[RecordChange],
+) -> MergeRebase:
+    """Move a Merge, Duplicate retirement, or Unmerge onto the current Revisions of both
+    records. While either record is not public or has an open Notice no rebase is possible,
+    as for a withdrawn target. The operations on the survivor that overlap what changed
+    since the Base revision become conflicts; the references to rewrite are recomputed
+    whenever they are listed."""
+    if any(state.withdrawn or state.open_notice or state.revision_id is None for state in states):
+        raise ModerationError("moderation.cannot_rebase")
+    mine = [
+        index
+        for index, op in enumerate(content.operations)
+        if not isinstance(op, Create | Merge | Unmerge) and op.target == into_id
+    ]
+    clashing = {
+        mine[found]: change
+        for found, change in overlaps(tuple(content.operations[i] for i in mine), into_changes)
+    }
+    kept = tuple(op for index, op in enumerate(content.operations) if index not in clashing)
+    raised = tuple(
+        Conflict(content.operations[index], change.now, change.revision_id)
+        for index, change in clashing.items()
+    )
+    rebased = replace(content, operations=kept, conflicts=(*content.conflicts, *raised))
+    assert states[0].revision_id is not None and states[1].revision_id is not None
+    return MergeRebase((states[0].revision_id, states[1].revision_id), rebased)

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import MergeSummary from '#lib/contribution/merge/MergeSummary.svelte';
 	import {
 		errorText,
 		eventText,
@@ -261,6 +262,10 @@
 			<blockquote lang={data.contentLanguage}>{decision.message}</blockquote>
 		{/if}
 	</section>
+{/if}
+
+{#if data.merge}
+	<MergeSummary review={data.merge} />
 {/if}
 
 {#if !submission.stub && submission.last_round !== null}

@@ -17,6 +17,7 @@ from tart import moderation, rate_limits
 from tart.archive.changeset import AddItem, Create
 from tart.archive.codec import Json
 from tart.archive.records import Artwork, DocumentationItem, Kind, New
+from tart.archive.revisions import Provenance
 from tart.archive.rules import InstanceRules
 from tart.archive_persistence import tables as archive_tables
 from tart.moderation import (
@@ -28,7 +29,15 @@ from tart.moderation import (
     Submission,
 )
 from tart.moderation.validation import CREATABLE
-from tart.moderation_persistence import archive_access, files, limits, service, store, terms
+from tart.moderation_persistence import (
+    archive_access,
+    files,
+    limits,
+    merging,
+    service,
+    store,
+    terms,
+)
 from tart.storage import Storage
 
 
@@ -102,6 +111,72 @@ async def start(
     await _check_draft_limit(connection, actor, now, expiry_days)
     return await store.create_draft(
         connection, user_id, kind, now, target_id=target_id, base_revisions=base_revisions
+    )
+
+
+async def start_merge(
+    connection: AsyncConnection,
+    user_id: int,
+    source_id: int,
+    into_id: int,
+    now: datetime,
+    archive_rules: InstanceRules,
+    *,
+    expiry_days: int,
+) -> Submission:
+    """Start a Merge of a record into another of the same kind, or a Duplicate retirement of
+    a Documentation item, as a draft pre-filled with the default Merge (ADR 0018). Both
+    records must be public and without an open Notice; their current Revisions are the Base
+    revisions."""
+    actor = await service.actor_for(connection, user_id)
+    kind, source_revision = await _editable_target(connection, None, source_id)
+    into_kind, into_revision = await _editable_target(connection, None, into_id)
+    if source_id == into_id:
+        raise ModerationError("moderation.unknown_target")
+    if into_kind is not kind:
+        raise ModerationError("moderation.merge_kind_mismatch")
+    await _check_draft_limit(connection, actor, now, expiry_days)
+    plan = await merging.merge_plan(connection, source_id, into_id)
+    content = Content(plan.operations)
+    if kind is Kind.DOCUMENTATION_ITEM:
+        # Items whose Artworks sit on different Locations are refused at once, with a message.
+        provenance = Provenance(0, user_id, user_id, now, now)
+        await archive_access.dry_run(connection, content.operations, provenance, archive_rules)
+    return await store.create_draft(
+        connection,
+        user_id,
+        kind,
+        now,
+        target_id=source_id,
+        base_revisions=(source_revision, into_revision),
+        working_copy=moderation.encode_content(Content(plan.operations)),
+    )
+
+
+async def start_unmerge(
+    connection: AsyncConnection, user_id: int, source_id: int, now: datetime, *, expiry_days: int
+) -> Submission:
+    """Start an Unmerge of a merged record, or of a retired Documentation item, as a draft
+    pre-filled from the Revisions of the Merge (ADR 0018)."""
+    actor = await service.actor_for(connection, user_id)
+    into_id, plan = await merging.unmerge_plan(connection, source_id)
+    source_state = await archive_access.target_state(connection, source_id)
+    into_state = await archive_access.target_state(connection, into_id)
+    kind = await _kind_of(connection, source_id)
+    if source_state is None or into_state is None or kind is None:
+        raise ModerationError("moderation.unknown_target")
+    if source_state.withdrawn or into_state.withdrawn or into_state.revision_id is None:
+        raise ModerationError("moderation.target_withdrawn")
+    assert source_state.revision_id is not None
+    await _check_draft_limit(connection, actor, now, expiry_days)
+    return await store.create_draft(
+        connection,
+        user_id,
+        kind,
+        now,
+        target_id=source_id,
+        base_revisions=(source_state.revision_id, into_state.revision_id),
+        working_copy=moderation.encode_content(Content(plan.operations)),
     )
 
 

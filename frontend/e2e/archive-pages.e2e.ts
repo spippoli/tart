@@ -4,7 +4,8 @@
  * Criterion 35 is the build's missing-key check.
  */
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 import { readFileSync } from 'node:fs';
 
 const ids: Record<string, number> = JSON.parse(
@@ -59,6 +60,8 @@ async function axe(page: Page, label: string) {
 
 for (const [language, paths] of Object.entries(segments)) {
 	test(`AC 37: ${language} record pages, indexes, and revisions pass axe`, async ({ page }) => {
+		// About thirty pages, each loaded, hydrated, and checked by axe.
+		test.slow();
 		for (const [segment, key] of records) {
 			const response = await page.goto(`${paths[segment]}/${ids[key]}`);
 			expect(response?.status(), key).toBe(200);

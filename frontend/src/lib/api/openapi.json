@@ -5300,6 +5300,412 @@
         }
       }
     },
+    "/api/contributions/merge": {
+      "post": {
+        "summary": "Start Merge",
+        "description": "Start a Merge of a record into another of the same kind (a Duplicate retirement for\nDocumentation items) as a draft pre-filled with the default Merge. Both records must be\npublic; the draft stores both current Revisions as its Base revisions. A retirement of\nitems whose Artworks sit on different Locations is refused at once.",
+        "operationId": "start_merge_api_contributions_merge_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/contributions/unmerge": {
+      "post": {
+        "summary": "Start Unmerge",
+        "description": "Start an Unmerge as a draft pre-filled from the Revisions of the Merge it undoes: the\nitems it added to the survivor are removed, and the records that referenced the folded one\nare pointed back to it. The same call undoes a Duplicate retirement.",
+        "operationId": "start_unmerge_api_contributions_unmerge_post",
+        "parameters": [
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnmergeBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/contributions/merge-candidates": {
+      "get": {
+        "summary": "Merge Candidates",
+        "description": "The public records that may be the survivor of a Merge of this one, likeliest first:\nnearby Locations (and the Artworks on them), records with an alike name, or the other\nitems of the same Artworks. Any signed-in User may ask.",
+        "operationId": "merge_candidates_api_contributions_merge_candidates_get",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Source Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Candidates"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitedError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/contributions/{submission_id}/merge": {
+      "get": {
+        "summary": "Read Merge",
+        "description": "The two records of a Merge, Duplicate retirement, or Unmerge Submission, the records\nits approval rewrites (listed afresh whenever you ask, so a Moderator always sees the\ncurrent list), and the choices the proposer has: for the Submitter and Moderators only.",
+        "operationId": "read_merge_api_contributions__submission_id__merge_get",
+        "parameters": [
+          {
+            "name": "submission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Submission Id"
+            }
+          },
+          {
+            "name": "tart_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tart Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MergeReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/media": {
       "post": {
         "summary": "Upload File",
@@ -6244,6 +6650,26 @@
         "title": "AttributionReadout",
         "description": "Both empty: \"Unknown artist\"."
       },
+      "Candidates": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "items"
+        ],
+        "title": "Candidates"
+      },
       "Certainty": {
         "type": "string",
         "enum": [
@@ -6261,7 +6687,9 @@
               "set",
               "add",
               "change",
-              "remove"
+              "remove",
+              "merge",
+              "unmerge"
             ],
             "title": "Op"
           },
@@ -6275,6 +6703,16 @@
               }
             ],
             "title": "Field"
+          },
+          "record": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "collection": {
             "anyOf": [
@@ -6591,6 +7029,30 @@
           "privacy"
         ],
         "title": "Contacts"
+      },
+      "ContradictionOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "two_creation_events",
+              "competing_attributions",
+              "different_disappearance_locations"
+            ],
+            "title": "Kind"
+          },
+          "key": {
+            "title": "Key"
+          },
+          "item": {
+            "title": "Item"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "ContradictionOut"
       },
       "ConvertBody": {
         "properties": {
@@ -7185,6 +7647,27 @@
           "reported"
         ],
         "title": "EvidenceLevel"
+      },
+      "FieldDifferenceOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source": {
+            "title": "Source"
+          },
+          "into": {
+            "title": "Into"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "source",
+          "into"
+        ],
+        "title": "FieldDifferenceOut"
       },
       "Geography": {
         "properties": {
@@ -7844,6 +8327,36 @@
           "observed_date"
         ],
         "title": "ItemEntry"
+      },
+      "ItemEntryOut": {
+        "properties": {
+          "collection": {
+            "type": "string",
+            "title": "Collection"
+          },
+          "key": {
+            "title": "Key"
+          },
+          "item": {
+            "title": "Item"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "source",
+              "into"
+            ],
+            "title": "Origin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "collection",
+          "key",
+          "item",
+          "origin"
+        ],
+        "title": "ItemEntryOut"
       },
       "Kind": {
         "type": "string",
@@ -8789,6 +9302,120 @@
         ],
         "title": "Membership"
       },
+      "MergeBody": {
+        "properties": {
+          "source_id": {
+            "type": "integer",
+            "title": "Source Id"
+          },
+          "into_id": {
+            "type": "integer",
+            "title": "Into Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "into_id"
+        ],
+        "title": "MergeBody"
+      },
+      "MergeReview": {
+        "properties": {
+          "intent": {
+            "type": "string",
+            "enum": [
+              "merge",
+              "retirement",
+              "unmerge"
+            ],
+            "title": "Intent"
+          },
+          "source": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "into": {
+            "$ref": "#/components/schemas/RecordLink"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "References"
+          },
+          "references_hidden": {
+            "type": "integer",
+            "title": "References Hidden"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemEntryOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldDifferenceOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "contradictions": {
+            "items": {
+              "$ref": "#/components/schemas/ContradictionOut"
+            },
+            "type": "array",
+            "title": "Contradictions"
+          },
+          "from_source": {
+            "items": {
+              "$ref": "#/components/schemas/ItemEntryOut"
+            },
+            "type": "array",
+            "title": "From Source"
+          },
+          "added_since": {
+            "items": {
+              "$ref": "#/components/schemas/ItemEntryOut"
+            },
+            "type": "array",
+            "title": "Added Since"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "array",
+            "title": "Skipped"
+          },
+          "records": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "type": "object",
+            "title": "Records"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "source",
+          "into",
+          "references",
+          "references_hidden",
+          "items",
+          "fields",
+          "contradictions",
+          "from_source",
+          "added_since",
+          "skipped",
+          "records"
+        ],
+        "title": "MergeReview",
+        "description": "What a Merge, Duplicate retirement, or Unmerge Submission shows beside its changeset:\nthe two records, the records the approval rewrites, and what the proposer decides."
+      },
       "NameCandidate": {
         "properties": {
           "record": {
@@ -9410,7 +10037,10 @@
             "type": "string",
             "enum": [
               "create",
-              "edit"
+              "edit",
+              "merge",
+              "retirement",
+              "unmerge"
             ],
             "title": "Intent"
           },
@@ -10179,7 +10809,10 @@
             "type": "string",
             "enum": [
               "create",
-              "edit"
+              "edit",
+              "merge",
+              "retirement",
+              "unmerge"
             ],
             "title": "Intent"
           },
@@ -10380,7 +11013,10 @@
             "type": "string",
             "enum": [
               "create",
-              "edit"
+              "edit",
+              "merge",
+              "retirement",
+              "unmerge"
             ],
             "title": "Intent"
           },
@@ -10697,6 +11333,19 @@
         ],
         "title": "UncertainDate",
         "description": "As the archive stores it: each value the first day of the unit it names."
+      },
+      "UnmergeBody": {
+        "properties": {
+          "source_id": {
+            "type": "integer",
+            "title": "Source Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id"
+        ],
+        "title": "UnmergeBody"
       },
       "UploadState": {
         "properties": {

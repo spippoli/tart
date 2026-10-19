@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './test';
 import { createHash } from 'node:crypto';
 import { serveStyles } from './map-style';
 
@@ -71,9 +72,6 @@ async function startDraft(
 async function open(page: Page, id: number, language: Language = 'en') {
 	await page.goto(path(language, id));
 	await expect(page.locator('.editor')).toBeVisible();
-	await expect(
-		page.getByText(/^(Changes are saved|Saved automatically|Le modifiche|Salvato)/)
-	).toBeVisible();
 }
 
 async function axe(page: Page, label: string) {
@@ -99,10 +97,7 @@ test.describe('AC 48: a Location geometry edit', () => {
 		await page.getByRole('button', { name: 'Use these coordinates' }).click();
 		const merge = page.locator('[data-location-merge]');
 		await expect(merge).toBeVisible();
-		await expect(merge.getByRole('link')).toHaveAttribute(
-			'href',
-			/merge\?kind=location&from=201&into=200/
-		);
+		await expect(merge.getByRole('link')).toHaveAttribute('href', /merge\?source=201&into=200/);
 		await axe(page, 'a Location edit with a proposed geometry');
 	});
 

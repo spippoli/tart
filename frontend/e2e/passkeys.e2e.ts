@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 
 // Passkeys on the Account page and the sign-in page (Foundations spec, 2), with
 // Chromium's virtual authenticator standing in for a phone or laptop passkey. The
@@ -35,6 +36,7 @@ async function signInWithCode(page: Page, email: string, next = '/en/account') {
 	await page.getByLabel('Code', { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: 'Sign in' }).click();
 	await expect(page).toHaveURL(next);
+	await hydrated(page);
 }
 
 async function addPasskey(page: Page, name: string) {

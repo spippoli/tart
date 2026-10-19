@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "name",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Ombra Supposta",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "kind",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "individual",
@@ -40,6 +42,7 @@
     {
      "op": "set",
      "field": "biography",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Artista fittizio, di cui nessuna fonte è certa.",

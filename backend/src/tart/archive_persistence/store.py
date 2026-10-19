@@ -157,6 +157,52 @@ class PostgresArchiveStore:
             found.setdefault(row.artwork_id, set()).add(row.item_id)
         return {artwork_id: frozenset(items) for artwork_id, items in found.items()}
 
+    async def redirect_of(self, record_id: RecordId) -> RecordId | None:
+        return await self.connection.scalar(
+            select(t.record.c.merged_into).where(t.record.c.id == record_id)
+        )
+
+    async def referrers_of(self, record_id: RecordId) -> frozenset[RecordId]:
+        events = select(t.history_event.c.artwork_id)
+        cited = select(t.history_event_citation.c.event_id).where(
+            t.history_event_citation.c.cited_id == record_id
+        )
+        found = union(
+            select(t.artwork.c.id).where(t.artwork.c.location_id == record_id),
+            select(t.location.c.id).where(t.location.c.site_id == record_id),
+            select(t.artwork_series.c.artwork_id).where(t.artwork_series.c.series_id == record_id),
+            select(t.attribution.c.artwork_id).where(t.attribution.c.artist_id == record_id),
+            select(t.attribution_citation.c.artwork_id).where(
+                t.attribution_citation.c.cited_id == record_id
+            ),
+            events.where(t.history_event.c.id.in_(cited)),
+            events.where(t.history_event.c.covering_artwork_id == record_id),
+            select(t.record_source.c.record_id).where(t.record_source.c.source_id == record_id),
+            select(t.artist_area.c.artist_id).where(t.artist_area.c.area_id == record_id),
+            select(t.crew_membership.c.member_id).where(
+                t.crew_membership.c.collective_id == record_id
+            ),
+            select(t.documentation_item_artwork.c.item_id).where(
+                t.documentation_item_artwork.c.artwork_id == record_id
+            ),
+            select(t.documentation_item.c.id).where(
+                t.documentation_item.c.location_id == record_id
+            ),
+        )
+        return frozenset(await self.connection.scalars(found)) - {record_id}
+
+    async def merge(self, source: RecordId, into: RecordId) -> None:
+        await self.connection.execute(
+            update(t.record)
+            .where((t.record.c.id == source) | (t.record.c.merged_into == source))
+            .values(merged_into=into)
+        )
+
+    async def unmerge(self, source: RecordId) -> None:
+        await self.connection.execute(
+            update(t.record).where(t.record.c.id == source).values(merged_into=None)
+        )
+
     async def watch(self, record_ids: Iterable[RecordId]) -> None:
         self._watched |= await self._artworks_affected_by(record_ids)
 

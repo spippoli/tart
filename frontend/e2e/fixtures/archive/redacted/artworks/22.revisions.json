@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "location",
+     "record": null,
      "collection": null,
      "old": null,
      "new": 13,
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "expression_types",
+     "record": null,
      "collection": null,
      "old": null,
      "new": [
@@ -42,6 +44,7 @@
     {
      "op": "set",
      "field": "title",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Onda fittizia",
@@ -53,6 +56,7 @@
     {
      "op": "set",
      "field": "description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": null,
@@ -64,6 +68,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "attributions",
      "old": null,
      "new": null,
@@ -81,6 +86,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "history_events",
      "old": null,
      "new": null,
@@ -105,6 +111,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "history_events",
      "old": null,
      "new": null,
@@ -129,6 +136,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "history_events",
      "old": null,
      "new": null,

@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "name",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Gatti di carta",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "description",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Serie fittizia di gatti dipinti e a stencil.",
@@ -40,6 +42,7 @@
     {
      "op": "add",
      "field": null,
+     "record": null,
      "collection": "sources",
      "old": null,
      "new": null,

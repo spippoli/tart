@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 
 // The Account page (Foundations spec, 2. Account and Email change): display name,
 // preferred language, email change, and Sign out everywhere. The stand-in API takes
@@ -27,6 +28,7 @@ async function signIn(page: Page, email: string, language: 'it' | 'en' = 'en') {
 	await page.getByLabel(labels.code, { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
 	await expect(page).toHaveURL(next);
+	await hydrated(page);
 }
 
 const section = (page: Page, name: string) => page.getByRole('region', { name });

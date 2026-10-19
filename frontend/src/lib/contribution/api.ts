@@ -84,6 +84,13 @@ export function submit(
 	);
 }
 
+/** Start a Merge, or a Duplicate retirement, of the first record into the second. */
+export function startMerge(sourceId: number, intoId: number) {
+	return attempt(() =>
+		client.POST('/api/contributions/merge', { body: { source_id: sourceId, into_id: intoId } })
+	);
+}
+
 export async function deleteDraft(id: number): Promise<Outcome<null>> {
 	try {
 		const { error, response } = await client.DELETE('/api/contributions/{submission_id}', {

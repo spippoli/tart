@@ -18,6 +18,7 @@
     {
      "op": "set",
      "field": "title",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Intervista fittizia a Nebbia Finta",
@@ -29,6 +30,7 @@
     {
      "op": "set",
      "field": "date",
+     "record": null,
      "collection": null,
      "old": null,
      "new": {
@@ -45,6 +47,7 @@
     {
      "op": "set",
      "field": "note",
+     "record": null,
      "collection": null,
      "old": null,
      "new": "Fonte fittizia: l'intervista non è mai avvenuta.",

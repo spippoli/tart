@@ -61,8 +61,7 @@
 
 	function mergeHref(into: number): string {
 		const query = new URLSearchParams({
-			kind: 'location',
-			from: String(config.targetId),
+			source: String(config.targetId),
 			into: String(into)
 		});
 		return `${localizeHref('/contribute/merge')}?${query}`;

@@ -12,8 +12,19 @@ development create records through it.
 from dataclasses import fields, is_dataclass, replace
 from typing import Any
 
-from tart.archive.changeset import AddItem, ChangeItem, Changeset, Create, Operation, SetField
+from tart.archive.changeset import (
+    AddItem,
+    ChangeItem,
+    Changeset,
+    Create,
+    Merge,
+    Operation,
+    SetField,
+    Unmerge,
+)
+from tart.archive.codec import Json
 from tart.archive.errors import ArchiveRuleViolation
+from tart.archive.merge import redirect_references
 from tart.archive.ports import ArchiveStore
 from tart.archive.records import (
     Area,
@@ -75,6 +86,10 @@ class _Changes:
         self.store = store
         self.before: dict[RecordId, Record | None] = {}
         self.after: dict[RecordId, Record] = {}
+        self.folded: list[Merge] = []
+        self.unfolded: list[Unmerge] = []
+        self.entries: dict[RecordId, list[dict[str, Json]]] = {}
+        """Change-list entries a Revision holds beside its field and item changes."""
 
     async def current(self, record_id: RecordId) -> Record | None:
         """The record as the changeset leaves it."""
@@ -310,6 +325,55 @@ async def _check_images(changes: _Changes) -> None:
             raise ArchiveRuleViolation("documentation_item.image_on_several_locations")
 
 
+async def _merge(changes: _Changes, operation: Merge) -> None:
+    """Fold the source into the surviving record: rewrite every record that referenced the
+    source, and note the Merge on the surviving record's Revision."""
+    source, into = operation.source, operation.into
+    store = changes.store
+    if source == into:
+        raise ArchiveRuleViolation("merge.same_record")
+    if source in changes.after:
+        raise ArchiveRuleViolation("merge.source_changed")
+    folded, survivor = await store.get(source), await store.get(into)
+    if folded is None or survivor is None:
+        raise ArchiveRuleViolation("changeset.unknown_record")
+    if folded.KIND is not survivor.KIND:
+        raise ArchiveRuleViolation("merge.kind_mismatch")
+    if await store.redirect_of(source) is not None or await store.redirect_of(into) is not None:
+        raise ArchiveRuleViolation("merge.already_merged")
+    if await store.public_records([source, into]) != {source, into}:
+        raise ArchiveRuleViolation("merge.not_public")
+    if isinstance(folded, DocumentationItem):
+        survivor = await changes.touch(into)
+        assert isinstance(survivor, DocumentationItem)
+        locations = set()
+        for artwork_id in {*folded.artworks, *survivor.artworks}:
+            artwork = await changes.current(artwork_id)  # type: ignore[arg-type]
+            assert isinstance(artwork, Artwork)
+            locations.add(artwork.location)
+        if len(locations) > 1:
+            raise ArchiveRuleViolation("duplicate_retirement.different_locations")
+    for referrer_id in sorted(await store.referrers_of(source)):
+        referrer = await changes.touch(referrer_id)
+        changes.after[referrer_id] = redirect_references(referrer, source, into)
+    await changes.touch(into)
+    changes.entries.setdefault(into, []).append({"op": "merge", "record": source})
+    changes.folded.append(operation)
+
+
+async def _unmerge(changes: _Changes, operation: Unmerge) -> None:
+    """End the source's redirect, and note the Unmerge on the surviving record's Revision."""
+    source, into = operation.source, operation.into
+    store = changes.store
+    if await store.redirect_of(source) != into or await store.redirect_of(into) is not None:
+        raise ArchiveRuleViolation("unmerge.not_merged")
+    if await store.public_records([source, into]) != {source, into}:
+        raise ArchiveRuleViolation("merge.not_public")
+    await changes.touch(into)
+    changes.entries.setdefault(into, []).append({"op": "unmerge", "record": source})
+    changes.unfolded.append(operation)
+
+
 async def apply_changeset(
     store: ArchiveStore,
     changeset: Changeset,
@@ -338,6 +402,8 @@ async def apply_changeset(
 
     changes = _Changes(store)
     for operation in changeset:
+        if isinstance(operation, Merge | Unmerge):
+            continue
         resolved = _resolve(_with_event_ids(operation, event_ids), ids)
         if isinstance(resolved, Create):
             record_id = ids[resolved.ref.key]
@@ -346,6 +412,12 @@ async def apply_changeset(
         else:
             record = await changes.touch(resolved.target)
             changes.after[resolved.target] = _apply(record, resolved)
+
+    for operation in changeset:
+        if isinstance(operation, Merge):
+            await _merge(changes, operation)
+        elif isinstance(operation, Unmerge):
+            await _unmerge(changes, operation)
 
     for record_id, record in changes.after.items():
         check_record(record, changes.before[record_id], rules, submitted_on)
@@ -360,10 +432,17 @@ async def apply_changeset(
     await store.watch(changes.after)
     for record_id, record in changes.after.items():
         before = changes.before[record_id]
-        diff = change_list(before, record)
+        diff = (*changes.entries.get(record_id, ()), *change_list(before, record))
         if not diff:
             continue
         await store.save(record_id, record, new=before is None)
         revisions.append(await store.add_revision(record_id, record.KIND, provenance, diff))
-    await store.settle([revision.record_id for revision in revisions], rules)
+    for merge in changes.folded:
+        await store.merge(merge.source, merge.into)
+    for unmerge in changes.unfolded:
+        await store.unmerge(unmerge.source)
+    settled = [revision.record_id for revision in revisions]
+    settled += [merge.source for merge in changes.folded]
+    settled += [unmerge.source for unmerge in changes.unfolded]
+    await store.settle(settled, rules)
     return tuple(revisions)

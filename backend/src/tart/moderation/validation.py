@@ -13,7 +13,7 @@ write operation, which the persistence layer does without storing anything.
 from dataclasses import replace
 from datetime import datetime
 
-from tart.archive.changeset import Changeset, Create
+from tart.archive.changeset import Changeset, Create, Merge, Unmerge
 from tart.archive.records import (
     Area,
     Artist,
@@ -67,8 +67,15 @@ def check_content(submission: Submission, content: Content) -> None:
     )
     if uploaded > MAX_UPLOADED_ITEMS:
         raise ModerationError("moderation.too_many_files")
+    merging = [
+        operation for operation in content.operations if isinstance(operation, Merge | Unmerge)
+    ]
     if submission.target_id is None:
+        if merging:
+            raise ModerationError("moderation.merge_target_required")
         _check_create(submission, content)
+    elif merging:
+        _check_merge(submission, content, merging)
     else:
         _check_edit(submission, content)
 
@@ -97,6 +104,23 @@ def _check_edit(submission: Submission, content: Content) -> None:
             continue
         if operation.target != submission.target_id and not isinstance(operation.target, New):
             raise ModerationError("moderation.second_record_edited")
+
+
+def _check_merge(submission: Submission, content: Content, merging: list[Merge | Unmerge]) -> None:
+    """A Merge, Duplicate retirement, or Unmerge: the one Submission that edits several
+    existing records (ADR 0018). It holds one such operation on its target, written against
+    the Base revisions of both records, and creates nothing."""
+    if len(merging) != 1:
+        raise ModerationError("moderation.one_merge_required")
+    if len(submission.base_revisions) != 2:
+        raise ModerationError("moderation.base_revision_required")
+    if merging[0].source != submission.target_id:
+        raise ModerationError("moderation.merge_source_mismatch")
+    for operation in content.operations:
+        if isinstance(operation, Create):
+            raise ModerationError("moderation.merge_creates_record")
+        if not isinstance(operation, Merge | Unmerge) and isinstance(operation.target, New):
+            raise ModerationError("moderation.merge_creates_record")
 
 
 def materialize(content: Content) -> Changeset:

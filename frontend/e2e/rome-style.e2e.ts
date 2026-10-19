@@ -1,4 +1,5 @@
-import { expect, test, type Route } from '@playwright/test';
+import type { Route } from '@playwright/test';
+import { expect, test } from './test';
 import { readFileSync } from 'node:fs';
 import { signShapes, SMALL_SIGN_SIZE, type SignKind } from '../src/lib/map/signs';
 import type { Tokens } from '../src/lib/map/style';

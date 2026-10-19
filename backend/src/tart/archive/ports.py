@@ -55,6 +55,23 @@ class ArchiveStore(Protocol):
         """The stored Documentation items linked to any of the Artworks."""
         ...
 
+    async def redirect_of(self, record_id: RecordId) -> RecordId | None:
+        """The record this one was merged into, if it was (always the final one)."""
+        ...
+
+    async def referrers_of(self, record_id: RecordId) -> frozenset[RecordId]:
+        """The stored records, other than itself, that link to the record."""
+        ...
+
+    async def merge(self, source: RecordId, into: RecordId) -> None:
+        """Redirect the source to the surviving record, and everything that was redirected
+        to the source too, so that a redirect never chains."""
+        ...
+
+    async def unmerge(self, source: RecordId) -> None:
+        """End the source's redirect."""
+        ...
+
     async def watch(self, record_ids: Iterable[RecordId]) -> None:
         """Before the records change: remember the Artworks they affect as they are now
         (a Documentation item about to leave an Artwork, an Area about to move)."""

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, hydrated, test } from './test';
 import { serveStyles } from './map-style';
 
 // The Moderation queue and the Submission page as a Moderator reads it (Contribution and
@@ -45,6 +46,7 @@ async function signIn(page: Page, email: string, next: string, language: Languag
 	await page.getByLabel(labels.code, { exact: true }).fill('123456');
 	await page.getByRole('main').getByRole('button', { name: labels.submit, exact: true }).click();
 	await expect(page).toHaveURL(next);
+	await hydrated(page);
 }
 
 /** Signed in as a Moderator, with the map styles and the images of the pages served. */
